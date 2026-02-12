@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import LandingLayout from '@/layouts/UserLayout.vue'
+import Hero from '@/components/Hero.vue'
+
 defineOptions({
   name: 'HomePage',
 })
 </script>
 
 <template>
-  <h1 class="text-3xl font-bold underline">Welcome to FreelabsHub</h1>
-  <p>Explore our platform to connect with freelancers and clients worldwide.</p>
+  <LandingLayout>
+    <Hero />
+  </LandingLayout>
 </template>

@@ -1,7 +1,9 @@
 <script setup lang="ts"></script>
 
 <template>
-  <router-view />
+  <div class="font-family-sans">
+    <router-view />
+  </div>
 </template>
 
 <style scoped></style>

@@ -9,7 +9,7 @@ defineOptions({
     class="min-h-screen flex items-center h-screen justify-center bg-background py-12 px-4 sm:px-6 lg:px-8"
   >
     <div class="flex flex-col items-center justify-center h-full w-1/2 mx-auto bg-background">
-      <img src="../../assets/LogoGigSource.png" alt="GigSource Logo" />
+      <img src="../../assets/LogoGigSource.svg" alt="GigSource Logo" />
       <div class="w-2/3">
         <div class="py-2 mt-6">
           <p class="mt-2 text-sm font-semibold text-gray-700">Email</p>

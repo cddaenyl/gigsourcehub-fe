@@ -4,5 +4,6 @@
 @theme {
   --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --color-background: #f8fafc;
+  --color-background-secondary: #f1f5f9;
   --color-primary: #07229e;
 }

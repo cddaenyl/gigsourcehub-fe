@@ -3,7 +3,7 @@ FROM node:22-alpine AS build
 
 WORKDIR /usr/src/app
 
-ARG VITE_APP_API_BASE_URL
+ARG VITE_BASE_API_URL
 ARG VITE_APP_TITLE
 
 COPY package.json pnpm-lock.yaml ./

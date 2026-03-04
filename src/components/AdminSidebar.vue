@@ -3,6 +3,7 @@ import { ref, h } from 'vue'
 import type { Component } from 'vue'
 import { NMenu, NAvatar, NSpace } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
+import { useRouter } from 'vue-router'
 import {
   Users,
   Bell,
@@ -11,6 +12,8 @@ import {
   LayoutBoard,
   Note,
 } from '@vicons/tabler'
+
+const router = useRouter()
 
 const userInfo = ref({
   name: 'John Doe',
@@ -35,11 +38,11 @@ const menuOptions: MenuOption[] = [
     children: [
       {
         label: 'Daftar Kandidat',
-        key: 'kandidat-list'
+        key: 'daftar-kandidat',
       },
       {
         label: 'Jadwal Interview',
-        key: 'kandidat-interview'
+        key: 'jadwal-interview'
       },
       {
         label: 'Chat',
@@ -73,9 +76,7 @@ const bottomMenuOptions: MenuOption[] = [
 ]
 
 const handleMenuSelect = (key: string) => {
-  console.log('Selected menu:', key)
-  // Add navigation logic here
-  // router.push(`/admin/${key}`)
+  router.push(`/admin/${key}`)
 }
 
 const handleBottomMenuSelect = (key: string) => {

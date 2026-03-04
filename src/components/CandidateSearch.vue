@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { NInput, NButton, NIcon, NDrawer, NDrawerContent } from 'naive-ui'
 import type { DrawerPlacement } from 'naive-ui'
-import { Search, ApiApp } from '@vicons/tabler'
+import { Search, ApiApp, Send } from '@vicons/tabler'
 
 const searchValue = ref('')
 const active = ref(false)
@@ -52,7 +52,27 @@ const activate = (place: DrawerPlacement) => {
           </div>
         </template>
         <template #footer>
-          <n-button>Footer</n-button>
+          <!-- Search Bar -->
+            <n-input
+              placeholder="Masukkan pertanyaan atau perintah anda"
+              round
+              type="textarea"
+              size="large"
+              style="border-radius: 2rem;"
+              class="py-1"
+              :autosize="{
+                minRows: 1,
+                maxRows: 3,
+              }"
+            >
+              <template #suffix>
+                <n-button circle type="primary" @click="handleSearch">
+                  <template #icon>
+                    <n-icon :component="Send" />
+                  </template>
+                </n-button>
+              </template>
+            </n-input>
         </template>
       </n-drawer-content>
     </n-drawer>

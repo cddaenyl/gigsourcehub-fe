@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineOptions({
-  name: 'LoginPage',
+  name: 'RegisterPage',
 })
 
 import { useLogin } from "@/composables/useLogin"

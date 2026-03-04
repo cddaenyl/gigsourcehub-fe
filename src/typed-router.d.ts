@@ -58,9 +58,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/sign-up/': RouteRecordInfo<
-      '/sign-up/',
-      '/sign-up',
+    '/register/': RouteRecordInfo<
+      '/register/',
+      '/register',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -108,9 +108,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/sign-up/index.vue': {
+    'src/pages/register/index.vue': {
       routes:
-        | '/sign-up/'
+        | '/register/'
       views:
         | never
     }

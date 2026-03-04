@@ -4,6 +4,7 @@ import { NDataTable } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import CandidateTableActions from './CandidateTableActions.vue'
 import CandidateBookmark from './CandidateBookmark.vue'
+import CandidateLevelChip from './CandidateLevelChip.vue'
 
 interface Candidate {
   no: number
@@ -66,7 +67,12 @@ const columns: DataTableColumns<Candidate> = [
   },
   {
     title: 'Level',
-    key: 'level'
+    key: 'level',
+    render: (row) => {
+      return h(CandidateLevelChip, {
+        level: row.level
+      })
+    }
   },
   {
     title: 'Status',

@@ -54,7 +54,7 @@ const tableData = ref<Candidate[]>([
     nama: 'Jane Smith',
     bidang: 'IT',
     appliedRole: 'Backend Developer',
-    level: 'Mid',
+    level: 'Middle',
     status: 'Interview'
   },
   {
@@ -62,7 +62,7 @@ const tableData = ref<Candidate[]>([
     nama: 'Bob Wilson',
     bidang: 'Design',
     appliedRole: 'UI/UX Designer',
-    level: 'Junior',
+    level: 'Ineligible',
     status: 'On-Boarding'
   },
   {
@@ -70,7 +70,7 @@ const tableData = ref<Candidate[]>([
     nama: 'Alice Brown',
     bidang: 'Design',
     appliedRole: 'UI/UX Designer',
-    level: 'Junior',
+    level: 'Un-Reviewed',
     status: 'On-Boarding'
   },
   {
@@ -84,9 +84,9 @@ const tableData = ref<Candidate[]>([
   {
     no: 6,
     nama: 'David Wilson',
-    bidang: 'Design',
-    appliedRole: 'UI/UX Designer',
-    level: 'Junior',
+    bidang: 'IT',
+    appliedRole: 'Full Stack Developer',
+    level: 'Senior',
     status: 'On-Boarding'
   },
   {
@@ -94,7 +94,7 @@ const tableData = ref<Candidate[]>([
     nama: 'Eve Martinez',
     bidang: 'Design',
     appliedRole: 'UI/UX Designer',
-    level: 'Junior',
+    level: 'Middle',
     status: 'On-Boarding'
   }
 ])

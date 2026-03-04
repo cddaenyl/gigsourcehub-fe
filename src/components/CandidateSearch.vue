@@ -44,9 +44,12 @@ const activate = (place: DrawerPlacement) => {
       AI Assistant
     </n-button>
     <n-drawer v-model:show="active" :width="502">
-      <n-drawer-content>
-        <template #header>
-          Header
+      <n-drawer-content closable>
+        <template #header >
+          <div class="flex space-x-4">
+            <img src="../assets/AI.svg" alt="AI logo">
+            <h3 class="text-lg font-semibold">AI Assistant</h3>
+          </div>
         </template>
         <template #footer>
           <n-button>Footer</n-button>

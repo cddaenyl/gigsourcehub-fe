@@ -36,7 +36,7 @@ const toggleBookmark = () => {
 
 <template>
   <div
-    class="cursor-pointer transition-all hover:scale-110 relative"
+    class="cursor-pointer transition-all hover:scale-110 relative justify-center items-center flex w-4"
     @click="toggleBookmark"
   >
     <div v-if="!bookmarked">
@@ -46,19 +46,8 @@ const toggleBookmark = () => {
         class="text-gray-400 hover:text-gray-600 transition-colors"
       />
     </div>
-    <div v-else class="relative inline-block">
-      <n-icon
-        :component="Bookmark"
-        :size="20"
-        class="text-blue-600"
-        style="fill: currentColor;"
-      />
-      <!-- <n-icon
-        :component="Check"
-        :size="12"
-        class="text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-        style="margin-top: -1px;"
-      /> -->
+    <div v-else class="justify-center items-center flex">
+      <img src="../assets/checked.svg" alt="Bookmarked">
     </div>
   </div>
 </template>

@@ -1,10 +1,17 @@
+<script setup lang="ts">
+import AdminLayout from '../../layouts/AdminLayout.vue'
+</script>
+
 <template>
-  <div class="h-screen w-screen flex items-center justify-center">
-    <div class="flex w-1/5 bg-background-secondary h-full">
-      <img src="../../assets/LogoGigSource.svg" classs alt="" />
+  <AdminLayout>
+    <div class="space-y-6">
+      <h1 class="text-4xl font-bold text-gray-900">Admin Dashboard</h1>
+      <p class="text-gray-600">Welcome to GigSource Hub Admin Panel</p>
+
+      <!-- Add your dashboard content here -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Dashboard widgets will go here -->
+      </div>
     </div>
-    <div class="flex w-4/5">
-      <h1 class="text-4xl font-bold">Admin Dashboard</h1>
-    </div>
-  </div>
+  </AdminLayout>
 </template>

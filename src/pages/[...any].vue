@@ -9,6 +9,7 @@ const route = useRoute()
     <n-result
       status="404"
       title="404 Not Found"
+      size="large"
     >
       <template #footer>
         <h1 class=" text-lg mb-5">The page "{{ route.path }}" does not exist.</h1>

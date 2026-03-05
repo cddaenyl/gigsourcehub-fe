@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import AdminLayout from '../../layouts/AdminLayout.vue'
-import CandidateSearch from '../../components/CandidateSearch.vue'
-import CandidateTabs from '../../components/CandidateTabs.vue'
-import CandidateTable from '../../components/CandidateTable.vue'
-import CandidatePagination from '../../components/CandidatePagination.vue'
+import AdminLayout from '@/layouts/AdminLayout.vue'
+import CandidateSearch from '@/components/CandidateSearch.vue'
+import CandidateTabs from '@/components/CandidateTabs.vue'
+import CandidateTable from '@/components/CandidateTable.vue'
+import CandidatePagination from '@/components/CandidatePagination.vue'
 import { NConfigProvider } from 'naive-ui'
 
 // Define table data type

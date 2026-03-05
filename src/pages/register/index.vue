@@ -3,29 +3,31 @@ defineOptions({
   name: 'RegisterPage',
 })
 
-import { useLogin } from "@/composables/useLogin"
+import { useRegister } from "@/composables/useAuth"
 import { useForm, useField } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"
 import { ref } from "vue"
 import { NInput, NIcon } from "naive-ui"
-import { Mail, Lock, Eye, EyeOff } from "@vicons/tabler"
+import { Mail, Lock, Eye, EyeOff, User } from "@vicons/tabler"
 
-const loginPayloadSchema = z.object({
+const registerPayloadSchema = z.object({
   email: z.string().email("Email tidak valid"),
+  name: z.string().min(2, "Name minimal 2 karakter").max(100, "Name maksimal 100 karakter"),
   password: z.string().min(8, "Password minimal 8 karakter")
 })
 
-export type LoginPayload = z.infer<typeof loginPayloadSchema>
-const { mutate, isPending, error } = useLogin()
+export type RegisterPayload = z.infer<typeof registerPayloadSchema>
+const { mutate, isPending, error } = useRegister()
 
 // Setup form with vee-validate + zod
 const { handleSubmit, meta } = useForm({
-  validationSchema: toTypedSchema(loginPayloadSchema)
+  validationSchema: toTypedSchema(registerPayloadSchema)
 })
 
 // Setup fields with vee-validate
 const { value: email, errorMessage: emailError } = useField<string>('email')
+const { value: name, errorMessage: nameError } = useField<string>('name')
 const { value: password, errorMessage: passwordError } = useField<string>('password')
 
 // Show/hide password state
@@ -44,7 +46,8 @@ const onSubmit = handleSubmit((values) => {
     <div class="flex flex-col items-center justify-center h-full w-1/2 mx-auto bg-background">
       <img src="../../assets/LogoGigSource.svg" alt="GigSource Logo" />
         <form @submit.prevent="onSubmit" class="w-2/3">
-          <div class="py-2 mt-6">
+          <h2 class="text-2xl font-bold  text-gray-800 mt-6">Create Your Account</h2>
+          <div class="py-2 ">
             <p class="mt-2 text-sm font-semibold text-gray-700">Email</p>
             <n-input
               v-model:value="email"
@@ -59,8 +62,27 @@ const onSubmit = handleSubmit((values) => {
                 <n-icon :component="Mail" />
               </template>
             </n-input>
-            <p v-if="emailError" class="mt-1 text-sm text-red-600">
+            <p v-if="emailError" class="mt-1 absolute text-sm text-red-600">
               {{ emailError }}
+            </p>
+          </div>
+          <div class="py-2">
+            <p class="mt-4 text-sm font-semibold text-gray-700">Name</p>
+            <n-input
+              v-model:value="name"
+              type="text"
+              placeholder="Your Name"
+              size="large"
+              :status="nameError ? 'error' : undefined"
+              class="mt-1"
+              :input-props="{ class: 'px-3 py-2' }"
+            >
+              <template #prefix>
+                <n-icon :component="User" />
+              </template>
+            </n-input>
+            <p v-if="nameError" class="mt-1 absolute text-sm text-red-600">
+              {{ nameError }}
             </p>
           </div>
           <div class="py-2">
@@ -84,12 +106,12 @@ const onSubmit = handleSubmit((values) => {
                 />
               </template>
             </n-input>
-            <p v-if="passwordError" class="mt-1 text-sm text-red-600">
+            <p v-if="passwordError" class="mt-1 absolute text-sm text-red-600">
               {{ passwordError }}
             </p>
           </div>
           <!-- Show API error message -->
-          <div v-if="error" class="my-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div v-if="error" class="my-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded capitalize">
             {{ error.message }}
           </div>
           <div class="mt-3 flex justify-end">

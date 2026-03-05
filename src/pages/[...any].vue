@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import { NResult, NButton } from 'naive-ui'
 const route = useRoute()
-
-const randomPath = () => {
-  return `/${Math.random().toString(36).substring(2, 15)}`
-}
 </script>
 
 <template>
   <section class="h-screen w-screen flex flex-col items-center justify-center gap-4 bg-gray-100">
-    <h1>404: The page "{{ route.path }}" does not exist.</h1>
-    <div class="flex gap-2 p-10">
-      <router-link to="/">Go Home</router-link>
-      <router-link :to="randomPath()">Go Random</router-link>
-    </div>
+    <n-result
+      status="404"
+      title="404 Not Found"
+      size="large"
+    >
+      <template #footer>
+        <h1 class=" text-lg mb-5">The page "{{ route.path }}" does not exist.</h1>
+        <n-button>
+          <router-link to="/">Go Home</router-link>
+        </n-button>
+      </template>
+    </n-result>
   </section>
 </template>

@@ -44,8 +44,8 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/admin/daftar-kandidat': RouteRecordInfo<
-      '/admin/daftar-kandidat',
+    '/admin/daftar-kandidat/': RouteRecordInfo<
+      '/admin/daftar-kandidat/',
       '/admin/daftar-kandidat',
       Record<never, never>,
       Record<never, never>,
@@ -96,9 +96,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/admin/daftar-kandidat.vue': {
+    'src/pages/admin/daftar-kandidat/index.vue': {
       routes:
-        | '/admin/daftar-kandidat'
+        | '/admin/daftar-kandidat/'
       views:
         | never
     }

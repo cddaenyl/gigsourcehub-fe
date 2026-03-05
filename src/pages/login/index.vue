@@ -3,7 +3,7 @@ defineOptions({
   name: 'LoginPage',
 })
 
-import { useLogin } from "@/composables/useLogin"
+import { useLogin } from "@/composables/useAuth"
 import { useForm, useField } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import { z } from "zod"

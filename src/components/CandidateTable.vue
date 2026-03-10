@@ -5,49 +5,32 @@ import type { DataTableColumns } from 'naive-ui'
 import CandidateTableActions from './CandidateTableActions.vue'
 import CandidateBookmark from './CandidateBookmark.vue'
 import CandidateLevelChip from './CandidateLevelChip.vue'
-
-interface Candidate {
-  no: number
-  nama: string
-  bidang: string
-  appliedRole: string
-  level: string
-  status: string
-}
+import type { AllCandidates } from '@/models/Table'
 
 interface Props {
-  data: Candidate[]
-  bookmarkedCandidates?: number[]
+  data: AllCandidates[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const emit = defineEmits<{
-  action: [action: string, candidate: Candidate]
-  bookmarkToggle: [candidate: Candidate, isBookmarked: boolean]
+  action: [action: string, candidate: AllCandidates]
 }>()
 
-const handleAction = (action: string, candidate: Candidate) => {
+const handleAction = (action: string, candidate: AllCandidates) => {
   emit('action', action, candidate)
 }
 
-const handleBookmarkToggle = (candidate: Candidate, isBookmarked: boolean) => {
-  emit('bookmarkToggle', candidate, isBookmarked)
-}
-
-const columns: DataTableColumns<Candidate> = [
+const columns: DataTableColumns<AllCandidates> = [
   {
     title: '',
     key: 'bookmark',
     width: 30,
     render: (row) => {
-      const isBookmarked = props.bookmarkedCandidates?.includes(row.no) || false
       return h(CandidateBookmark, {
-        candidate: row,
-        isBookmarked: isBookmarked,
-        onToggle: handleBookmarkToggle
+        userId: row.id,
       })
-    }
+    },
   },
   {
     title: 'No',
@@ -55,28 +38,28 @@ const columns: DataTableColumns<Candidate> = [
   },
   {
     title: 'Nama Kandidat',
-    key: 'nama'
+    key: 'nama',
   },
   {
     title: 'Bidang',
-    key: 'bidang'
+    key: 'bidang',
   },
   {
     title: 'Applied Role',
-    key: 'appliedRole'
+    key: 'appliedRole',
   },
   {
     title: 'Level',
     key: 'level',
     render: (row) => {
       return h(CandidateLevelChip, {
-        level: row.level
+        level: row.level,
       })
-    }
+    },
   },
   {
     title: 'Status',
-    key: 'status'
+    key: 'status',
   },
   {
     title: 'Action',
@@ -84,19 +67,13 @@ const columns: DataTableColumns<Candidate> = [
     render: (row) => {
       return h(CandidateTableActions, {
         candidate: row,
-        onAction: handleAction
+        onAction: handleAction,
       })
-    }
-  }
+    },
+  },
 ]
 </script>
 
 <template>
-  <n-data-table
-    :columns="columns"
-    :data="data"
-    :bordered="false"
-    single-column
-    single-row
-  />
+  <n-data-table :columns="columns" :data="data" :bordered="false" single-column single-row />
 </template>

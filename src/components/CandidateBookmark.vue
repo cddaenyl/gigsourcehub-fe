@@ -1,36 +1,24 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 import { NIcon } from 'naive-ui'
 import { Bookmark } from '@vicons/tabler'
-
-interface Candidate {
-  no: number
-  nama: string
-  bidang: string
-  appliedRole: string
-  level: string
-  status: string
-}
+import { useBookmarkStore } from '@/stores/bookmark.store'
 
 const props = defineProps<{
-  candidate: Candidate
-  isBookmarked?: boolean
+  userId: string
 }>()
 
-const emit = defineEmits<{
-  toggle: [candidate: Candidate, isBookmarked: boolean]
-}>()
+const bookmarkStore = useBookmarkStore()
 
-const bookmarked = ref(props.isBookmarked || false)
+const isBookmarked = computed(() => bookmarkStore.isBookmarked(props.userId))
 
-// Watch for external changes to isBookmarked prop
-watch(() => props.isBookmarked, (newValue) => {
-  bookmarked.value = newValue || false
-})
-
-const toggleBookmark = () => {
-  bookmarked.value = !bookmarked.value
-  emit('toggle', props.candidate, bookmarked.value)
+const toggleBookmark = async () => {
+  try {
+    await bookmarkStore.toggleBookmark(props.userId)
+  } catch (error) {
+    console.error('Failed to toggle bookmark:', error)
+    // You can add a notification here to inform the user
+  }
 }
 </script>
 
@@ -39,7 +27,7 @@ const toggleBookmark = () => {
     class="cursor-pointer transition-all hover:scale-110 relative justify-center items-center flex w-4"
     @click="toggleBookmark"
   >
-    <div v-if="!bookmarked">
+    <div v-if="!isBookmarked">
       <n-icon
         :component="Bookmark"
         :size="20"
@@ -47,7 +35,7 @@ const toggleBookmark = () => {
       />
     </div>
     <div v-else class="justify-center items-center flex">
-      <img src="../assets/checked.svg" alt="Bookmarked">
+      <img src="../assets/checked.svg" alt="Bookmarked" />
     </div>
   </div>
 </template>

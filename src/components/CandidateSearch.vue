@@ -45,34 +45,34 @@ const activate = (place: DrawerPlacement) => {
     </n-button>
     <n-drawer v-model:show="active" :width="502">
       <n-drawer-content closable>
-        <template #header >
+        <template #header>
           <div class="flex space-x-4">
-            <img src="../assets/AI.svg" alt="AI logo">
+            <img src="../assets/AI.svg" alt="AI logo" />
             <h3 class="text-lg font-semibold">AI Assistant</h3>
           </div>
         </template>
         <template #footer>
           <!-- Search Bar -->
-            <n-input
-              placeholder="Masukkan pertanyaan atau perintah anda"
-              round
-              type="textarea"
-              size="large"
-              style="border-radius: 2rem;"
-              class="py-1"
-              :autosize="{
-                minRows: 1,
-                maxRows: 3,
-              }"
-            >
-              <template #suffix>
-                <n-button circle type="primary" @click="handleSearch">
-                  <template #icon>
-                    <n-icon :component="Send" />
-                  </template>
-                </n-button>
-              </template>
-            </n-input>
+          <n-input
+            placeholder="Masukkan pertanyaan atau perintah anda"
+            round
+            type="textarea"
+            size="large"
+            style="border-radius: 2rem"
+            class="py-1"
+            :autosize="{
+              minRows: 1,
+              maxRows: 3,
+            }"
+          >
+            <template #suffix>
+              <n-button circle type="primary" @click="handleSearch">
+                <template #icon>
+                  <n-icon :component="Send" />
+                </template>
+              </n-button>
+            </template>
+          </n-input>
         </template>
       </n-drawer-content>
     </n-drawer>

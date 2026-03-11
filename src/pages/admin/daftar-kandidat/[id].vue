@@ -17,7 +17,7 @@ import {
   NGi,
   NSpace,
 } from 'naive-ui'
-import { ArrowLeft, UserSearch, MessageCircle2, Link, Send } from '@vicons/tabler'
+import { ChevronLeft, UserSearch, MessageCircle2, Link, Send } from '@vicons/tabler'
 
 const route = useRoute()
 const router = useRouter()
@@ -141,13 +141,16 @@ const profilePictureThumbnail = computed(() =>
   <AdminLayout>
     <div class="mx-auto space-y-6">
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between h-12">
         <div class="flex items-center gap-4">
-          <n-button type="primary" text @click="handleBack">
-            <template #icon>
-              <n-icon :component="ArrowLeft" :size="20" />
-            </template>
-          </n-button>
+          <div class="flex items-center bg-primary rounded-full p-1">
+            <n-button text @click="handleBack">
+              <template #icon>
+                <n-icon :component="ChevronLeft" :size="16" color="#FFFFFF" />
+              </template>
+            </n-button>
+          </div>
+
           <h1 class="text-xl font-semibold text-gray-700">Detail Kandidat</h1>
         </div>
       </div>
@@ -184,7 +187,7 @@ const profilePictureThumbnail = computed(() =>
               <n-tag size="small" type="primary" round>Available (Api Not Developed)</n-tag>
             </div>
             <div class="flex items-center gap-2">
-              <n-button style="width: 35px; height: 35px; padding: 0">
+              <n-button style="width: 40px; height: 35px; padding: 0">
                 <CandidateBookmark class="scale-125" v-if="user" :user-id="user.id" />
               </n-button>
               <n-button type="primary" @click="handleChat">
@@ -256,7 +259,7 @@ const profilePictureThumbnail = computed(() =>
                       <n-space vertical :size="4">
                         <h4 class="font-bold text-xs text-gray-500">Kabupaten/Kota</h4>
                         <span class="font-bold text-sm text-gray-700">{{
-                          user.phone_number || '-'
+                          user.profile_picture || '-'
                         }}</span>
                       </n-space>
                     </n-gi>
@@ -264,7 +267,7 @@ const profilePictureThumbnail = computed(() =>
                       <n-space vertical :size="4">
                         <h4 class="font-bold text-xs text-gray-500">Provinsi</h4>
                         <span class="font-bold text-sm text-gray-700">{{
-                          user.phone_number || '-'
+                          user.profile_picture || '-'
                         }}</span>
                       </n-space>
                     </n-gi>
@@ -272,15 +275,19 @@ const profilePictureThumbnail = computed(() =>
                 </n-space>
                 <n-space vertical :size="8">
                   <h4 class="font-bold text-xs text-gray-500">Bidang Minat</h4>
-                  <span class="font-bold text-sm text-gray-700">{{ user.gpa || '-' }}</span>
+                  <span class="font-bold text-sm text-gray-700">{{
+                    user.profile_picture || '-'
+                  }}</span>
                 </n-space>
                 <n-space vertical :size="8">
                   <h4 class="font-bold text-xs text-gray-500">Applied Role</h4>
-                  <span class="font-bold text-sm text-gray-700">{{ user.gpa || '-' }}</span>
+                  <span class="font-bold text-sm text-gray-700">{{
+                    user.profile_picture || '-'
+                  }}</span>
                 </n-space>
                 <n-space vertical :size="8">
                   <h4 class="font-bold text-xs text-gray-500">Keahlian</h4>
-                  <span class="font-bold text-sm text-gray-700">{{ user.gpa || '-' }}</span>
+                  <span class="font-bold text-sm text-gray-700">{{ user.tech_stack || '-' }}</span>
                 </n-space>
                 <n-space vertical :size="8">
                   <h4 class="font-bold text-xs text-gray-500">Link Portofolio</h4>

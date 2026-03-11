@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
-import { useBookmarkStore } from '@/stores/bookmark.store'
 import AdminLayout from '@/layouts/AdminLayout.vue'
+import CandidateBookmark from '@/components/CandidateBookmark.vue'
 import {
   NCard,
   NButton,
@@ -17,11 +17,10 @@ import {
   NGi,
   NSpace,
 } from 'naive-ui'
-import { ArrowLeft, Bookmark, UserSearch, MessageCircle2, Link, Send } from '@vicons/tabler'
+import { ArrowLeft, UserSearch, MessageCircle2, Link, Send } from '@vicons/tabler'
 
 const route = useRoute()
 const router = useRouter()
-const bookmarkStore = useBookmarkStore()
 
 const userId = computed((): string => {
   const params = route.params as Record<string, string | string[]>
@@ -72,19 +71,10 @@ const recruitmentOptions = [
 
 // Fetch user data
 const { user, isLoading, isError, error } = useUser(userId)
-const isBookmarked = computed(() =>
-  user.value ? bookmarkStore.isBookmarked(user.value.id) : false,
-)
 
 // Handlers
 const handleBack = () => {
   router.push('/admin/daftar-kandidat')
-}
-
-const handleBookmark = async () => {
-  if (user.value) {
-    await bookmarkStore.toggleBookmark(user.value.id)
-  }
 }
 
 const handleRecruit = () => {
@@ -194,10 +184,8 @@ const profilePictureThumbnail = computed(() =>
               <n-tag size="small" type="primary" round>Available (Api Not Developed)</n-tag>
             </div>
             <div class="flex items-center gap-2">
-              <n-button :type="isBookmarked ? 'warning' : 'default'" @click="handleBookmark">
-                <template #icon>
-                  <n-icon :component="Bookmark" />
-                </template>
+              <n-button style="width: 35px; height: 35px; padding: 0">
+                <CandidateBookmark class="scale-125" v-if="user" :user-id="user.id" />
               </n-button>
               <n-button type="primary" @click="handleChat">
                 <template #icon>

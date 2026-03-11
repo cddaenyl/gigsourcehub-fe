@@ -122,6 +122,18 @@ const profilePictureThumbnail = computed(() =>
   user.value ? getProfilePictureThumbnail(user.value.profile_picture) : undefined,
 )
 
+// Parse tech stack from JSONB
+const techStack = computed((): string[] => {
+  if (!user.value?.tech_stack) return []
+  try {
+    const parsed = JSON.parse(user.value.tech_stack)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    console.error('Failed to parse tech_stack:', error)
+    return []
+  }
+})
+
 // Get recruitment status color
 // const getRecruitmentStatusColor = (status: string | null): TagProps['type'] => {
 //   if (!status) return 'default'
@@ -285,9 +297,19 @@ const profilePictureThumbnail = computed(() =>
                     user.profile_picture || '-'
                   }}</span>
                 </n-space>
-                <n-space vertical :size="8">
+                <n-space vertical :size="8" class="w-2/3">
                   <h4 class="font-bold text-xs text-gray-500">Keahlian</h4>
-                  <span class="font-bold text-sm text-gray-700">{{ user.tech_stack || '-' }}</span>
+                  <n-space v-if="techStack.length > 0" :size="8">
+                    <n-tag
+                      v-for="tech in techStack"
+                      :key="tech"
+                      round
+                      :color="{ color: 'white', borderColor: '#07229E', textColor: '#07229E' }"
+                    >
+                      {{ tech }}
+                    </n-tag>
+                  </n-space>
+                  <span v-else class="font-bold text-sm text-gray-700">-</span>
                 </n-space>
                 <n-space vertical :size="8">
                   <h4 class="font-bold text-xs text-gray-500">Link Portofolio</h4>

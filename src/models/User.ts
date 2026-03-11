@@ -34,6 +34,13 @@ export interface UsersResponse {
   data: UsersListData
 }
 
+export interface UserResponse {
+  status: number
+  message: string
+  validation: null | unknown
+  data: User
+}
+
 export interface UsersQueryParams {
   page?: number
   limit?: number

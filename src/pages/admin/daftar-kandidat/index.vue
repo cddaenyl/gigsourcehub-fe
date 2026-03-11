@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidateSearch from '@/components/CandidateSearch.vue'
 import CandidateTabs from '@/components/CandidateTabs.vue'
@@ -10,6 +11,8 @@ import { useUsers } from '@/composables/useUsers'
 import { useBookmarkStore } from '@/stores/bookmark.store'
 import type { User } from '@/models/User'
 import type { AllCandidates } from '@/models/Table'
+
+const router = useRouter()
 
 const themeOverride = {
   DataTable: {
@@ -80,7 +83,21 @@ const tableData = computed<AllCandidates[]>(() => {
 
 // Handlers
 const handleAction = (action: string, candidate: AllCandidates) => {
-  console.log(`Action: ${action}`, candidate)
+  switch (action) {
+    case 'detail':
+      router.push(`/admin/daftar-kandidat/${candidate.id}`)
+      break
+    case 'recruit':
+      console.log('Recruit candidate:', candidate)
+      // TODO: Implement recruit logic
+      break
+    case 'chat':
+      console.log('Chat with candidate:', candidate)
+      // TODO: Implement chat logic
+      break
+    default:
+      console.log(`Action: ${action}`, candidate)
+  }
 }
 
 const handleSearch = (value: string) => {

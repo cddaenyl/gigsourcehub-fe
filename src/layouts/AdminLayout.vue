@@ -21,7 +21,6 @@ const themeOverrides = {
     itemIconColorActiveHover: '#07229E',
     itemIconColorChildActive: '#07229E',
   },
-
 }
 </script>
 

@@ -1,21 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidateSearch from '@/components/CandidateSearch.vue'
 import CandidateTabs from '@/components/CandidateTabs.vue'
 import CandidateTable from '@/components/CandidateTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import { NConfigProvider } from 'naive-ui'
+import { useUsers } from '@/composables/useUsers'
+import { useBookmarkStore } from '@/stores/bookmark.store'
+import type { User } from '@/models/User'
+import type { AllCandidates } from '@/models/Table'
 
-// Define table data type
-interface Candidate {
-  no: number
-  nama: string
-  bidang: string
-  appliedRole: string
-  level: string
-  status: string
-}
+const router = useRouter()
 
 const themeOverride = {
   DataTable: {
@@ -26,7 +23,7 @@ const themeOverride = {
     tdColorHover: '#F1F5F9',
     tdColorStriped: '#F8FAFC',
     borderColor: '#F1F5F9',
-    thColorHover: '#F8FAFC'
+    thColorHover: '#F8FAFC',
   },
   Tabs: {
     tabColorHover: '#F8FAFC',
@@ -35,69 +32,9 @@ const themeOverride = {
     tabTextColor: '#64748B',
     tabTextColorHover: '#64748B',
     tabTextColorActive: '#07229E',
-    tabTextColorActiveHover: '#07229E'
-  }
+    tabTextColorActiveHover: '#07229E',
+  },
 }
-
-// Sample data
-const tableData = ref<Candidate[]>([
-  {
-    no: 1,
-    nama: 'John Doe',
-    bidang: 'IT',
-    appliedRole: 'Frontend Developer',
-    level: 'Senior',
-    status: 'Aktif'
-  },
-  {
-    no: 2,
-    nama: 'Jane Smith',
-    bidang: 'IT',
-    appliedRole: 'Backend Developer',
-    level: 'Middle',
-    status: 'Interview'
-  },
-  {
-    no: 3,
-    nama: 'Bob Wilson',
-    bidang: 'Design',
-    appliedRole: 'UI/UX Designer',
-    level: 'Ineligible',
-    status: 'On-Boarding'
-  },
-  {
-    no: 4,
-    nama: 'Alice Brown',
-    bidang: 'Design',
-    appliedRole: 'UI/UX Designer',
-    level: 'Un-Reviewed',
-    status: 'On-Boarding'
-  },
-  {
-    no: 5,
-    nama: 'Charlie Davis',
-    bidang: 'Design',
-    appliedRole: 'UI/UX Designer',
-    level: 'Junior',
-    status: 'On-Boarding'
-  },
-  {
-    no: 6,
-    nama: 'David Wilson',
-    bidang: 'IT',
-    appliedRole: 'Full Stack Developer',
-    level: 'Senior',
-    status: 'On-Boarding'
-  },
-  {
-    no: 7,
-    nama: 'Eve Martinez',
-    bidang: 'Design',
-    appliedRole: 'UI/UX Designer',
-    level: 'Middle',
-    status: 'On-Boarding'
-  }
-])
 
 // Pagination
 const currentPage = ref(1)
@@ -106,31 +43,66 @@ const pageSize = ref(10)
 // Tabs
 const activeTab = ref('semua')
 
-// Bookmarked candidates
-const bookmarkedCandidates = ref<number[]>([])
+// Search
+const searchQuery = ref('')
+
+// Fetch users with query params
+const queryParams = computed(() => ({
+  page: currentPage.value,
+  limit: pageSize.value,
+  search: searchQuery.value,
+  tab: activeTab.value === 'semua' ? undefined : activeTab.value,
+}))
+
+const { users, pageCount, isLoading } = useUsers(queryParams)
+const bookmarkStore = useBookmarkStore()
+
+// Initialize bookmarks when users data changes
+watch(
+  users,
+  (newUsers) => {
+    if (newUsers.length > 0) {
+      bookmarkStore.initializeBookmarks(newUsers)
+    }
+  },
+  { immediate: true },
+)
+
+// Transform API data to table data format
+const tableData = computed<AllCandidates[]>(() => {
+  return users.value.map((user: User, index: number) => ({
+    id: user.id,
+    no: (currentPage.value - 1) * pageSize.value + index + 1,
+    nama: user.name,
+    bidang: user.assigned_role_id || '-',
+    appliedRole: user.assigned_role_id || '-',
+    level: user.recruitment_status_id || 'Un-Reviewed',
+    status: user.account_status || 'Un-Reviewed',
+  }))
+})
 
 // Handlers
-const handleAction = (action: string, candidate: Candidate) => {
-  console.log(`Action: ${action}`, candidate)
+const handleAction = (action: string, candidate: AllCandidates) => {
+  switch (action) {
+    case 'detail':
+      router.push(`/admin/daftar-kandidat/${candidate.id}`)
+      break
+    case 'recruit':
+      console.log('Recruit candidate:', candidate)
+      // TODO: Implement recruit logic
+      break
+    case 'chat':
+      console.log('Chat with candidate:', candidate)
+      // TODO: Implement chat logic
+      break
+    default:
+      console.log(`Action: ${action}`, candidate)
+  }
 }
 
 const handleSearch = (value: string) => {
-  console.log('Search:', value)
-}
-
-const handleBookmarkToggle = (candidate: Candidate, isBookmarked: boolean) => {
-  if (isBookmarked) {
-    // Add to bookmarked list
-    if (!bookmarkedCandidates.value.includes(candidate.no)) {
-      bookmarkedCandidates.value.push(candidate.no)
-    }
-  } else {
-    // Remove from bookmarked list
-    bookmarkedCandidates.value = bookmarkedCandidates.value.filter(
-      (no) => no !== candidate.no
-    )
-  }
-  console.log('Bookmarked candidates:', bookmarkedCandidates.value)
+  searchQuery.value = value
+  currentPage.value = 1
 }
 </script>
 
@@ -150,18 +122,18 @@ const handleBookmarkToggle = (candidate: Candidate, isBookmarked: boolean) => {
           <CandidateTabs v-model="activeTab" />
 
           <!-- Data Table -->
-          <CandidateTable
-            :data="tableData"
-            :bookmarked-candidates="bookmarkedCandidates"
-            @action="handleAction"
-            @bookmark-toggle="handleBookmarkToggle"
-          />
+          <CandidateTable :data="tableData" @action="handleAction" />
+
+          <!-- Loading State -->
+          <div v-if="isLoading" class="text-center py-8">
+            <p class="text-gray-500">Loading...</p>
+          </div>
 
           <!-- Table Controls -->
           <CandidatePagination
             v-model:page="currentPage"
             v-model:page-size="pageSize"
-            :page-count="3"
+            :page-count="pageCount"
           />
         </div>
       </div>

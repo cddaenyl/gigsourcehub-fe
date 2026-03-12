@@ -1,11 +1,11 @@
-import { defineStore } from "pinia"
-import type { User } from "@/models/Auth"
+import { defineStore } from 'pinia'
+import type { User } from '@/models/User'
 
-export const useAuthStore = defineStore("auth", {
+export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: null as string | null,
-    user: null as User | null,
-    isAuthenticated: false
+    token: localStorage.getItem('token') as string | null,
+    user: localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')!) as User) : null,
+    isAuthenticated: !!localStorage.getItem('token'),
   }),
 
   actions: {
@@ -13,12 +13,16 @@ export const useAuthStore = defineStore("auth", {
       this.token = token
       this.user = user
       this.isAuthenticated = true
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
     },
 
     logout() {
       this.token = null
       this.user = null
       this.isAuthenticated = false
-    }
-  }
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+    },
+  },
 })

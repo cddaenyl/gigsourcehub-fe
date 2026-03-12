@@ -1,24 +1,20 @@
 <script setup lang="ts">
-import { ref, h } from 'vue'
+import { ref, h, watch, onMounted } from 'vue'
 import type { Component } from 'vue'
 import { NMenu, NAvatar, NSpace } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
-import { useRouter } from 'vue-router'
-import {
-  Users,
-  Bell,
-  Logout,
-  Layout2,
-  LayoutBoard,
-  Note,
-} from '@vicons/tabler'
+import { useRouter, useRoute } from 'vue-router'
+import { useSidebarStore } from '@/stores/sidebar.store'
+import { Users, Bell, Logout, Layout2, LayoutBoard, Note } from '@vicons/tabler'
 
 const router = useRouter()
+const route = useRoute()
+const sidebarStore = useSidebarStore()
 
 const userInfo = ref({
   name: 'John Doe',
   email: 'john.doe@gigsource.com',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John'
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
 })
 
 function renderIcon(icon: Component) {
@@ -29,7 +25,7 @@ const menuOptions: MenuOption[] = [
   {
     label: 'Dashboard',
     key: 'dashboard',
-    icon: renderIcon(Layout2)
+    icon: renderIcon(Layout2),
   },
   {
     label: 'Kandidat',
@@ -42,40 +38,41 @@ const menuOptions: MenuOption[] = [
       },
       {
         label: 'Jadwal Interview',
-        key: 'jadwal-interview'
+        key: 'jadwal-interview',
       },
       {
         label: 'Chat',
-        key: 'kandidat-chat'
-      }
-    ]
+        key: 'kandidat-chat',
+      },
+    ],
   },
   {
     label: 'CMS',
     key: 'cms',
-    icon: renderIcon(LayoutBoard)
+    icon: renderIcon(LayoutBoard),
   },
   {
     label: 'Kebutuhan Talenta',
     key: 'talent-needs',
-    icon: renderIcon(Note)
-  }
+    icon: renderIcon(Note),
+  },
 ]
 
 const bottomMenuOptions: MenuOption[] = [
   {
     label: 'Notifikasi',
     key: 'notifications',
-    icon: renderIcon(Bell)
+    icon: renderIcon(Bell),
   },
   {
     label: 'Logout',
     key: 'logout',
-    icon: renderIcon(Logout)
-  }
+    icon: renderIcon(Logout),
+  },
 ]
 
 const handleMenuSelect = (key: string) => {
+  sidebarStore.setActiveKey(key)
   router.push(`/admin/${key}`)
 }
 
@@ -89,20 +86,37 @@ const handleBottomMenuSelect = (key: string) => {
     // router.push('/login')
   }
 }
+
+// Update sidebar state when route changes
+watch(
+  () => route.path,
+  (newPath) => {
+    sidebarStore.setActiveFromRoute(newPath)
+  },
+  { immediate: true },
+)
+
+// Initialize sidebar state on mount
+onMounted(() => {
+  sidebarStore.setActiveFromRoute(route.path)
+})
 </script>
 
 <template>
   <div class="flex flex-col h-full bg-background-secondary border-r border-[#C7D0F3]">
     <!-- Logo Section -->
-    <div class="flex items-center justify-center p-6  border-gray-200">
+    <div class="flex items-center justify-center p-6 border-gray-200">
       <img src="../assets/LogoGigSource.svg" alt="GigSource Logo" class="h-18" />
     </div>
 
     <!-- Main Menu -->
     <div class="flex-1 overflow-y-auto">
       <n-menu
+        :value="sidebarStore.activeKey"
+        :expanded-keys="sidebarStore.expandedKeys"
         :options="menuOptions"
         @update:value="handleMenuSelect"
+        @update:expanded-keys="sidebarStore.setExpandedKeys"
         :root-indent="20"
       />
     </div>
@@ -116,21 +130,12 @@ const handleBottomMenuSelect = (key: string) => {
       />
 
       <!-- Account Info -->
-      <div class="px-4 pb-4  border-gray-200 ">
-        <n-space align="center" >
-          <n-avatar
-            round
-            :size="40"
-            :src="userInfo.avatar"
-
-          />
+      <div class="px-4 pb-4 border-gray-200">
+        <n-space align="center">
+          <n-avatar round :size="40" :src="userInfo.avatar" />
           <div class="flex-1 min-w-0 pb-1">
-            <div class="text-sm font-medium text-gray-900 truncate">
-              Human Resource
-            </div>
-            <div class="text-xs text-gray-500 truncate">
-              choiyeonjun@gmail.com
-            </div>
+            <div class="text-sm font-medium text-gray-900 truncate">Human Resource</div>
+            <div class="text-xs text-gray-500 truncate">choiyeonjun@gmail.com</div>
           </div>
         </n-space>
       </div>

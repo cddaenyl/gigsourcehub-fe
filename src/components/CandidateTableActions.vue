@@ -3,18 +3,10 @@ import { NDropdown, NIcon } from 'naive-ui'
 import { DotsVertical, Eye, UserSearch, MessageCircle2 } from '@vicons/tabler'
 import { h } from 'vue'
 import type { Component } from 'vue'
-
-interface Candidate {
-  no: number
-  nama: string
-  bidang: string
-  appliedRole: string
-  level: string
-  status: string
-}
+import type { AllCandidates } from '@/models/Table'
 
 defineProps<{
-  candidate: Candidate
+  candidate: AllCandidates
 }>()
 
 function renderIcon(icon: Component) {
@@ -22,37 +14,37 @@ function renderIcon(icon: Component) {
 }
 
 const emit = defineEmits<{
-  action: [action: string, candidate: Candidate]
+  action: [action: string, candidate: AllCandidates]
 }>()
 
-const createActionOptions = (row: Candidate) => [
+const createActionOptions = (row: AllCandidates) => [
   {
     label: 'Lihat Detail',
     key: 'detail',
     icon: renderIcon(Eye),
     props: {
-      onClick: () => handleAction('detail', row)
-    }
+      onClick: () => handleAction('detail', row),
+    },
   },
   {
     label: 'Rekrut Kandidat',
     key: 'recruit',
     icon: renderIcon(UserSearch),
     props: {
-      onClick: () => handleAction('recruit', row)
-    }
+      onClick: () => handleAction('recruit', row),
+    },
   },
   {
     label: 'Chat',
     key: 'chat',
     icon: renderIcon(MessageCircle2),
     props: {
-      onClick: () => handleAction('chat', row)
-    }
-  }
+      onClick: () => handleAction('chat', row),
+    },
+  },
 ]
 
-const handleAction = (action: string, row: Candidate) => {
+const handleAction = (action: string, row: AllCandidates) => {
   emit('action', action, row)
 }
 </script>

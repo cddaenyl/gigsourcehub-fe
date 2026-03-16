@@ -121,6 +121,7 @@ const handleChat = () => {
 
 <style scoped>
 .n-card {
-  box-shadow: 0 0px px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0px 1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
 </style>

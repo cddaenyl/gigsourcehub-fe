@@ -139,3 +139,5 @@ const techStack = computed((): string[] => {
     </n-space>
   </n-card>
 </template>
+
+<style scoped></style>

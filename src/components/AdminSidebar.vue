@@ -38,11 +38,11 @@ const menuOptions: MenuOption[] = [
       },
       {
         label: 'Jadwal Interview',
-        key: 'jadwal-interview',
+        key: 'interview-schedule',
       },
       {
         label: 'Chat',
-        key: 'kandidat-chat',
+        key: 'candidate-chat',
       },
     ],
   },
@@ -82,8 +82,8 @@ const handleBottomMenuSelect = (key: string) => {
     // Add notification logic here
   } else if (key === 'logout') {
     console.log('Logout')
-    // Add logout logic here
-    // router.push('/login')
+
+    router.push('/login')
   }
 }
 

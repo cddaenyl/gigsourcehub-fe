@@ -93,6 +93,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/employee/talent-needs/': RouteRecordInfo<
+      '/employee/talent-needs/',
+      '/employee/talent-needs',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/login/': RouteRecordInfo<
       '/login/',
       '/login',
@@ -177,6 +184,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/talent-needs/index.vue': {
       routes:
         | '/admin/talent-needs/'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/index.vue': {
+      routes:
+        | '/employee/talent-needs/'
       views:
         | never
     }

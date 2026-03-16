@@ -3,6 +3,7 @@ import { loginApi, registerApi } from '@/services/auth.service'
 import type { LoginPayload, RegisterPayload } from '@/models/Auth'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRouter } from 'vue-router'
+import { getDefaultRouteForUser } from '@/utils/auth'
 
 export function useLogin() {
   const authStore = useAuthStore()
@@ -15,7 +16,7 @@ export function useLogin() {
 
     onSuccess: (response) => {
       authStore.setAuth(response.data.token, response.data.user)
-      router.push('/admin')
+      router.push(getDefaultRouteForUser(response.data.user))
     },
   })
 }
@@ -31,7 +32,7 @@ export function useRegister() {
 
     onSuccess: (response) => {
       authStore.setAuth(response.data.token, response.data.user)
-      router.push('/admin')
+      router.push(getDefaultRouteForUser(response.data.user))
     },
   })
 }

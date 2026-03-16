@@ -6,10 +6,11 @@ import type { MenuOption } from 'naive-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { useSidebarStore } from '@/stores/sidebar.store'
 import { Users, Bell, Logout, Layout2, LayoutBoard, Note } from '@vicons/tabler'
-
+import { useLogout } from '@/composables/useAuth'
 const router = useRouter()
 const route = useRoute()
 const sidebarStore = useSidebarStore()
+const logout = useLogout()
 
 const userInfo = ref({
   name: 'John Doe',
@@ -81,9 +82,7 @@ const handleBottomMenuSelect = (key: string) => {
     console.log('Open notifications')
     // Add notification logic here
   } else if (key === 'logout') {
-    console.log('Logout')
-
-    router.push('/login')
+    logout()
   }
 }
 

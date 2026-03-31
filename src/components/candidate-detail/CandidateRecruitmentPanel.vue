@@ -21,7 +21,7 @@ const handleSendNote = () => {
 <template>
   <n-space vertical :size="8" style="height: 100%; display: flex; flex-direction: column">
     <n-card :content-style="{ padding: '20px' }">
-      <n-space vertical :size="24">
+      <n-space vertical :size="16">
         <n-space vertical :size="2">
           <h4 class="font-bold text-sm text-gray-500">Kontrol Rekrutmen</h4>
           <p class="text-xs text-gray-400">Kelola level kandidat dan status Rekrutmen</p>
@@ -42,6 +42,9 @@ const handleSendNote = () => {
             :options="recruitmentOptions"
           />
         </n-space>
+        <div class="flex justify-end">
+          <n-button type="primary">Simpan</n-button>
+        </div>
       </n-space>
     </n-card>
 

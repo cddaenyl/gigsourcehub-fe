@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import AdminLayout from '../../../layouts/AdminLayout.vue'
+import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 </script>
 
 <template>
-  <AdminLayout>
+  <EmployeeLayout>
     <div class="space-y-6">
       <h1 class="text-4xl font-bold text-gray-900">Admin Dashboard</h1>
       <p class="text-gray-600">Welcome to GigSource Hub Admin Panel</p>
@@ -13,5 +13,5 @@ import AdminLayout from '../../../layouts/AdminLayout.vue'
         <!-- Dashboard widgets will go here -->
       </div>
     </div>
-  </AdminLayout>
+  </EmployeeLayout>
 </template>

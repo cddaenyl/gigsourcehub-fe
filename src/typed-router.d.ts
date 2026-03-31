@@ -44,6 +44,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/candidate-chat/': RouteRecordInfo<
+      '/admin/candidate-chat/',
+      '/admin/candidate-chat',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/cms/': RouteRecordInfo<
+      '/admin/cms/',
+      '/admin/cms',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/daftar-kandidat/': RouteRecordInfo<
       '/admin/daftar-kandidat/',
       '/admin/daftar-kandidat',
@@ -56,6 +70,34 @@ declare module 'vue-router/auto-routes' {
       '/admin/daftar-kandidat/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/dashboard/': RouteRecordInfo<
+      '/admin/dashboard/',
+      '/admin/dashboard',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/interview-schedule/': RouteRecordInfo<
+      '/admin/interview-schedule/',
+      '/admin/interview-schedule',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/talent-needs/': RouteRecordInfo<
+      '/admin/talent-needs/',
+      '/admin/talent-needs',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/talent-needs/': RouteRecordInfo<
+      '/employee/talent-needs/',
+      '/employee/talent-needs',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/login/': RouteRecordInfo<
@@ -103,6 +145,18 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/candidate-chat/index.vue': {
+      routes:
+        | '/admin/candidate-chat/'
+      views:
+        | never
+    }
+    'src/pages/admin/cms/index.vue': {
+      routes:
+        | '/admin/cms/'
+      views:
+        | never
+    }
     'src/pages/admin/daftar-kandidat/index.vue': {
       routes:
         | '/admin/daftar-kandidat/'
@@ -112,6 +166,30 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/daftar-kandidat/[id].vue': {
       routes:
         | '/admin/daftar-kandidat/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/dashboard/index.vue': {
+      routes:
+        | '/admin/dashboard/'
+      views:
+        | never
+    }
+    'src/pages/admin/interview-schedule/index.vue': {
+      routes:
+        | '/admin/interview-schedule/'
+      views:
+        | never
+    }
+    'src/pages/admin/talent-needs/index.vue': {
+      routes:
+        | '/admin/talent-needs/'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/index.vue': {
+      routes:
+        | '/employee/talent-needs/'
       views:
         | never
     }

@@ -5,7 +5,7 @@ import { NMenu, NAvatar, NSpace } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { useSidebarStore } from '@/stores/sidebar.store'
-import { Users, Bell, Logout, Layout2, LayoutBoard, Note } from '@vicons/tabler'
+import { Users, Bell, Logout, Note, Circles } from '@vicons/tabler'
 import { useLogout } from '@/composables/useAuth'
 const router = useRouter()
 const route = useRoute()
@@ -24,38 +24,19 @@ function renderIcon(icon: Component) {
 
 const menuOptions: MenuOption[] = [
   {
-    label: 'Dashboard',
-    key: 'dashboard',
-    icon: renderIcon(Layout2),
-  },
-  {
-    label: 'Kandidat',
-    key: 'kandidat',
-    icon: renderIcon(Users),
-    children: [
-      {
-        label: 'Daftar Kandidat',
-        key: 'daftar-kandidat',
-      },
-      {
-        label: 'Jadwal Interview',
-        key: 'interview-schedule',
-      },
-      {
-        label: 'Chat',
-        key: 'candidate-chat',
-      },
-    ],
-  },
-  {
-    label: 'CMS',
-    key: 'cms',
-    icon: renderIcon(LayoutBoard),
-  },
-  {
     label: 'Kebutuhan Talenta',
     key: 'talent-needs',
     icon: renderIcon(Note),
+  },
+  {
+    label: 'Daftar Kandidat',
+    key: 'candidate-list',
+    icon: renderIcon(Users),
+  },
+  {
+    label: 'Tim Saya',
+    key: 'my-team',
+    icon: renderIcon(Circles),
   },
 ]
 
@@ -74,7 +55,7 @@ const bottomMenuOptions: MenuOption[] = [
 
 const handleMenuSelect = (key: string) => {
   sidebarStore.setActiveKey(key)
-  router.push(`/admin/${key}`)
+  router.push(`/employee/${key}`)
 }
 
 const handleBottomMenuSelect = (key: string) => {

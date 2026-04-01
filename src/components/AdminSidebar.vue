@@ -1,21 +1,36 @@
 <script setup lang="ts">
-import { ref, h, watch, onMounted } from 'vue'
+import { computed, h, watch } from 'vue'
 import type { Component } from 'vue'
 import { NMenu, NAvatar, NSpace } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { useSidebarStore } from '@/stores/sidebar.store'
 import { Users, Bell, Logout, Layout2, LayoutBoard, Note } from '@vicons/tabler'
-import { useLogout } from '@/composables/useAuth'
+import { useLogout, useMeQuery } from '@/composables/useAuth'
+import { useAuthStore } from '@/stores/auth.store'
+
 const router = useRouter()
 const route = useRoute()
 const sidebarStore = useSidebarStore()
+const authStore = useAuthStore()
 const logout = useLogout()
+const { data: me } = useMeQuery()
 
-const userInfo = ref({
-  name: 'John Doe',
-  email: 'john.doe@gigsource.com',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
+const defaultAvatarSeed = 'HumanResource'
+
+const userInfo = computed(() => {
+  const user = me.value ?? authStore.user
+  const name = user?.name || 'Human Resource'
+  const email = user?.email || 'human.resource@gigsource.com'
+  const avatar =
+    user?.profile_picture ||
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || defaultAvatarSeed)}`
+
+  return {
+    name,
+    email,
+    avatar,
+  }
 })
 
 function renderIcon(icon: Component) {
@@ -94,11 +109,6 @@ watch(
   },
   { immediate: true },
 )
-
-// Initialize sidebar state on mount
-onMounted(() => {
-  sidebarStore.setActiveFromRoute(route.path)
-})
 </script>
 
 <template>
@@ -133,8 +143,8 @@ onMounted(() => {
         <n-space align="center">
           <n-avatar round :size="40" :src="userInfo.avatar" />
           <div class="flex-1 min-w-0 pb-1">
-            <div class="text-sm font-medium text-gray-900 truncate">Human Resource</div>
-            <div class="text-xs text-gray-500 truncate">choiyeonjun@gmail.com</div>
+            <div class="text-sm font-medium text-gray-900 truncate">{{ userInfo.name }}</div>
+            <div class="text-xs text-gray-500 truncate">{{ userInfo.email }}</div>
           </div>
         </n-space>
       </div>

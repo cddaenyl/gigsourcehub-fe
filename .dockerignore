@@ -1,0 +1,34 @@
+# Source Control
+.git
+.gitignore
+.github
+
+# Packages
+node_modules
+.npm
+.pnpm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build/Logs
+dist
+dist-ssr
+*.log
+*.tsbuildinfo
+
+# IDE/Editor
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Miscellaneous
+README.md
+Dockerfile
+.dockerignore
+package-lock.json
+yarn.lock

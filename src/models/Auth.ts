@@ -31,3 +31,16 @@ export interface RegisterResponse {
     token: string
   }
 }
+
+export interface MeResponse {
+  status: number
+  message: string
+  validation: string | null
+  data: {
+    id: string
+    name: string
+    email: string
+    profile_picture: null
+    system_role_name: string
+  }
+}

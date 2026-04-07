@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NIcon } from 'naive-ui'
+import { NIcon, useMessage } from 'naive-ui'
 import { Bookmark } from '@vicons/tabler'
 import { useBookmarkStore } from '@/stores/bookmark.store'
 
@@ -9,15 +9,29 @@ const props = defineProps<{
 }>()
 
 const bookmarkStore = useBookmarkStore()
+const message = useMessage()
 
 const isBookmarked = computed(() => bookmarkStore.isBookmarked(props.userId))
 
 const toggleBookmark = async () => {
+  if (bookmarkStore.isLoading) return
+  const wasBookmarked = isBookmarked.value
+
   try {
     await bookmarkStore.toggleBookmark(props.userId)
+
+    message.success(
+      wasBookmarked ? 'Candidate removed from bookmarks.' : 'Candidate added to bookmarks.',
+      {
+        duration: 2500,
+      },
+    )
   } catch (error) {
-    console.error('Failed to toggle bookmark:', error)
-    // You can add a notification here to inform the user
+    const messageText = error instanceof Error ? error.message : 'Please try again in a moment.'
+
+    message.error(`Bookmark update failed: ${messageText}`, {
+      duration: 3000,
+    })
   }
 }
 </script>

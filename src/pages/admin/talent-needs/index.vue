@@ -4,7 +4,7 @@ import { NConfigProvider, NInput, NIcon, NButton } from 'naive-ui'
 import { Plus, Search } from '@vicons/tabler'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
-import TalentNeedsTable from '@/components/TalentNeedsTable.vue'
+import TalentNeedsTable from '@/components/tables/TalentNeedsTable.vue'
 import type { TalentNeed } from '@/models/Table'
 
 const themeOverride = {

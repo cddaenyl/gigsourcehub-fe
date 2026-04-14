@@ -93,9 +93,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/employee/candidate-list/': RouteRecordInfo<
+      '/employee/candidate-list/',
+      '/employee/candidate-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/employee/talent-needs/': RouteRecordInfo<
       '/employee/talent-needs/',
       '/employee/talent-needs',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/talent-needs/ajukan-permintaan/': RouteRecordInfo<
+      '/employee/talent-needs/ajukan-permintaan/',
+      '/employee/talent-needs/ajukan-permintaan',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -187,9 +201,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/employee/candidate-list/index.vue': {
+      routes:
+        | '/employee/candidate-list/'
+      views:
+        | never
+    }
     'src/pages/employee/talent-needs/index.vue': {
       routes:
         | '/employee/talent-needs/'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/ajukan-permintaan/index.vue': {
+      routes:
+        | '/employee/talent-needs/ajukan-permintaan/'
       views:
         | never
     }

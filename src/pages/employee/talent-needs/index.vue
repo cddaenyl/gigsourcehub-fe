@@ -6,6 +6,9 @@ import CandidatePagination from '@/components/CandidatePagination.vue'
 import TalentNeedsTable from '@/components/tables/TalentNeedsTable.vue'
 import type { TalentNeed } from '@/models/Table'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const themeOverride = {
   DataTable: {
@@ -241,6 +244,9 @@ const handleSearch = (value: string) => {
 const handleAction = (action: string, item: TalentNeed) => {
   console.log(`Action: ${action}`, item)
 }
+const handleAjukanPermintaan = () => {
+  router.push('/employee/talent-needs/ajukan-permintaan')
+}
 </script>
 
 <template>
@@ -266,7 +272,7 @@ const handleAction = (action: string, item: TalentNeed) => {
                 </template>
               </n-button>
             </div>
-            <n-button type="primary">
+            <n-button type="primary" @click="handleAjukanPermintaan">
               <template #icon>
                 <n-icon :component="Plus" />
               </template>

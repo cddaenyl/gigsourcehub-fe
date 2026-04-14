@@ -259,8 +259,8 @@ const handleAction = (action: string, item: TalentNeed) => {
                 <n-icon :component="Search" />
               </template>
             </n-input>
-            <n-button
-              ><template #icon>
+            <n-button type="primary">
+              <template #icon>
                 <n-icon :component="CalendarEvent" />
               </template>
             </n-button>

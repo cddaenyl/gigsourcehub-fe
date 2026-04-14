@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { NConfigProvider, NInput, NIcon, NButton } from 'naive-ui'
-import { Plus, Search } from '@vicons/tabler'
+import { CalendarEvent, Search } from '@vicons/tabler'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import TalentNeedsTable from '@/components/tables/TalentNeedsTable.vue'
@@ -252,18 +252,17 @@ const handleAction = (action: string, item: TalentNeed) => {
           <div class="flex space-x-3">
             <n-input
               :value="searchQuery"
-              placeholder="Cari project, bidang, PIC HR, status, urgensi"
+              placeholder="Search by Project"
               @update:value="handleSearch"
             >
               <template #prefix>
                 <n-icon :component="Search" />
               </template>
             </n-input>
-            <n-button type="primary"
+            <n-button
               ><template #icon>
-                <n-icon :component="Plus" />
+                <n-icon :component="CalendarEvent" />
               </template>
-              Tambah Kebutuhan
             </n-button>
           </div>
         </div>

@@ -2,7 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CandidateSearch from '@/components/CandidateSearch.vue'
-import CandidateTabs from '@/components/CandidateTabs.vue'
 import CandidateTable from '@/components/tables/CandidateTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import { NConfigProvider } from 'naive-ui'
@@ -11,6 +10,7 @@ import { useBookmarkStore } from '@/stores/bookmark.store'
 import type { User } from '@/models/User'
 import type { AllCandidates } from '@/models/Table'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
+import EmployeeTabs from '@/components/EmployeeTabs.vue'
 
 const router = useRouter()
 
@@ -119,7 +119,7 @@ const handleSearch = (value: string) => {
         <!-- Main Content -->
         <div class="rounded-lg p-2 py-3 space-y-4">
           <!-- Tabs -->
-          <CandidateTabs v-model="activeTab" />
+          <EmployeeTabs v-model="activeTab" />
 
           <!-- Data Table -->
           <CandidateTable :data="tableData" @action="handleAction" />

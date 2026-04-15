@@ -7,3 +7,16 @@ export interface AllCandidates {
   level: string
   status: string
 }
+
+export interface TalentNeed {
+  id: string
+  no: number
+  projectKegiatan: string
+  bidang: string
+  jumlahSdm: number
+  tanggalPengajuan: string
+  batasWaktu: string
+  picHr: string
+  status: string
+  urgensi: 'High' | 'Middle' | 'Low'
+}

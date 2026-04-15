@@ -32,8 +32,8 @@ export const useSidebarStore = defineStore('sidebar', {
 
     // Helper to set active state from route path
     setActiveFromRoute(path: string) {
-      // Remove /admin/ prefix and get the first segment
-      const cleanPath = path.replace(/^\/admin\/?/, '')
+      // Remove dashboard namespace prefix (/admin or /employee)
+      const cleanPath = path.replace(/^\/(admin|employee)\/?/, '')
 
       if (!cleanPath || cleanPath === '') {
         this.activeKey = 'dashboard'
@@ -46,16 +46,21 @@ export const useSidebarStore = defineStore('sidebar', {
         if (!this.expandedKeys.includes('kandidat')) {
           this.expandedKeys.push('kandidat')
         }
-      } else if (cleanPath.startsWith('jadwal-interview')) {
-        this.activeKey = 'jadwal-interview'
+      } else if (cleanPath.startsWith('interview-schedule')) {
+        this.activeKey = 'interview-schedule'
         if (!this.expandedKeys.includes('kandidat')) {
           this.expandedKeys.push('kandidat')
         }
-      } else if (cleanPath.startsWith('kandidat-chat')) {
-        this.activeKey = 'kandidat-chat'
+      } else if (cleanPath.startsWith('candidate-chat')) {
+        this.activeKey = 'candidate-chat'
         if (!this.expandedKeys.includes('kandidat')) {
           this.expandedKeys.push('kandidat')
         }
+      } else if (cleanPath.startsWith('talent-needs')) {
+        // Keep menu highlight on parent item for nested employee/admin talent-needs routes
+        this.activeKey = 'talent-needs'
+      } else if (cleanPath.startsWith('candidate-list')) {
+        this.activeKey = 'candidate-list'
       } else {
         // For top-level routes
         const firstSegment = cleanPath.split('/')[0]

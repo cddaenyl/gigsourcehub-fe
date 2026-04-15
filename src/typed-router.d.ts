@@ -100,6 +100,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/employee/my-team/': RouteRecordInfo<
+      '/employee/my-team/',
+      '/employee/my-team',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/employee/talent-needs/': RouteRecordInfo<
       '/employee/talent-needs/',
       '/employee/talent-needs',
@@ -204,6 +211,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/employee/candidate-list/index.vue': {
       routes:
         | '/employee/candidate-list/'
+      views:
+        | never
+    }
+    'src/pages/employee/my-team/index.vue': {
+      routes:
+        | '/employee/my-team/'
       views:
         | never
     }

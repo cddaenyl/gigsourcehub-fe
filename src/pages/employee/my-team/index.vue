@@ -4,7 +4,7 @@ import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 
 <template>
   <EmployeeLayout>
-    <h1 class="text-2xl font-bold mb-4">Ajukan Permintaan</h1>
+    <h1 class="text-2xl font-bold mb-4">My Team</h1>
     <p class="text-gray-600">Halaman ini masih dalam pengembangan. Mohon bersabar!</p>
   </EmployeeLayout>
 </template>

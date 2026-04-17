@@ -3,8 +3,8 @@ import { h } from 'vue'
 import { NDataTable } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import CandidateTableActions from './CandidateTableActions.vue'
-import CandidateBookmark from './CandidateBookmark.vue'
-import CandidateLevelChip from './CandidateLevelChip.vue'
+import CandidateBookmark from '../CandidateBookmark.vue'
+import CandidateLevelChip from '../CandidateLevelChip.vue'
 import type { AllCandidates } from '@/models/Table'
 
 interface Props {

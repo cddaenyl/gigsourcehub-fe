@@ -93,9 +93,16 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/candidate/': RouteRecordInfo<
-      '/candidate/',
-      '/candidate',
+    '/employee/candidate-list/': RouteRecordInfo<
+      '/employee/candidate-list/',
+      '/employee/candidate-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/my-team/': RouteRecordInfo<
+      '/employee/my-team/',
+      '/employee/my-team',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -103,6 +110,13 @@ declare module 'vue-router/auto-routes' {
     '/employee/talent-needs/': RouteRecordInfo<
       '/employee/talent-needs/',
       '/employee/talent-needs',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/talent-needs/ajukan-permintaan/': RouteRecordInfo<
+      '/employee/talent-needs/ajukan-permintaan/',
+      '/employee/talent-needs/ajukan-permintaan',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -194,15 +208,27 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/candidate/index.vue': {
+    'src/pages/employee/candidate-list/index.vue': {
       routes:
-        | '/candidate/'
+        | '/employee/candidate-list/'
+      views:
+        | never
+    }
+    'src/pages/employee/my-team/index.vue': {
+      routes:
+        | '/employee/my-team/'
       views:
         | never
     }
     'src/pages/employee/talent-needs/index.vue': {
       routes:
         | '/employee/talent-needs/'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/ajukan-permintaan/index.vue': {
+      routes:
+        | '/employee/talent-needs/ajukan-permintaan/'
       views:
         | never
     }

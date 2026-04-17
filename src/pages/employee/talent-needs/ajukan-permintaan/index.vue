@@ -207,7 +207,8 @@ const handleSubmitRequest = () => {
 
 :deep(.n-input .n-input__input-el),
 :deep(.n-base-selection .n-base-selection-label .n-base-selection-input),
-:deep(.n-date-picker .n-input__input-el) {
+:deep(.n-date-picker .n-input__input-el),
+:deep(.n-base-selection .n-base-selection-label .n-base-selection-input) {
   font-size: 12px;
 }
 
@@ -215,8 +216,9 @@ const handleSubmitRequest = () => {
 :deep(.n-base-selection-label__placeholder),
 :deep(.n-date-picker .n-input__placeholder),
 :deep(.n-base-selection .n-base-selection-label .n-base-selection-placeholder) {
-  color: #94a3b8;
+  color: #cbd5e1;
 }
+
 .n-card {
   box-shadow: 0 0px 1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;

@@ -43,7 +43,7 @@ const handleRemove = () => {
   <n-card size="small" :bordered="true">
     <n-space vertical class="mb-4">
       <n-space align="center" justify="space-between">
-        <p class="text-xs font-semibold text-[#334155]">Posisi #{{ positon }}</p>
+        <h3 v-if="canRemove" class="text-xs font-bold text-gray-500">- Posisi #{{ positon }}</h3>
         <n-button v-if="canRemove" tertiary size="small" type="error" @click="handleRemove">
           <template #icon>
             <n-icon :component="Trash" />
@@ -55,7 +55,7 @@ const handleRemove = () => {
       <div class="grid grid-cols-1 gap-3">
         <div>
           <n-space vertical :size="6">
-            <p class="text-[11px] font-medium text-[#64748B]">Nama Posisi</p>
+            <h3 class="text-xs font-semibold text-gray-500">Nama Posisi</h3>
             <n-select
               :value="modelValue.positionName"
               :options="positionOptions"
@@ -69,7 +69,7 @@ const handleRemove = () => {
 
         <div>
           <n-space vertical :size="6">
-            <p class="text-[11px] font-medium text-[#64748B]">Keahlian / Tech Stack</p>
+            <h3 class="text-xs font-semibold text-gray-500">Keahlian / Tech Stack</h3>
             <n-input
               :value="modelValue.techStack"
               placeholder="Tambahkan keahlian utama yang wajib dimiliki kandidat."
@@ -80,7 +80,7 @@ const handleRemove = () => {
 
         <div>
           <n-space vertical :size="6">
-            <p class="text-[11px] font-medium text-[#64748B]">Minimal Pengalaman (Tahun)</p>
+            <h3 class="text-xs font-semibold text-gray-500">Minimal Pengalaman (Tahun)</h3>
             <n-input-number
               :value="modelValue.minimumExperience"
               :min="0"
@@ -94,14 +94,11 @@ const handleRemove = () => {
 
         <div>
           <n-space vertical :size="6">
-            <n-space align="center" justify="space-between">
-              <p class="text-[11px] font-medium text-[#64748B]">Catatan</p>
-              <span class="text-[10px] text-[#94A3B8]">Optional</span>
-            </n-space>
+            <h3 class="text-xs font-semibold text-gray-500">Catatan</h3>
             <n-input
               :value="modelValue.notes"
               type="textarea"
-              :autosize="{ minRows: 2, maxRows: 4 }"
+              :autosize="{ minRows: 4, maxRows: 6 }"
               placeholder="Tambahkan catatan disini"
               @update:value="(value) => updateField('notes', value)"
             />

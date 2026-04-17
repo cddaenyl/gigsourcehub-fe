@@ -4,7 +4,7 @@ import type { User } from '@/models/User'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token') as string | null,
-    user: localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')!) as User) : null,
+    user: (localStorage.getItem('user') && localStorage.getItem('user') !== 'undefined') ? (JSON.parse(localStorage.getItem('user')!) as User) : null,
     isAuthenticated: !!localStorage.getItem('token'),
   }),
 

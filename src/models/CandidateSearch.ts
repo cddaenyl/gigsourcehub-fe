@@ -1,8 +1,9 @@
 export interface AISearchCandidateWeight {
-  llm_experience: number;
+  seniority_match: number;
   llm_location: number;
   llm_skills: number;
   qdrant_semantic: number;
+  review_score?: number;
 }
 
 export interface AISearchCandidate {
@@ -11,6 +12,8 @@ export interface AISearchCandidate {
   score: number;
   score_weight: AISearchCandidateWeight;
   profile_picture_url?: string;
+  job_roles?: string[];
+  candidate_level?: string;
 }
 
 export interface AISearchParsedContent {
@@ -39,4 +42,11 @@ export interface ChatMessage {
   displayParsedContent?: boolean; // For controlling when to show the candidates card after typing
   timestamp: string;
   isTyping?: boolean; // For showing the live typing effect
+}
+
+export interface BaseResponse<T> {
+  status: number
+  message: string
+  data: T
+  validation: any
 }

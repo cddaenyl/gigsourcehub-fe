@@ -9,6 +9,7 @@ import { useAIChatHistory } from '../composables/useAIChatHistory'
 import { useAuthStore } from '../stores/auth.store'
 import { getUserProfilePictureApi } from '../services/user.service'
 import type { ChatMessage } from '../models/CandidateSearch'
+import CandidateLevelChip from './CandidateLevelChip.vue'
 
 const authStore = useAuthStore()
 const currentUser = computed(() => authStore.user)
@@ -351,8 +352,15 @@ watch(chatHistory, (newHistory) => {
                                </div>
                             </div>
                             
-                            <div class="flex flex-col space-y-1">
-                              <span class="font-semibold text-[14px] text-slate-700 truncate group-hover:text-[#0014B2] transition-colors">{{ cand.name }}</span>
+                             <div class="flex flex-col space-y-1">
+                              <div class="flex items-center gap-2">
+                                <span class="font-semibold text-[14px] text-slate-700 truncate group-hover:text-[#0014B2] transition-colors">{{ cand.name }}</span>
+                                <CandidateLevelChip 
+                                  v-if="cand.candidate_level" 
+                                  :level="cand.candidate_level" 
+                                  class="scale-75 origin-left" 
+                                />
+                              </div>
                               <!-- Row 1: all job roles as tags, wrap if needed -->
                               <div class="flex items-center flex-wrap gap-1">
                                 <template v-if="cand.job_roles && cand.job_roles.length > 0">

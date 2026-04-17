@@ -1,8 +1,9 @@
 export interface AISearchCandidateWeight {
-  llm_experience: number;
+  seniority_match: number;
   llm_location: number;
   llm_skills: number;
   qdrant_semantic: number;
+  review_score?: number;
 }
 
 export interface AISearchCandidate {
@@ -12,6 +13,7 @@ export interface AISearchCandidate {
   score_weight: AISearchCandidateWeight;
   profile_picture_url?: string;
   job_roles?: string[];
+  candidate_level?: string;
 }
 
 export interface AISearchParsedContent {

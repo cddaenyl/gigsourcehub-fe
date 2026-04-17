@@ -16,7 +16,7 @@ export const useBookmarkStore = defineStore('bookmark', {
 
   actions: {
     // Initialize bookmarks from user data
-    initializeBookmarks(users: Array<{ id: string; is_bookmark: boolean }>) {
+    initializeBookmarks(users: Array<{ id: string; is_bookmark?: boolean }>) {
       this.bookmarkedCandidates.clear()
       users.forEach((user) => {
         if (user.is_bookmark) {

@@ -42,26 +42,6 @@ const chipConfig = computed(() => {
           borderColor: '#EF4444'
         }
       }
-      case 'junior':
-      return {
-        show: true,
-        type: 'success' as const,
-        color: {
-          color: '#10B981',
-          textColor: '#ffffff',
-          borderColor: '#10B981'
-        }
-      }
-    case 'middle':
-      return {
-        show: true,
-        type: 'warning' as const,
-        color: {
-          color: '#F59E0B',
-          textColor: '#ffffff',
-          borderColor: '#F59E0B'
-        }
-      }
     case 'ineligible':
       return {
         show: true,

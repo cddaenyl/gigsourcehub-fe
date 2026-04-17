@@ -4,22 +4,22 @@ import type { SelectOption } from 'naive-ui'
 import { Trash } from '@vicons/tabler'
 
 interface SubRequestForm {
-  positionName: string | null
-  techStack: string
-  minimumExperience: number | null
+  jobRoleId: string | null
+  minYearsExperience: number | null
   notes: string
+  techStack: string
 }
 
 interface Props {
   modelValue: SubRequestForm
   positionOptions: SelectOption[]
   canRemove?: boolean
-  positon: number
+  position: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   canRemove: false,
-  positon: 1,
+  position: 1,
 })
 
 const emit = defineEmits<{
@@ -43,7 +43,7 @@ const handleRemove = () => {
   <n-card size="small" :bordered="true">
     <n-space vertical class="mb-4">
       <n-space align="center" justify="space-between">
-        <h3 v-if="canRemove" class="text-xs font-bold text-gray-500">- Posisi #{{ positon }}</h3>
+        <h3 v-if="canRemove" class="text-xs font-bold text-gray-500">- Posisi #{{ position }}</h3>
         <n-button v-if="canRemove" tertiary size="small" type="error" @click="handleRemove">
           <template #icon>
             <n-icon :component="Trash" />
@@ -57,12 +57,12 @@ const handleRemove = () => {
           <n-space vertical :size="6">
             <h3 class="text-xs font-semibold text-gray-500">Nama Posisi</h3>
             <n-select
-              :value="modelValue.positionName"
+              :value="modelValue.jobRoleId"
               :options="positionOptions"
               placeholder="Pilih posisi"
               clearable
               filterable
-              @update:value="(value) => updateField('positionName', value)"
+              @update:value="(value) => updateField('jobRoleId', value)"
             />
           </n-space>
         </div>
@@ -82,12 +82,12 @@ const handleRemove = () => {
           <n-space vertical :size="6">
             <h3 class="text-xs font-semibold text-gray-500">Minimal Pengalaman (Tahun)</h3>
             <n-input-number
-              :value="modelValue.minimumExperience"
+              :value="modelValue.minYearsExperience"
               :min="0"
               placeholder="Masukkan minimal pengalaman"
               class="w-full"
               clearable
-              @update:value="(value) => updateField('minimumExperience', value)"
+              @update:value="(value) => updateField('minYearsExperience', value)"
             />
           </n-space>
         </div>

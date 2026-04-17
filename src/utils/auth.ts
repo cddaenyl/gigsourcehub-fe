@@ -25,6 +25,7 @@ export const getDefaultRouteByRole = (role: AppRole | null): string => {
     case 'employee':
       return '/employee/talent-needs'
     case 'candidate':
+      return '/candidate'
     default:
       return '/'
   }
@@ -41,6 +42,10 @@ export const canAccessPath = (role: AppRole | null, path: string): boolean => {
 
   if (path.startsWith('/employee')) {
     return role === 'employee'
+  }
+
+  if (path.startsWith('/candidate')) {
+    return role === 'candidate'
   }
 
   return true

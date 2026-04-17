@@ -1,10 +1,11 @@
-import { ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
 import { searchCandidatesApi } from '@/services/search.service'
 import type { ChatMessage, AISearchParsedContent } from '@/models/CandidateSearch'
 
-export function useAICandidateSearch() {
-  const chatHistory = ref<ChatMessage[]>([])
+export function useAICandidateSearch(externalHistory?: Ref<ChatMessage[]>) {
+  const internalHistory = ref<ChatMessage[]>([])
+  const chatHistory = externalHistory || internalHistory
   
   const aiSearchMutation = useMutation({
     mutationFn: (query: string) => searchCandidatesApi(query),
@@ -95,6 +96,7 @@ export function useAICandidateSearch() {
     chatHistory,
     sendMessage,
     clearHistory,
+    aiSearchMutation, // Export mutation for external access
     isLoading: aiSearchMutation.isPending,
     error: aiSearchMutation.error
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import {
   NButton,
@@ -14,65 +14,104 @@ import {
 } from 'naive-ui'
 import { ChevronLeft, Plus } from '@vicons/tabler'
 import { useRouter } from 'vue-router'
+import { useField, useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import SubRequestCard from '@/components/talent-needs/SubRequestCard.vue'
-
-interface RequestInfoForm {
-  projectName: string
-  urgency: string | null
-  targetDate: number | null
-}
-
-interface SubRequestForm {
-  positionName: string | null
-  techStack: string
-  minimumExperience: number | null
-  notes: string
-}
+import { useCreateRequest } from '@/composables/useRequest'
+import { useRoles } from '@/composables/useRoles'
+import type {
+  CreateRequestPayload,
+  RequestUrgency,
+  TalentRequestFormValues,
+  TalentRequestSubrequestForm,
+} from '@/models/Request'
 
 const router = useRouter()
 const message = useMessage()
+const { mutateAsync, isPending } = useCreateRequest()
+const { roles, isLoading: isRolesLoading } = useRoles({ page: 1, limit: 100 })
 
-const requestInfo = ref<RequestInfoForm>({
-  projectName: '',
-  urgency: null,
-  targetDate: null,
+const requestSchema = z.object({
+  dueDate: z.number({ message: 'Target pemenuhan wajib diisi' }),
+  projectName: z.string().trim().min(1, 'Nama project wajib diisi'),
+  subRequests: z
+    .array(
+      z.object({
+        jobRoleId: z.string().min(1, 'Nama posisi wajib dipilih'),
+        minYearsExperience: z.number().nullable(),
+        notes: z.string(),
+        techStack: z
+          .string()
+          .trim()
+          .min(1, 'Keahlian / tech stack wajib diisi')
+          .refine(
+            (value) =>
+              value
+                .split(',')
+                .map((item) => item.trim())
+                .filter(Boolean).length > 0,
+            {
+              message: 'Masukkan minimal 1 tech stack',
+            },
+          ),
+      }),
+    )
+    .min(1, 'Minimal 1 subrequest harus ditambahkan'),
+  urgency: z.enum(['LOW', 'MIDDLE', 'HIGH'], { message: 'Tingkat urgensi wajib dipilih' }),
 })
 
-const createEmptySubRequest = (): SubRequestForm => ({
-  positionName: null,
-  techStack: '',
-  minimumExperience: null,
+const createEmptySubRequest = (): TalentRequestSubrequestForm => ({
+  jobRoleId: null,
+  minYearsExperience: null,
   notes: '',
+  techStack: '',
 })
 
-const subRequests = ref<SubRequestForm[]>([createEmptySubRequest()])
+const { handleSubmit, meta, setFieldValue } = useForm<TalentRequestFormValues>({
+  validationSchema: toTypedSchema(requestSchema),
+  initialValues: {
+    dueDate: null,
+    projectName: '',
+    subRequests: [createEmptySubRequest()],
+    urgency: null,
+  },
+})
+
+const { value: projectName, errorMessage: projectNameError } = useField<string>('projectName')
+const { value: urgency, errorMessage: urgencyError } = useField<RequestUrgency | null>('urgency')
+const { value: dueDate, errorMessage: dueDateError } = useField<number | null>('dueDate')
+const { value: subRequests, errorMessage: subRequestsError } =
+  useField<TalentRequestSubrequestForm[]>('subRequests')
+
+const subRequestItems = computed(() => subRequests.value || [])
 
 const urgencyOptions: SelectOption[] = [
-  { label: 'Low', value: 'low' },
-  { label: 'Middle', value: 'middle' },
-  { label: 'High', value: 'high' },
+  { label: 'Low', value: 'LOW' },
+  { label: 'Middle', value: 'MIDDLE' },
+  { label: 'High', value: 'HIGH' },
 ]
 
-const positionOptions: SelectOption[] = [
-  { label: 'Frontend Developer', value: 'frontend-developer' },
-  { label: 'Backend Developer', value: 'backend-developer' },
-  { label: 'Fullstack Developer', value: 'fullstack-developer' },
-  { label: 'UI/UX Designer', value: 'ui-ux-designer' },
-  { label: 'QA Engineer', value: 'qa-engineer' },
-  { label: 'DevOps Engineer', value: 'devops-engineer' },
-]
+const positionOptions = computed<SelectOption[]>(() => {
+  return roles.value.map((role) => ({
+    label: role.name,
+    value: role.id,
+  }))
+})
+
+const getSubRequestList = () => subRequests.value || []
 
 const isFormValid = computed(() => {
   const hasRequestInfo =
-    requestInfo.value.projectName.trim().length > 0 &&
-    Boolean(requestInfo.value.urgency) &&
-    Boolean(requestInfo.value.targetDate)
+    projectName.value.trim().length > 0 && Boolean(urgency.value) && Boolean(dueDate.value)
 
-  const hasValidSubRequests = subRequests.value.every((item) => {
-    return Boolean(item.positionName) && item.techStack.trim().length > 0
+  const subRequestList = getSubRequestList()
+
+  const hasValidSubRequests = subRequestList.every((item) => {
+    return Boolean(item.jobRoleId) && item.techStack.trim().length > 0
   })
 
-  return hasRequestInfo && hasValidSubRequests
+  return hasRequestInfo && hasValidSubRequests && meta.value.valid
 })
 
 const handleBack = () => {
@@ -80,33 +119,61 @@ const handleBack = () => {
 }
 
 const handleAddSubRequest = () => {
-  subRequests.value.push(createEmptySubRequest())
+  setFieldValue('subRequests', [...getSubRequestList(), createEmptySubRequest()])
 }
 
 const handleRemoveSubRequest = (index: number) => {
-  if (subRequests.value.length === 1) {
+  const updatedSubRequests = [...getSubRequestList()]
+
+  if (updatedSubRequests.length === 1) {
     return
   }
 
-  subRequests.value.splice(index, 1)
+  updatedSubRequests.splice(index, 1)
+  setFieldValue('subRequests', updatedSubRequests)
 }
 
-const handleUpdateSubRequest = (index: number, value: SubRequestForm) => {
-  subRequests.value[index] = value
+const handleUpdateSubRequest = (index: number, value: TalentRequestSubrequestForm) => {
+  const updatedSubRequests = [...getSubRequestList()]
+  updatedSubRequests[index] = value
+  setFieldValue('subRequests', updatedSubRequests)
 }
 
-const handleSubmitRequest = () => {
-  if (!isFormValid.value) {
+const toRequestPayload = (values: TalentRequestFormValues): CreateRequestPayload => {
+  const dueDateString = new Date(values.dueDate as number).toISOString().slice(0, 10)
+
+  return {
+    due_date: dueDateString,
+    project_name: values.projectName.trim(),
+    subrequests: values.subRequests.map((subrequest) => ({
+      job_role_id: subrequest.jobRoleId as string,
+      min_years_experience: subrequest.minYearsExperience ?? 0,
+      notes: subrequest.notes.trim(),
+      tech_stack: subrequest.techStack
+        .split(',')
+        .map((tech) => tech.trim())
+        .filter(Boolean),
+    })),
+    urgency: values.urgency as RequestUrgency,
+  }
+}
+
+const handleSubmitRequest = handleSubmit(
+  async (values) => {
+    try {
+      await mutateAsync(toRequestPayload(values))
+      message.success('Pengajuan kebutuhan talenta berhasil dikirim.')
+      router.push('/employee/talent-needs')
+    } catch (error) {
+      message.error(
+        error instanceof Error ? error.message : 'Gagal mengirim pengajuan kebutuhan talenta.',
+      )
+    }
+  },
+  () => {
     message.warning('Lengkapi data utama dan minimal posisi + keahlian pada setiap subrequest.')
-    return
-  }
-
-  message.success('Pengajuan kebutuhan talenta berhasil disiapkan.')
-  console.log('Talent request payload:', {
-    ...requestInfo.value,
-    subRequests: subRequests.value,
-  })
-}
+  },
+)
 </script>
 
 <template>
@@ -132,30 +199,33 @@ const handleSubmitRequest = () => {
                 <h3 class="text-xs font-bold text-gray-500">Nama Project / Kegiatan</h3>
 
                 <n-input
-                  v-model:value="requestInfo.projectName"
+                  v-model:value="projectName"
                   placeholder="Masukkan nama project / kegiatan"
                 />
+                <p v-if="projectNameError" class="text-xs text-red-500">{{ projectNameError }}</p>
               </n-space>
 
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <n-space vertical>
                   <h3 class="text-xs font-bold text-gray-500">Tingkat Urgensi</h3>
                   <n-select
-                    v-model:value="requestInfo.urgency"
+                    v-model:value="urgency"
                     :options="urgencyOptions"
                     placeholder="Pilih tingkat urgensi kebutuhan"
                   />
+                  <p v-if="urgencyError" class="text-xs text-red-500">{{ urgencyError }}</p>
                 </n-space>
 
                 <n-space vertical :size="9">
                   <h3 class="text-xs font-bold text-gray-500">Target Pemenuhan</h3>
                   <n-date-picker
-                    v-model:value="requestInfo.targetDate"
+                    v-model:value="dueDate"
                     type="date"
                     clearable
                     class="w-full"
                     placeholder="Pilih batas waktu pemenuhan kebutuhan"
                   />
+                  <p v-if="dueDateError" class="text-xs text-red-500">{{ dueDateError }}</p>
                 </n-space>
               </div>
             </div>
@@ -175,22 +245,28 @@ const handleSubmitRequest = () => {
           <n-space vertical size="large" class="my-3 mb-5">
             <n-space vertical :size="16">
               <SubRequestCard
-                v-for="(item, index) in subRequests"
-                :key="`${index}-${item.positionName ?? 'new'}`"
+                v-for="(item, index) in subRequestItems"
+                :key="`${index}-${item.jobRoleId ?? 'new'}`"
                 :model-value="item"
                 :position-options="positionOptions"
-                :can-remove="subRequests.length > 1"
-                :positon="index + 1"
+                :can-remove="subRequestItems.length > 1"
+                :position="index + 1"
                 @update:model-value="(value) => handleUpdateSubRequest(index, value)"
                 @remove="handleRemoveSubRequest(index)"
               />
+              <p v-if="isRolesLoading" class="text-xs text-slate-500">Memuat daftar role...</p>
+              <p v-if="subRequestsError" class="text-xs text-red-500">{{ subRequestsError }}</p>
             </n-space>
           </n-space>
         </n-card>
 
         <n-card :bordered="true" size="small">
           <n-space justify="end">
-            <n-button type="primary" :disabled="!isFormValid" @click="handleSubmitRequest">
+            <n-button
+              type="primary"
+              :disabled="!isFormValid || isPending"
+              @click="handleSubmitRequest"
+            >
               Ajukan Kebutuhan
             </n-button>
           </n-space>

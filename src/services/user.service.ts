@@ -99,3 +99,14 @@ export const getUserProfilePictureApi = async (id: string): Promise<{ profile_pi
     throw error
   }
 }
+
+export const updateProfileApi = async (data: any): Promise<void> => {
+  try {
+    await axios.put('/profile', data)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

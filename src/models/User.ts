@@ -1,3 +1,5 @@
+import type { JobRole } from './JobRole'
+
 export interface User {
   id: string
   name: string
@@ -11,6 +13,7 @@ export interface User {
   kabupaten_kota_id: string | null
   years_experience: number | null
   tech_stack: string | null
+  summary: string | null
   profile_picture: string | null
   candidate_level?: string | null
   recruitment_status_id: string | null
@@ -20,6 +23,7 @@ export interface User {
   account_status: string | null
   is_bookmark?: boolean
   job_title_id?: string | null
+  job_roles?: JobRole[]
 }
 
 export interface UsersListData {

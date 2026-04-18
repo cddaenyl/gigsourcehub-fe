@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { getProfileApi, uploadProfilePictureApi } from '@/services/user.service'
+import { getProfileApi, uploadProfilePictureApi, updateProfileApi } from '@/services/user.service'
 import { computed } from 'vue'
 
 export function useProfile() {
@@ -20,12 +20,22 @@ export function useProfile() {
         }
     })
 
+    const updateProfileMutation = useMutation({
+        mutationFn: (data: any) => updateProfileApi(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['profile'] })
+            queryClient.invalidateQueries({ queryKey: ['authMe'] })
+        }
+    })
+
     const profile = computed(() => query.data.value?.data)
 
     return {
         ...query,
         profile,
         uploadPicture: uploadPictureMutation.mutate,
-        isUploadingPicture: uploadPictureMutation.isPending
+        isUploadingPicture: uploadPictureMutation.isPending,
+        updateProfile: updateProfileMutation.mutate,
+        isUpdatingProfile: updateProfileMutation.isPending
     }
 }

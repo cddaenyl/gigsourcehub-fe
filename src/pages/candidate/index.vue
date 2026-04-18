@@ -5,6 +5,7 @@ import { useUploadCV, useParsedCV, useConfirmCV, useCVDownloadLink } from '@/com
 import { useProvinsi, useKabupaten } from '@/composables/useRegion'
 import { useLogout } from '@/composables/useAuth'
 import { useProfile } from '@/composables/useProfile'
+import { useJobRole } from '@/composables/useJobRole'
 import { 
   NUpload, NButton, NCard, NForm, NFormItem, NInput, 
   NInputNumber, NDynamicTags, NSelect, NSpin, NAlert,
@@ -33,15 +34,67 @@ const successFeedback = ref("")
 const errorFeedback = ref("")
 const showUpdateFlow = ref(false)
 const forceShowUpload = ref(false)
+const isEditing = ref(false)
 
 // Composables
-const { profile, uploadPicture, isUploadingPicture, isLoading: isLoadingProfile } = useProfile()
+const { profile, uploadPicture, isUploadingPicture, isLoading: isLoadingProfile, updateProfile, isUpdatingProfile } = useProfile()
+const { sectors, allRoles, isLoading: isLoadingJobRoles } = useJobRole()
 const { data: cvLinkData } = useCVDownloadLink()
 const uploadMutation = useUploadCV()
 const upload = uploadMutation.mutate
 const cvQuery = useParsedCV()
 const confirmMutation = useConfirmCV()
 const confirm = confirmMutation.mutate
+
+const jobRoleOptions = computed(() => {
+  const options = []
+
+  // 1. Always include a group for currently selected roles to guarantee names are shown immediately
+  if (profile.value?.job_roles?.length) {
+    options.push({
+      type: 'group',
+      label: 'Selected Roles',
+      key: 'selected-roles-group',
+      children: profile.value.job_roles.map((r: any) => ({
+        label: r.name,
+        value: r.id
+      }))
+    })
+  }
+
+  // 2. Add the industry-grouped categories once the API returns data
+  if (sectors.value && allRoles.value) {
+    const mainGroups = sectors.value.map(sector => ({
+      type: 'group',
+      label: sector.name,
+      key: sector.id,
+      children: allRoles.value
+        .filter(role => role.sector_id === sector.id)
+        .map(role => ({
+          label: role.name,
+          value: role.id
+        }))
+    }))
+    options.push(...mainGroups)
+  }
+
+  return options
+})
+
+// Validation for job roles
+const handleJobRolesUpdate = (value: string[]) => {
+    if (value.length > 3) {
+        errorFeedback.value = "You can only select a maximum of 3 job roles."
+        formData.value.job_role_ids = value.slice(0, 3)
+    } else {
+        errorFeedback.value = ""
+        formData.value.job_role_ids = value
+    }
+}
+
+const getRoleName = (id: string) => {
+  return allRoles.value?.find(r => r.id === id)?.name || id
+}
 
 const fileList = ref<UploadFileInfo[]>([])
 const pictureUploadRef = ref<any>(null)
@@ -60,7 +113,8 @@ const formData = ref<Record<string, any>>({
   tech_stack: [],
   applied_roles: [],
   provinsi_id: null,
-  kabupaten_kota_id: null
+  kabupaten_kota_id: null,
+  job_role_ids: []
 })
 
 const provQuery = useProvinsi()
@@ -104,6 +158,34 @@ const handleProfilePictureUpload = (data: { file: UploadFileInfo }) => {
 const startUpdateFlow = () => {
     showUpdateFlow.value = true
     forceShowUpload.value = true
+    isEditing.value = false
+}
+
+const startEditing = () => {
+    isEditing.value = true
+    showUpdateFlow.value = false
+    
+    // Populate form from profile
+    if (profile.value) {
+        let ts: string[] = []
+        try {
+            if (profile.value.tech_stack)ts = JSON.parse(profile.value.tech_stack)
+        } catch(e) {}
+
+        formData.value = {
+            name: profile.value.name,
+            school_university: profile.value.school_university,
+            major: profile.value.major,
+            gpa: profile.value.gpa,
+            years_experience: profile.value.years_experience,
+            summary: profile.value.summary || "",
+            tech_stack: ts,
+            applied_roles: profile.value.job_roles?.map((r: any) => r.name) || [],
+            job_role_ids: profile.value.job_roles?.map((r: any) => r.id) || [],
+            kabupaten_kota_id: profile.value.kabupaten_kota_id,
+            provinsi_id: profile.value.kabupaten_kota_id?.includes('.') ? profile.value.kabupaten_kota_id.split('.')[0] : null
+        }
+    }
 }
 
 const submitUpload = () => {
@@ -143,9 +225,30 @@ const onConfirm = () => {
   }
 }
 
+const onUpdateProfile = () => {
+    errorFeedback.value = ""
+    successFeedback.value = ""
+    
+    // In this edit mode, we might want to manually set job_role_ids if they changed via applied_roles tags
+    // But since dynamic tags for applied_roles is usually for names, it's better if we just use job_role_ids if we had a selector.
+    // For now let's just send what we have.
+    
+    updateProfile(formData.value, {
+        onSuccess: () => {
+            successFeedback.value = "Profile updated successfully!"
+            isEditing.value = false
+        },
+        onError: (err: any) => {
+            errorFeedback.value = err.message || "Failed to update profile"
+        }
+    })
+}
+
 const currentStep = computed(() => {
   const cv = cvQuery.data.value?.data
   
+  if (isEditing.value) return 'EDIT'
+
   // If user explicitly chooses to update
   if (showUpdateFlow.value) {
     if (forceShowUpload.value || !cv) return 'UPLOAD'
@@ -200,6 +303,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
     // Ensure arrays are initialized
     parsed.tech_stack = parsed.tech_stack || []
     parsed.applied_roles = parsed.applied_roles || []
+    parsed.job_role_ids = parsed.job_role_ids || []
     parsed.gpa = Number(parsed.gpa) || 0
     parsed.years_experience = Number(parsed.years_experience) || 0
 
@@ -257,9 +361,13 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                 <div class="flex gap-3 mt-4">
                    <n-button type="primary" size="medium" @click="startUpdateFlow" class="shadow-sm">
                       <template #icon><n-icon :component="CloudUpload" /></template>
-                      Update CV / Profile
+                      Update CV
                    </n-button>
-                   <n-button type="primary" secondary size="medium" @click="downloadCV" :disabled="!cvLinkData?.data?.url" class="shadow-sm">
+                   <n-button type="primary" secondary size="medium" @click="startEditing" class="shadow-sm">
+                      <template #icon><n-icon :component="Edit" /></template>
+                      Edit Profile
+                   </n-button>
+                   <n-button type="primary" tertiary size="medium" @click="downloadCV" :disabled="!cvLinkData?.data?.url" class="shadow-sm">
                       <template #icon><n-icon :component="Download" /></template>
                       Download CV
                    </n-button>
@@ -313,6 +421,26 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                         </div>
                     </div>
                     
+                    <n-divider dashed />
+
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <n-icon :component="Briefcase" size="20" class="text-primary" />
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Targeted Job Roles</h3>
+                        </div>
+                        <n-spin :show="isLoadingJobRoles" size="small">
+                            <div class="flex flex-wrap gap-2.5">
+                            <n-tag v-for="role in profile?.job_roles" :key="typeof role === 'string' ? role : role.id" type="success" round secondary class="px-3">
+                                <template #icon>
+                                    <n-icon :component="Briefcase" />
+                                </template>
+                                {{ typeof role === 'string' ? getRoleName(role) : role.name }}
+                            </n-tag>
+                            <n-empty v-if="(!profile?.job_roles || profile?.job_roles.length === 0) && !isLoadingJobRoles" size="small" description="No targeted roles selected" />
+                            </div>
+                        </n-spin>
+                    </div>
+
                     <n-divider dashed />
 
                     <div v-if="profile?.years_experience !== null">
@@ -448,17 +576,20 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
            </n-card>
         </div>
 
-        <!-- 3. Review/Confirm Phase -->
-        <div v-if="currentStep === 'REVIEW'">
+        <!-- 3. Review/Confirm Phase (Unified with Direct Edit) -->
+        <div v-if="['REVIEW', 'EDIT'].includes(currentStep)">
            <div class="mb-8 flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight">Review Your Profile</h1>
-                    <p class="text-gray-500 mt-1">Please verify the information extracted by our AI assistant.</p>
+                    <h1 class="text-3xl font-bold tracking-tight">{{ currentStep === 'EDIT' ? 'Edit Your Profile' : 'Review Your Profile' }}</h1>
+                    <p class="text-gray-500 mt-1">{{ currentStep === 'EDIT' ? 'Make changes to your professional information.' : 'Please verify the information extracted by our AI assistant.' }}</p>
                 </div>
-                <n-tag type="success" size="large" round strong shadow>
+                <n-tag v-if="currentStep === 'REVIEW'" type="success" size="large" round strong shadow>
                     <template #icon><n-icon :component="MapPin" /></template>
                     AI Parsing Successful
                 </n-tag>
+                <n-button v-else circle @click="isEditing = false" class="shadow-sm">
+                    <template #icon><n-icon :component="ArrowLeft" /></template>
+                </n-button>
            </div>
            
            <n-card :bordered="false" class="shadow-xl rounded-2xl overflow-hidden mb-10">
@@ -468,8 +599,8 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                         <h3 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-b pb-2">Personal Information</h3>
                         <n-grid :cols="2" :x-gap="24">
                             <n-gi span="2">
-                                <n-form-item label="Full Name (as per CV)">
-                                    <n-input v-model:value="formData.name" placeholder="Name detected by AI" />
+                                <n-form-item label="Full Name">
+                                    <n-input v-model:value="formData.name" placeholder="Enter your full name" />
                                 </n-form-item>
                             </n-gi>
                         </n-grid>
@@ -536,8 +667,17 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                     <section>
                         <h3 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-b pb-2">Skills & Expertise</h3>
                         <div class="space-y-6">
-                            <n-form-item label="Applied Roles (Add up to 3)">
-                                <n-dynamic-tags v-model:value="formData.applied_roles" :max="3" />
+                            <n-form-item label="Professional Roles (Select up to 3)">
+                                <n-select
+                                    :key="allRoles?.length || 0"
+                                    v-model:value="formData.job_role_ids"
+                                    multiple
+                                    :max-tag-count="3"
+                                    :options="jobRoleOptions"
+                                    placeholder="Select your primary roles"
+                                    :loading="isLoadingJobRoles"
+                                    @update:value="handleJobRolesUpdate"
+                                />
                             </n-form-item>
                             <n-form-item label="Tech Stack / Key Skills">
                                 <n-dynamic-tags v-model:value="formData.tech_stack" />
@@ -547,22 +687,24 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
 
                     <section>
                         <h3 class="text-sm font-bold text-primary uppercase tracking-widest mb-6 border-b pb-2">About Me</h3>
-                        <n-form-item label="AI-Generated Professional Summary">
+                        <n-form-item :label="currentStep === 'REVIEW' ? 'AI-Generated Professional Summary' : 'Professional Summary'">
                             <n-input v-model:value="formData.summary" type="textarea" :rows="5" placeholder="Summary of your professional profile..." />
                         </n-form-item>
                     </section>
                  </div>
 
                  <div class="flex justify-between items-center mt-12 pt-8 border-t">
-                    <n-button ghost @click="startUpdateFlow" size="large">Re-upload CV</n-button>
+                    <n-button ghost @click="currentStep === 'REVIEW' ? startUpdateFlow() : (isEditing = false)" size="large">
+                        {{ currentStep === 'REVIEW' ? 'Re-upload CV' : 'Cancel' }}
+                    </n-button>
                     <n-button 
                         type="primary" 
                         size="large" 
-                        :loading="confirmMutation.isPending.value" 
-                        @click="onConfirm"
+                        :loading="confirmMutation.isPending.value || isUpdatingProfile" 
+                        @click="currentStep === 'REVIEW' ? onConfirm() : onUpdateProfile()"
                         class="px-16 h-14 text-xl font-bold rounded-xl shadow-lg"
                     >
-                        Save & Update Profile
+                        {{ currentStep === 'REVIEW' ? 'Save & Update Profile' : 'Save Changes' }}
                     </n-button>
                  </div>
               </n-form>

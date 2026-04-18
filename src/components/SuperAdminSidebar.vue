@@ -2,7 +2,7 @@
 import { h } from 'vue'
 import type { Component } from 'vue'
 import type { MenuOption } from 'naive-ui'
-import { User, Layout2, LayoutBoard, Database, Settings } from '@vicons/tabler'
+import { User, Layout2, LayoutBoard, Database, Settings, Activity } from '@vicons/tabler'
 import MainSidebar from './shared/MainSidebar.vue'
 
 function renderIcon(icon: Component) {
@@ -18,7 +18,7 @@ const menuOptions: MenuOption[] = [
   {
     label: 'Audit Log',
     key: 'audit-log',
-    icon: renderIcon(Layout2),
+    icon: renderIcon(Activity),
   },
   {
     label: 'Manejemen User',

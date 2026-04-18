@@ -33,7 +33,7 @@ export const useSidebarStore = defineStore('sidebar', {
     // Helper to set active state from route path
     setActiveFromRoute(path: string) {
       // Remove dashboard namespace prefix (/admin or /employee)
-      const cleanPath = path.replace(/^\/(admin|employee)\/?/, '')
+      const cleanPath = path.replace(/^\/(admin|employee|superadmin)\/?/, '')
 
       if (!cleanPath || cleanPath === '') {
         this.activeKey = 'dashboard'
@@ -57,10 +57,14 @@ export const useSidebarStore = defineStore('sidebar', {
           this.expandedKeys.push('kandidat')
         }
       } else if (cleanPath.startsWith('talent-needs')) {
-        // Keep menu highlight on parent item for nested employee/admin talent-needs routes
         this.activeKey = 'talent-needs'
       } else if (cleanPath.startsWith('candidate-list')) {
         this.activeKey = 'candidate-list'
+      } else if (cleanPath.startsWith('bidang')) {
+        this.activeKey = 'bidang'
+        if (!this.expandedKeys.includes('master-data')) {
+          this.expandedKeys.push('master-data')
+        }
       } else {
         // For top-level routes
         const firstSegment = cleanPath.split('/')[0]

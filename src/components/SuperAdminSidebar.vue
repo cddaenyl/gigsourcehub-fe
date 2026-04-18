@@ -58,5 +58,5 @@ const menuOptions: MenuOption[] = [
 </script>
 
 <template>
-  <MainSidebar :menu-options="menuOptions" base-path="/admin" />
+  <MainSidebar :menu-options="menuOptions" base-path="/superadmin" />
 </template>

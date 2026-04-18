@@ -1,39 +1,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue'
-import SearchInput from '@/components/shared/SearchInput.vue'
+import MasterDataIndexLayout from '@/components/shared/MasterDataIndexLayout.vue'
 import UserManagementTabs from '@/components/UserManagementTabs.vue'
 import UserManagementTable from '@/components/tables/UserManagementTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
-import { NConfigProvider, NButton, NIcon, useMessage } from 'naive-ui'
-import { Plus } from '@vicons/tabler'
+import { useMessage } from 'naive-ui'
 import { useUsers } from '@/composables/useUsers'
 import { activateUserApi, blockUserApi, disableUserApi } from '@/services/user.service'
 import type { User } from '@/models/User'
+import { useRouter } from 'vue-router'
 
-
-
-const themeOverride = {
-  DataTable: {
-    thColor: '#F1F5F9',
-    thTextColor: '#64748B',
-    thFontWeight: '600',
-    tdColor: '#FFFFFF',
-    tdColorHover: '#F1F5F9',
-    tdColorStriped: '#F8FAFC',
-    borderColor: '#F1F5F9',
-    thColorHover: '#F8FAFC',
-  },
-  Tabs: {
-    tabColorHover: '#F8FAFC',
-    tabColorActive: '#FFFFFF',
-    tabColorActiveHover: '#F1F5F9',
-    tabTextColor: '#64748B',
-    tabTextColorHover: '#64748B',
-    tabTextColorActive: '#07229E',
-    tabTextColorActiveHover: '#07229E',
-  },
-}
+const router = useRouter()
+const message = useMessage()
 
 // Pagination
 const currentPage = ref(1)
@@ -55,8 +33,6 @@ const queryParams = computed(() => ({
 
 const { users, pageCount, isLoading, refetch } = useUsers(queryParams, true)
 
-const message = useMessage()
-
 // Transform API data to table data format
 const tableData = computed(() => {
   return users.value.map((user: User, index: number) => ({
@@ -69,10 +45,6 @@ const tableData = computed(() => {
     system_role_name: user.system_role_name,
   }))
 })
-
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
 
 // Handlers
 const handleAction = async (action: string, user: any) => {
@@ -107,51 +79,42 @@ const handleSearch = (value: string) => {
   currentPage.value = 1
 }
 
-
 const handleTabChange = () => {
   currentPage.value = 1
+}
+
+const handleAdd = () => {
+  router.push('/superadmin/user-management/create')
 }
 </script>
 
 <template>
-  <SuperAdminLayout>
-    <n-config-provider :theme-overrides="themeOverride">
-      <div class="space-y-6">
-        <!-- Top Section -->
-        <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-gray-700">Manajemen User</h1>
-          <div class="flex items-center gap-3">
-            <SearchInput v-model="searchQuery" placeholder="Search" @search="handleSearch" />
-            <n-button type="primary" color="#0014B2" @click="() => $router.push('/superadmin/user-management/create')">
-              <template #icon>
-                <n-icon :component="Plus" />
-              </template>
-              Tambah User
-            </n-button>
-          </div>
-        </div>
+  <MasterDataIndexLayout
+    title="Manajemen User"
+    add-button-text="Tambah User"
+    v-model:search-query="searchQuery"
+    @search="handleSearch"
+    @add="handleAdd"
+  >
+    <template #tabs>
+      <UserManagementTabs v-model="activeTab" @update:model-value="handleTabChange" />
+    </template>
 
-        <!-- Main Content -->
-        <div class="rounded-lg p-2 py-3 space-y-4">
-          <!-- Tabs -->
-          <UserManagementTabs v-model="activeTab" @update:model-value="handleTabChange" />
-
-          <!-- Data Table -->
-          <UserManagementTable :data="tableData" @action="handleAction" />
-
-          <!-- Loading State -->
-          <div v-if="isLoading" class="text-center py-8">
-            <p class="text-gray-500">Loading...</p>
-          </div>
-
-          <!-- Table Controls -->
-          <CandidatePagination
-            v-model:page="currentPage"
-            v-model:page-size="pageSize"
-            :page-count="pageCount"
-          />
-        </div>
+    <template #table>
+      <UserManagementTable :data="tableData" @action="handleAction" />
+      
+      <!-- Loading State -->
+      <div v-if="isLoading" class="text-center py-8">
+        <p class="text-gray-500">Loading...</p>
       </div>
-    </n-config-provider>
-  </SuperAdminLayout>
+    </template>
+
+    <template #pagination>
+      <CandidatePagination
+        v-model:page="currentPage"
+        v-model:page-size="pageSize"
+        :page-count="pageCount"
+      />
+    </template>
+  </MasterDataIndexLayout>
 </template>

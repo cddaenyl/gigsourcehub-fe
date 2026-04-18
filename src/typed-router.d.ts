@@ -142,6 +142,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/superadmin/': RouteRecordInfo<
+      '/superadmin/',
+      '/superadmin',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -254,6 +261,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/register/index.vue': {
       routes:
         | '/register/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/index.vue': {
+      routes:
+        | '/superadmin/'
       views:
         | never
     }

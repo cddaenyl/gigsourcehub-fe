@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { NInput, NButton, NIcon, NDrawer, NSpin, NEmpty, NPopconfirm } from 'naive-ui'
+import { NButton, NIcon, NDrawer, NSpin, NEmpty, NPopconfirm } from 'naive-ui'
 import type { DrawerPlacement } from 'naive-ui'
-import { Search, ApiApp, Send, X, ChevronRight, User, History, MessagePlus, Trash } from '@vicons/tabler'
+import { ApiApp, Send, X, ChevronRight, User, History, MessagePlus, Trash } from '@vicons/tabler'
+import SearchInput from './shared/SearchInput.vue'
 import { useAICandidateSearch } from '../composables/useAICandidateSearch'
 import { useAIChatHistory } from '../composables/useAIChatHistory'
 import { useAuthStore } from '../stores/auth.store'
 import { getUserProfilePictureApi } from '../services/user.service'
 import type { ChatMessage } from '../models/CandidateSearch'
 import CandidateLevelChip from './CandidateLevelChip.vue'
+
+const props = withDefaults(defineProps<{
+  placeholder?: string
+}>(), {
+  placeholder: 'Cari kandidat',
+})
 
 const authStore = useAuthStore()
 const currentUser = computed(() => authStore.user)
@@ -164,16 +171,11 @@ watch(chatHistory, (newHistory) => {
 <template>
   <div class="flex items-center gap-3">
     <!-- Existing external search bar -->
-    <n-input
-      v-model:value="searchValue"
-      placeholder="Cari kandidat"
-      class="w-80"
-      @keyup.enter="handleSearch"
-    >
-      <template #prefix>
-        <n-icon :component="Search" />
-      </template>
-    </n-input>
+    <SearchInput
+      v-model="searchValue"
+      :placeholder="props.placeholder"
+      @search="handleSearch"
+    />
 
     <n-button type="primary" @click="activate('right')">
       <template #icon>

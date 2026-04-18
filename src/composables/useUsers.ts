@@ -1,12 +1,15 @@
 import { useQuery } from '@tanstack/vue-query'
-import { getUsersApi } from '@/services/user.service'
+import { getUsersApi, getAllUsersApi } from '@/services/user.service'
 import type { UsersQueryParams } from '@/models/User'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
-export function useUsers(params: MaybeRefOrGetter<UsersQueryParams> = {}) {
+export function useUsers(params: MaybeRefOrGetter<UsersQueryParams> = {}, useAllUsers: boolean = false) {
   const query = useQuery({
-    queryKey: computed(() => ['users', toValue(params)]),
-    queryFn: () => getUsersApi(toValue(params)),
+    queryKey: computed(() => ['users', toValue(params), useAllUsers]),
+    queryFn: () => {
+      const p = toValue(params)
+      return useAllUsers ? getAllUsersApi(p) : getUsersApi(p)
+    },
   })
 
   const users = computed(() => query.data.value?.data.list || [])

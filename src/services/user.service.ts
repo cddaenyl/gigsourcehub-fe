@@ -13,6 +13,18 @@ export const getUsersApi = async (params: UsersQueryParams = {}): Promise<UsersR
   }
 }
 
+export const getAllUsersApi = async (params: UsersQueryParams = {}): Promise<UsersResponse> => {
+  try {
+    const response = await axios.get<UsersResponse>('/users', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
 export const getUserByIdApi = async (id: string): Promise<UserResponse> => {
   try {
     const response = await axios.get<UserResponse>(`/users/${id}`)
@@ -103,6 +115,61 @@ export const getUserProfilePictureApi = async (id: string): Promise<{ profile_pi
 export const updateProfileApi = async (data: any): Promise<void> => {
   try {
     await axios.put('/profile', data)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const blockUserApi = async (id: string): Promise<void> => {
+  try {
+    await axios.patch(`/users/${id}/block`)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const disableUserApi = async (id: string): Promise<void> => {
+  try {
+    await axios.patch(`/users/${id}/disable`)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const activateUserApi = async (id: string): Promise<void> => {
+  try {
+    await axios.patch(`/users/${id}/activate`)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const createUserApi = async (data: any): Promise<void> => {
+  try {
+    await axios.post('/users', data)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const updateUserBySuperadminApi = async (id: string, data: any): Promise<void> => {
+  try {
+    await axios.put(`/users/${id}`, data)
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {
       throw new Error(error.response.data.message)

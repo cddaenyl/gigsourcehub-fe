@@ -19,10 +19,12 @@ export interface User {
   recruitment_status_id: string | null
   unavailable_until: string | null
   system_role_name: string | null
+  system_role_id: string | null
   assigned_role_id: string | null
   account_status: string | null
   is_bookmark?: boolean
   job_title_id?: string | null
+  bidang?: string | null
   job_roles?: JobRole[]
 }
 
@@ -52,4 +54,5 @@ export interface UsersQueryParams {
   limit?: number
   search?: string
   tab?: string
+  role?: string
 }

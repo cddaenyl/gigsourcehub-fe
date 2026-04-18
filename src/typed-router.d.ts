@@ -156,6 +156,48 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/superadmin/bidang/create': RouteRecordInfo<
+      '/superadmin/bidang/create',
+      '/superadmin/bidang/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/bidang/edit/[id]': RouteRecordInfo<
+      '/superadmin/bidang/edit/[id]',
+      '/superadmin/bidang/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/superadmin/user-management/': RouteRecordInfo<
+      '/superadmin/user-management/',
+      '/superadmin/user-management',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/user-management/[id]': RouteRecordInfo<
+      '/superadmin/user-management/[id]',
+      '/superadmin/user-management/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/superadmin/user-management/create': RouteRecordInfo<
+      '/superadmin/user-management/create',
+      '/superadmin/user-management/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/user-management/edit/[id]': RouteRecordInfo<
+      '/superadmin/user-management/edit/[id]',
+      '/superadmin/user-management/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
   }
 
   /**
@@ -280,6 +322,42 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/bidang/index.vue': {
       routes:
         | '/superadmin/bidang/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/bidang/create.vue': {
+      routes:
+        | '/superadmin/bidang/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/bidang/edit/[id].vue': {
+      routes:
+        | '/superadmin/bidang/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/user-management/index.vue': {
+      routes:
+        | '/superadmin/user-management/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/user-management/[id].vue': {
+      routes:
+        | '/superadmin/user-management/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/user-management/create.vue': {
+      routes:
+        | '/superadmin/user-management/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/user-management/edit/[id].vue': {
+      routes:
+        | '/superadmin/user-management/edit/[id]'
       views:
         | never
     }

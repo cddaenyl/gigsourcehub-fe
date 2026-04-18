@@ -34,7 +34,8 @@ const themeOverrides = {
 
       <!-- Main Content Area -->
       <div class="flex-1 overflow-auto bg-gray-50">
-        <div class="container mx-auto p-6">
+        <!-- <div class="container mx-auto p-6"> -->
+        <div class="mx-auto p-6">
           <slot />
         </div>
       </div>

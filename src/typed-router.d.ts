@@ -156,6 +156,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/superadmin/user-management/': RouteRecordInfo<
+      '/superadmin/user-management/',
+      '/superadmin/user-management',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -280,6 +287,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/bidang/index.vue': {
       routes:
         | '/superadmin/bidang/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/user-management/index.vue': {
+      routes:
+        | '/superadmin/user-management/'
       views:
         | never
     }

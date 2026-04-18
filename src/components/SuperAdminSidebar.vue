@@ -21,7 +21,7 @@ const menuOptions: MenuOption[] = [
     icon: renderIcon(Activity),
   },
   {
-    label: 'Manejemen User',
+    label: 'Manajemen User',
     key: 'user-management',
     icon: renderIcon(User),
   },

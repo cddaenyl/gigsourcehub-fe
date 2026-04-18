@@ -155,3 +155,14 @@ export const activateUserApi = async (id: string): Promise<void> => {
     throw error
   }
 }
+
+export const createUserApi = async (data: any): Promise<void> => {
+  try {
+    await axios.post('/users', data)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

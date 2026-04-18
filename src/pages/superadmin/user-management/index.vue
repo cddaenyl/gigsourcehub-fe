@@ -8,7 +8,7 @@ import CandidatePagination from '@/components/CandidatePagination.vue'
 import { NConfigProvider, NButton, NIcon, useMessage } from 'naive-ui'
 import { Plus } from '@vicons/tabler'
 import { useUsers } from '@/composables/useUsers'
-import { blockUserApi, disableUserApi, activateUserApi } from '@/services/user.service'
+import { activateUserApi, blockUserApi, disableUserApi } from '@/services/user.service'
 import type { User } from '@/models/User'
 
 
@@ -103,6 +103,7 @@ const handleSearch = (value: string) => {
   currentPage.value = 1
 }
 
+
 const handleTabChange = () => {
   currentPage.value = 1
 }
@@ -117,7 +118,7 @@ const handleTabChange = () => {
           <h1 class="text-2xl font-bold text-gray-700">Manajemen User</h1>
           <div class="flex items-center gap-3">
             <SearchInput v-model="searchQuery" placeholder="Search" @search="handleSearch" />
-            <n-button type="primary" color="#0014B2">
+            <n-button type="primary" color="#0014B2" @click="() => $router.push('/superadmin/user-management/create')">
               <template #icon>
                 <n-icon :component="Plus" />
               </template>

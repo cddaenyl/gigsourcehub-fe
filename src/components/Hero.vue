@@ -1,37 +1,54 @@
 <script setup lang="ts">
+import { ArrowRight } from '@vicons/tabler'
+import { NIcon } from 'naive-ui'
 defineOptions({
   name: 'Hero',
 })
 </script>
 
 <template>
-  <section class="relative bg-linear-to-r from-blue-600 to-indigo-700 text-white pt-32 pb-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <section
+    class="relative bg-linear-to-b from-[#0B1121] to-[#020617] h-screen text-white flex items-center overflow-hidden"
+  >
+    <div class="z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid md:grid-cols-2 gap-12 items-center">
         <!-- Hero Content -->
-        <div class="space-y-6">
-          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-            Connect with Top Freelancers Worldwide
+        <div class="font-semibold space-y-2">
+          <div
+            class="px-3 py-2 my-4 bg-white/5 rounded-full outline -outline-offset-1 outline-white/10 inline-flex justify-center items-center gap-2.5 overflow-hidden"
+          >
+            <div class="justify-center text-white text-sm font-normal">Open for new talents</div>
+          </div>
+          <h1 class="text-4xl md:text-5xl lg:text-6xl">
+            Build Impactful <br />
+            <span
+              class="text-4xl md:text-5xl lg:text-6xl bg-linear-to-l from-[#C27AFF] via-[#7C86FF] to-[#51A2FF] bg-clip-text text-transparent"
+            >
+              Solutions.
+            </span>
           </h1>
-          <p class="text-lg md:text-xl text-blue-100">
-            FreelabsHub is your gateway to finding talented professionals and exciting projects.
-            Whether you're a freelancer or a client, we've got you covered.
+          <h1 class="text-4xl md:text-5xl lg:text-6xl">Grow With Solutionlabs.</h1>
+          <p class="text-lg text-[#CAD5E2] font-medium">
+            Join a network of project-based professionals and collaborate on real-world technology
+            and business solutions with startups and enterprises.
           </p>
           <div class="flex flex-col sm:flex-row gap-4">
             <a
               href="/sign-up"
-              class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-center"
+              class="flex items-center gap-1 bg-white text-gray-800 px-5 py-3 font-bold rounded-full hover:bg-gray-300 transition-colors text-center"
             >
-              Get Started Free
+              Join Talent Pool
+              <n-icon :size="18" :component="ArrowRight" color="#1e2939" class />
             </a>
+
             <a
               href="#how-it-works"
-              class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors text-center"
+              class="flex outline-1 outline-white/10 -outline-offset-1 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] backdrop-blur-md text-white bg-white/5 px-5 py-3 rounded-full font-semibold transition-colors text-center hover:bg-white/10"
             >
-              Learn More
+              Explore Opportunities
             </a>
           </div>
-          <div class="flex items-center gap-8 pt-4">
+          <!-- <div class="flex items-center gap-8 pt-4">
             <div>
               <p class="text-3xl font-bold">10K+</p>
               <p class="text-blue-100">Active Users</p>
@@ -44,7 +61,7 @@ defineOptions({
               <p class="text-3xl font-bold">98%</p>
               <p class="text-blue-100">Satisfaction Rate</p>
             </div>
-          </div>
+          </div> -->
         </div>
 
         <!-- Hero Image/Illustration -->
@@ -69,14 +86,12 @@ defineOptions({
       </div>
     </div>
 
-    <!-- Wave separator -->
-    <div class="absolute bottom-0 left-0 right-0">
-      <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
-          fill="white"
-        />
-      </svg>
-    </div>
+    <!-- Background Elements -->
+    <div
+      class="absolute z-0 w-140 h-140 -top-32 -left-48 bg-[#4F39F6]/20 rounded-full blur-[100px]"
+    ></div>
+    <div
+      class="absolute z-0 w-140 h-140 -bottom-28 -right-36 bg-[#4F39F6]/20 rounded-full blur-[100px] overflow-clip"
+    ></div>
   </section>
 </template>

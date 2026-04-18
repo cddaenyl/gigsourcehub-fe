@@ -166,3 +166,14 @@ export const createUserApi = async (data: any): Promise<void> => {
     throw error
   }
 }
+
+export const updateUserBySuperadminApi = async (id: string, data: any): Promise<void> => {
+  try {
+    await axios.put(`/users/${id}`, data)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

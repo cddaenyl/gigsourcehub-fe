@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, watch, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import {
   NForm,
   NInput,
@@ -14,24 +14,25 @@ import MasterDataFormLayout from '@/components/shared/MasterDataFormLayout.vue'
 import { getSectorsApi } from '@/services/sector.service'
 import { getJobTitlesApi } from '@/services/job-title.service'
 import { getSystemRolesApi } from '@/services/role.service'
-import { createUserApi } from '@/services/user.service'
+import { getUserByIdApi, updateUserBySuperadminApi } from '@/services/user.service'
 import type { Sector } from '@/models/Sector'
 import type { JobTitle } from '@/models/JobTitle'
 import type { SystemRole } from '@/models/SystemRole'
 
 const router = useRouter()
+const route = useRoute()
 const message = useMessage()
 const formRef = ref<any>(null)
 const isLoading = ref(false)
-const isLoadingRoles = ref(false)
+const isLoadingData = ref(false)
+const userId = (route.params as any).id as string
 
 const formData = reactive({
   name: '',
   email: '',
-  password: '',
-  system_role_id: null,
-  job_title_id: null,
-  assigned_role_id: null,
+  system_role_id: null as string | null,
+  job_title_id: null as string | null,
+  assigned_role_id: null as string | null,
   account_status: 'Active',
 })
 
@@ -41,20 +42,27 @@ const rules: FormRules = {
     { required: true, message: 'Email valid wajib diisi', trigger: ['input', 'blur'] },
     { type: 'email', message: 'Format email tidak valid', trigger: ['input', 'blur'] }
   ],
-  password: { required: true, message: 'Password wajib diisi', trigger: 'blur' },
   system_role_id: { required: true, message: 'Role wajib dipilih', trigger: 'change' },
 }
 
 const sectors = ref<Sector[]>([])
-const jobTitles = ref<JobTitle[]>([])
+const allJobTitles = ref<JobTitle[]>([])
+const jobTitlesInSelectedSector = ref<JobTitle[]>([])
 const systemRoles = ref<SystemRole[]>([])
 const selectedSectorId = ref<string | null>(null)
+const userSystemRoleName = ref('')
+
+const isCandidate = computed(() => {
+  return userSystemRoleName.value === 'Candidate'
+})
 
 const isFormReady = computed(() => {
+  const commonReady = formData.name.trim() !== '' && formData.email.trim() !== ''
+  if (isCandidate.value) {
+    return commonReady
+  }
   return (
-    formData.name.trim() !== '' &&
-    formData.email.trim() !== '' &&
-    formData.password.trim() !== '' &&
+    commonReady &&
     formData.system_role_id !== null &&
     selectedSectorId.value !== null &&
     formData.job_title_id !== null
@@ -62,6 +70,7 @@ const isFormReady = computed(() => {
 })
 
 const selectedRoleName = computed(() => {
+  if (isCandidate.value) return 'Candidate'
   return systemRoles.value.find((r) => r.id === formData.system_role_id)?.name || ''
 })
 
@@ -76,7 +85,7 @@ const filteredSectorsOptions = computed(() => {
 })
 
 const filteredJobTitlesOptions = computed(() => {
-  let list = jobTitles.value
+  let list = jobTitlesInSelectedSector.value
   if (selectedRoleName.value !== 'Admin') {
     list = list.filter((j) => j.name !== 'HR')
   }
@@ -84,42 +93,69 @@ const filteredJobTitlesOptions = computed(() => {
 })
 
 const fetchInitialData = async () => {
-  isLoadingRoles.value = true
+  isLoadingData.value = true
   try {
-    const [secRes, roleRes] = await Promise.all([
+    const [secRes, roleRes, userRes, jtRes] = await Promise.all([
       getSectorsApi({ limit: 100 }),
-      getSystemRolesApi()
+      getSystemRolesApi(),
+      getUserByIdApi(userId),
+      getJobTitlesApi({ limit: 1000 }) // Fetch all to find sector of existing job title
     ])
+    
     sectors.value = secRes.data.list
     systemRoles.value = roleRes.data.filter(r => r.name === 'Admin' || r.name === 'Employee')
+    allJobTitles.value = jtRes.data.list
+
+    const user = userRes.data
+    formData.name = user.name
+    formData.email = user.email
+    formData.account_status = user.account_status || 'Active'
+    userSystemRoleName.value = user.system_role_name || ''
+    
+    // Set Role ID from Role Name if ID is missing in response
+    if (user.system_role_id) {
+       formData.system_role_id = user.system_role_id
+    } else if (user.system_role_name) {
+       formData.system_role_id = roleRes.data.find(r => r.name === user.system_role_name)?.id || null
+    }
+
+    if (user.job_title_id) {
+       formData.job_title_id = user.job_title_id
+       const jt = allJobTitles.value.find(j => j.id === user.job_title_id)
+       if (jt) {
+         selectedSectorId.value = jt.sector_id
+       }
+    }
   } catch (err: any) {
-    message.error('Gagal mengambil data referensi')
+    message.error('Gagal mengambil data')
   } finally {
-    isLoadingRoles.value = false
+    isLoadingData.value = false
   }
 }
 
-const fetchJobTitles = async (sectorId: string) => {
+const fetchJobTitlesForSector = async (sectorId: string) => {
   try {
     const res = await getJobTitlesApi({ sector_id: sectorId, limit: 100 })
-    jobTitles.value = res.data.list
+    jobTitlesInSelectedSector.value = res.data.list
   } catch (err) {
     message.error('Gagal mengambil data jabatan')
   }
 }
 
 watch(selectedSectorId, (newId) => {
-  formData.job_title_id = null
-  jobTitles.value = []
   if (newId) {
-    fetchJobTitles(newId)
+    fetchJobTitlesForSector(newId)
+  } else {
+    jobTitlesInSelectedSector.value = []
   }
 })
 
-watch(selectedRoleName, () => {
-  selectedSectorId.value = null
-  formData.job_title_id = null
-  jobTitles.value = []
+watch(selectedRoleName, (newRole, oldRole) => {
+  if (oldRole && newRole !== oldRole) {
+    selectedSectorId.value = null
+    formData.job_title_id = null
+    jobTitlesInSelectedSector.value = []
+  }
 })
 
 onMounted(() => {
@@ -132,13 +168,17 @@ const handleSubmit = (e: MouseEvent) => {
     if (!errors) {
       isLoading.value = true
       try {
-        await createUserApi({
-          ...formData,
+        await updateUserBySuperadminApi(userId, {
+          name: formData.name,
+          assigned_role_id: formData.assigned_role_id,
+          account_status: formData.account_status,
+          system_role_id: formData.system_role_id,
+          job_title_id: formData.job_title_id,
         })
-        message.success('User berhasil ditambahkan')
+        message.success('User berhasil diperbarui')
         router.push('/superadmin/user-management')
       } catch (err: any) {
-        message.error(err.message || 'Gagal menambahkan user')
+        message.error(err.message || 'Gagal memperbarui user')
       } finally {
         isLoading.value = false
       }
@@ -155,8 +195,8 @@ const accountStatusOptions = [
 
 <template>
   <MasterDataFormLayout
-    title="Tambah Pengguna"
-    submit-text="Tambahkan Pengguna"
+    title="Edit Pengguna"
+    submit-text="Simpan Perubahan"
     :loading="isLoading"
     :is-ready="isFormReady"
     @submit="handleSubmit"
@@ -167,6 +207,7 @@ const accountStatusOptions = [
       :rules="rules"
       label-placement="top"
       size="large"
+      :loading="isLoadingData"
     >
       <n-grid :cols="2" :x-gap="32" responsive="screen">
         <n-form-item-gi label="Nama Lengkap" path="name">
@@ -177,12 +218,11 @@ const accountStatusOptions = [
           />
         </n-form-item-gi>
 
-        <n-form-item-gi label="Bidang">
+        <n-form-item-gi v-if="!isCandidate" label="Bidang">
           <n-select
             v-model:value="selectedSectorId"
             :options="filteredSectorsOptions"
             placeholder="Pilih bidang"
-            :loading="isLoadingRoles"
             clearable
           />
         </n-form-item-gi>
@@ -190,12 +230,13 @@ const accountStatusOptions = [
         <n-form-item-gi label="Email Valid" path="email">
           <n-input 
             v-model:value="formData.email" 
-            placeholder="Masukkan email valid pengguna" 
+            disabled
+            placeholder="Email tidak dapat diubah" 
             :input-props="{ autocomplete: 'none' }"
           />
         </n-form-item-gi>
 
-        <n-form-item-gi label="Jabatan">
+        <n-form-item-gi v-if="!isCandidate" label="Jabatan">
           <n-select
             v-model:value="formData.job_title_id"
             :options="filteredJobTitlesOptions"
@@ -204,13 +245,12 @@ const accountStatusOptions = [
           />
         </n-form-item-gi>
 
-        <n-form-item-gi label="Password" path="password">
+        <n-form-item-gi label="Password">
           <n-input
-            v-model:value="formData.password"
+            value="••••••••"
+            disabled
             type="password"
-            show-password-on="mousedown"
-            placeholder="Masukkan password"
-            :input-props="{ autocomplete: 'new-password' }"
+            placeholder="Password tidak dapat diubah di sini"
           />
         </n-form-item-gi>
 
@@ -221,31 +261,14 @@ const accountStatusOptions = [
           />
         </n-form-item-gi>
 
-        <n-form-item-gi label="Role" path="system_role_id">
+        <n-form-item-gi v-if="!isCandidate" label="Role" path="system_role_id">
           <n-select
             v-model:value="formData.system_role_id"
             :options="systemRoles.map(r => ({ label: r.name === 'Employee' ? 'Pegawai' : r.name, value: r.id }))"
             placeholder="Pilih role"
-            :loading="isLoadingRoles"
           />
         </n-form-item-gi>
       </n-grid>
     </n-form>
   </MasterDataFormLayout>
 </template>
-
-<style scoped>
-:deep(.n-form-item-label) {
-  color: #1E293B;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-:deep(.n-input), :deep(.n-select) {
-  --n-border-radius: 6px;
-}
-
-:deep(.n-card__content) {
-  padding: 0 !important;
-}
-</style>

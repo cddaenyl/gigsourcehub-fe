@@ -70,6 +70,10 @@ const tableData = computed(() => {
   }))
 })
 
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 // Handlers
 const handleAction = async (action: string, user: any) => {
   try {
@@ -87,7 +91,7 @@ const handleAction = async (action: string, user: any) => {
         message.success('User berhasil diaktifkan')
         break
       case 'edit':
-        console.log('Edit user:', user)
+        router.push(`/superadmin/user-management/edit/${user.id}`)
         break
       default:
         console.log(`Action: ${action}`, user)

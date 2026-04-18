@@ -27,6 +27,7 @@ const defaultAvatarSeed = 'HumanResource'
 
 const userInfo = computed(() => {
   const user = me.value ?? authStore.user
+  const role = user?.system_role_name
   const name = user?.name || 'Human Resource'
   const email = user?.email || 'human.resource@gigsource.com'
   const avatar =
@@ -37,6 +38,7 @@ const userInfo = computed(() => {
     name,
     email,
     avatar,
+    role,
   }
 })
 
@@ -84,8 +86,9 @@ watch(
 <template>
   <div class="flex flex-col h-full bg-background-secondary border-r border-[#C7D0F3]">
     <!-- Logo Section -->
-    <div class="flex items-center justify-center p-6 border-gray-200">
+    <div class="flex flex-col items-center justify-center p-6 border-gray-200">
       <img src="../../assets/LogoGigSource.svg" alt="GigSource Logo" class="h-18" />
+      <p class="text-sm mt-1 font-bold text-primary">{{ userInfo.role }}</p>
     </div>
 
     <!-- Main Menu -->

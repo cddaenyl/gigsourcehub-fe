@@ -1,6 +1,6 @@
 import type { User } from '@/models/User'
 
-export type AppRole = 'admin' | 'employee' | 'candidate'
+export type AppRole = 'admin' | 'employee' | 'candidate' | 'superadmin'
 
 export const normalizeRole = (role: string | null | undefined): AppRole | null => {
   if (!role) return null
@@ -10,6 +10,7 @@ export const normalizeRole = (role: string | null | undefined): AppRole | null =
   if (normalizedRole === 'admin') return 'admin'
   if (normalizedRole === 'employee') return 'employee'
   if (normalizedRole === 'candidate') return 'candidate'
+  if (normalizedRole === 'superadmin') return 'superadmin'
 
   return null
 }
@@ -26,6 +27,8 @@ export const getDefaultRouteByRole = (role: AppRole | null): string => {
       return '/employee/talent-needs'
     case 'candidate':
       return '/candidate'
+    case 'superadmin':
+      return '/superadmin'
     default:
       return '/'
   }
@@ -46,6 +49,9 @@ export const canAccessPath = (role: AppRole | null, path: string): boolean => {
 
   if (path.startsWith('/candidate')) {
     return role === 'candidate'
+  }
+  if (path.startsWith('/superadmin')) {
+    return role === 'superadmin'
   }
 
   return true

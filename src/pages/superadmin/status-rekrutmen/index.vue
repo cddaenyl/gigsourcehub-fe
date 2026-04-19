@@ -3,11 +3,11 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import MasterDataIndexLayout from '@/components/shared/MasterDataIndexLayout.vue'
-import SectorTable from '@/components/tables/SectorTable.vue'
+import RecruitmentStatusTable from '@/components/tables/RecruitmentStatusTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
-import { useSectors } from '@/composables/useSectors'
-import { updateSectorApi } from '@/services/sector.service'
-import type { Sector } from '@/models/Sector'
+import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
+import { updateRecruitmentStatusApi } from '@/services/recruitment-status.service'
+import type { RecruitmentStatus } from '@/models/RecruitmentStatus'
 
 const router = useRouter()
 const message = useMessage()
@@ -22,7 +22,7 @@ const queryParams = computed(() => ({
   search: searchQuery.value,
 }))
 
-const { sectors, pageCount, isLoading, refetch } = useSectors(queryParams)
+const { recruitmentStatuses, pageCount, isLoading, refetch } = useRecruitmentStatuses(queryParams)
 
 const handleSearch = (val: string) => {
   searchQuery.value = val
@@ -30,29 +30,29 @@ const handleSearch = (val: string) => {
 }
 
 const handleAdd = () => {
-  router.push('/superadmin/bidang/create')
+  router.push('/superadmin/status-rekrutmen/create')
 }
 
-const handleAction = async (action: string, sector: Sector) => {
+const handleAction = async (action: string, status: RecruitmentStatus) => {
   if (action === 'edit') {
-    router.push(`/superadmin/bidang/edit/${sector.id}`)
+    router.push(`/superadmin/status-rekrutmen/edit/${status.id}`)
   } else if (action === 'toggle-status') {
-    const newStatus = !sector.is_active
+    const newStatus = !status.is_active
     const confirmMsg = newStatus 
-      ? `Apakah Anda yakin ingin mengaktifkan bidang ${sector.name}?`
-      : `Apakah Anda yakin ingin menonaktifkan bidang ${sector.name}?`
+      ? `Apakah Anda yakin ingin mengaktifkan status ${status.name}?`
+      : `Apakah Anda yakin ingin menonaktifkan status ${status.name}?`
       
     if (confirm(confirmMsg)) {
       try {
-        await updateSectorApi(sector.id, {
-          name: sector.name,
-          hex_code: sector.hex_code,
+        await updateRecruitmentStatusApi(status.id, {
+          name: status.name,
+          hex_code: status.hex_code,
           is_active: newStatus
         })
-        message.success(`Bidang berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
+        message.success(`Status berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
         refetch()
       } catch (err: any) {
-        message.error(err.message || 'Gagal mengubah status bidang')
+        message.error(err.message || 'Gagal mengubah status')
       }
     }
   }
@@ -61,15 +61,15 @@ const handleAction = async (action: string, sector: Sector) => {
 
 <template>
   <MasterDataIndexLayout
-    title="Master Data Bidang"
-    add-button-text="Tambah Bidang"
+    title="Master Data Status Rekrutmen"
+    add-button-text="Tambah Status"
     v-model:search-query="searchQuery"
     @search="handleSearch"
     @add="handleAdd"
   >
     <template #table>
-      <SectorTable 
-        :data="sectors" 
+      <RecruitmentStatusTable 
+        :data="recruitmentStatuses" 
         :loading="isLoading" 
         @action="handleAction" 
       />

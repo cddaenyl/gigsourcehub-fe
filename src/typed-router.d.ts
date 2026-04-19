@@ -170,6 +170,27 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/superadmin/status-rekrutmen/': RouteRecordInfo<
+      '/superadmin/status-rekrutmen/',
+      '/superadmin/status-rekrutmen',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/status-rekrutmen/create': RouteRecordInfo<
+      '/superadmin/status-rekrutmen/create',
+      '/superadmin/status-rekrutmen/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/status-rekrutmen/edit/[id]': RouteRecordInfo<
+      '/superadmin/status-rekrutmen/edit/[id]',
+      '/superadmin/status-rekrutmen/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/superadmin/user-management/': RouteRecordInfo<
       '/superadmin/user-management/',
       '/superadmin/user-management',
@@ -334,6 +355,24 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/bidang/edit/[id].vue': {
       routes:
         | '/superadmin/bidang/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/status-rekrutmen/index.vue': {
+      routes:
+        | '/superadmin/status-rekrutmen/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/status-rekrutmen/create.vue': {
+      routes:
+        | '/superadmin/status-rekrutmen/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/status-rekrutmen/edit/[id].vue': {
+      routes:
+        | '/superadmin/status-rekrutmen/edit/[id]'
       views:
         | never
     }

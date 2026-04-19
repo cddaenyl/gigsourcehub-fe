@@ -10,6 +10,11 @@ export const fetchSystemSettings = async (): Promise<SystemSetting> => {
   return data.data
 }
 
+export const fetchAiModeStatus = async (): Promise<{ is_ai_mode_enabled: boolean }> => {
+  const { data } = await axios.get('/system-settings/ai-mode')
+  return data.data
+}
+
 export const updateSystemSettings = async (payload: { is_ai_mode_enabled: boolean }) => {
   const { data } = await axios.put('/system-settings', payload)
   return data

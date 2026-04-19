@@ -14,8 +14,10 @@ import CandidateLevelChip from './CandidateLevelChip.vue'
 
 const props = withDefaults(defineProps<{
   placeholder?: string
+  isAiEnabled?: boolean
 }>(), {
   placeholder: 'Cari kandidat',
+  isAiEnabled: true,
 })
 
 const authStore = useAuthStore()
@@ -38,6 +40,7 @@ const handleSearch = () => {
 }
 
 const activate = (place: DrawerPlacement) => {
+  if (!props.isAiEnabled) return
   active.value = true
   placement.value = place
 }
@@ -50,7 +53,7 @@ const {
   deleteChat, 
   storeMessage, 
   loadChatMessages 
-} = useAIChatHistory()
+} = useAIChatHistory(computed(() => props.isAiEnabled))
 
 const chatHistory = ref<ChatMessage[]>([])
 const { sendMessage, isLoading, aiSearchMutation } = useAICandidateSearch(chatHistory)
@@ -177,7 +180,7 @@ watch(chatHistory, (newHistory) => {
       @search="handleSearch"
     />
 
-    <n-button type="primary" @click="activate('right')">
+    <n-button type="primary" @click="activate('right')" :disabled="!props.isAiEnabled">
       <template #icon>
         <n-icon :component="ApiApp" />
       </template>

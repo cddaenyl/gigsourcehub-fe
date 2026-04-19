@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import UserLayout from '@/layouts/UserLayout.vue'
 import { useUploadCV, useParsedCV, useConfirmCV, useCVDownloadLink } from '@/composables/useCV'
 import { useProvinsi, useKabupaten } from '@/composables/useRegion'
@@ -23,6 +23,7 @@ import {
   Code,
   ArrowLeft
 } from '@vicons/tabler'
+import { fetchAiModeStatus } from '@/services/system-setting'
 import type { UploadFileInfo } from 'naive-ui'
 
 defineOptions({
@@ -35,6 +36,16 @@ const errorFeedback = ref("")
 const showUpdateFlow = ref(false)
 const forceShowUpload = ref(false)
 const isEditing = ref(false)
+const isAiEnabled = ref(true)
+
+onMounted(async () => {
+  try {
+    const data = await fetchAiModeStatus()
+    isAiEnabled.value = data.is_ai_mode_enabled
+  } catch (err) {
+    console.error('Failed to fetch AI mode status', err)
+  }
+})
 
 // Composables
 const { profile, uploadPicture, isUploadingPicture, isLoading: isLoadingProfile, updateProfile, isUpdatingProfile } = useProfile()
@@ -195,7 +206,9 @@ const submitUpload = () => {
   if (fileList.value.length > 0 && currentFile) {
     upload(currentFile, {
       onSuccess: () => {
-        successFeedback.value = "Upload successful! Waiting for AI processing..."
+        successFeedback.value = isAiEnabled.value 
+          ? "Upload successful! Waiting for AI processing..." 
+          : "Upload successful!"
         fileList.value = []
         forceShowUpload.value = false
         cvQuery.refetch() 
@@ -249,19 +262,23 @@ const currentStep = computed(() => {
   
   if (isEditing.value) return 'EDIT'
 
+  // If AI is disabled, we never go to PARSING or REVIEW for newly uploaded CVs
+  const isParsingOrWaiting = cv && (cv.status === 'UPLOADED' || cv.status === 'PARSING') && cv.parsed_data === null
+
   // If user explicitly chooses to update
   if (showUpdateFlow.value) {
     if (forceShowUpload.value || !cv) return 'UPLOAD'
-    if (cv.status === 'UPLOADED' || (cv.status === 'PARSING' && cv.parsed_data === null)) return 'PARSING'
-    if (cv.parsed_data) return 'REVIEW'
-    return 'UPLOAD'
+    if (isAiEnabled.value && isParsingOrWaiting) return 'PARSING'
+    if (isAiEnabled.value && cv.parsed_data) return 'REVIEW'
+    return 'VIEW' // If AI disabled, go back to view after upload
   }
 
   // Onboarding / Initial flow
   if (!isProfileComplete.value) {
     if (!cv) return 'UPLOAD'
-    if (cv.status === 'UPLOADED' || (cv.status === 'PARSING' && cv.parsed_data === null)) return 'PARSING'
-    if (cv.parsed_data) return 'REVIEW'
+    if (isAiEnabled.value && isParsingOrWaiting) return 'PARSING'
+    if (isAiEnabled.value && cv.parsed_data) return 'REVIEW'
+    // If AI disabled, we might need a manual onboarding or just allow VIEW
   }
 
   return 'VIEW'

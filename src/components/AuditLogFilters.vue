@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { 
-  NSpace, 
   NDatePicker, 
   NSelect, 
-  NText, 
-  NButton,
   NIcon
 } from 'naive-ui'
-import { Calendar, User, Shield, Box, Activity, Check } from '@vicons/tabler'
+import { Calendar, Shield, Box, Activity, Check } from '@vicons/tabler'
 
 const props = defineProps<{
   filters: {

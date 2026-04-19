@@ -138,12 +138,6 @@ const handleJobRolesUpdate = (value: string[]) => {
     }
 }
 
-const getRoleName = (val: any) => {
-  if (typeof val === 'string' && val.startsWith('NEW_ROLE:')) {
-    return val.split(':')[2] || 'New Role'
-  }
-  return allRoles.value?.find(r => r.id === val)?.name || val
-}
 
 const fileList = ref<UploadFileInfo[]>([])
 const pictureUploadRef = ref<any>(null)
@@ -494,7 +488,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
           <n-grid :cols="24" :x-gap="32" :y-gap="32" item-responsive responsive="screen">
             <!-- Sidebar Navigation -->
             <n-gi span="24 m:6" class="mt-8">
-              <n-card :bordered="false" class="shadow-sm sticky top bg-white/80 backdrop-blur-sm !rounded-[1.25rem]">
+              <n-card :bordered="false" class="shadow-sm sticky top bg-white/80 backdrop-blur-sm rounded-[1.25rem]!">
                 <div class="py-2">
                   <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-4 mb-4">Menu</h3>
                   <div class="space-y-1">
@@ -528,7 +522,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
 
             <!-- Profile Detail Card -->
             <n-gi span="24 m:18" class="relative mt-8">
-              <n-card :bordered="false" class="shadow-sm min-h-[800px] overflow-hidden bg-white/50 backdrop-blur-xl !rounded-[1.25rem]">
+              <n-card :bordered="false" class="shadow-sm min-h-[800px] overflow-hidden bg-white/50 backdrop-blur-xl rounded-[1.25rem]!">
                 <!-- Blurred State Overlay -->
                 <div v-if="isProfileLocked" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/40 backdrop-blur-md rounded-[1.25rem] p-12 text-center">
                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-6 animate-pulse">
@@ -536,12 +530,8 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                    </div>
                    <h2 class="text-3xl font-bold text-gray-800">Complete Your Profile</h2>
                    <p class="text-gray-500 mt-2 max-w-sm mb-8">
-                     Unlock your detailed professional profile and boost your visibility to recruiters by uploading your CV.
+                     Wait until AI finish parsing your CV.
                    </p>
-                   <n-button type="primary" size="large" @click="startUpdateFlow" icon-placement="right" class="px-8 shadow-lg !rounded-xl">
-                      Start Profile Setup
-                      <template #icon><n-icon :component="ExternalLink" /></template>
-                   </n-button>
                 </div>
 
                 <div :class="{ 'blur-sm select-none pointer-events-none grayscale-40': isProfileLocked }">
@@ -697,14 +687,12 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
 
         <!-- 1. Upload Phase -->
         <div v-if="currentStep === 'UPLOAD'">
-           <div class="flex items-center justify-between mb-8">
+           <div class="flex items-center justify-between mb-8 mt-8">
                 <div class="flex items-center gap-4">
                     <n-button v-if="isProfileComplete" circle @click="showUpdateFlow = false" class="shadow-sm">
                         <template #icon><n-icon :component="ArrowLeft" /></template>
                     </n-button>
-                    <h1 class="text-3xl font-bold tracking-tight">Update Professional CV</h1>
                 </div>
-                <n-button @click="logout()" type="error" ghost>Logout</n-button>
            </div>
 
            <n-card :bordered="false" class="shadow-xl rounded-2xl text-center p-10 bg-white">
@@ -723,22 +711,25 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
               v-model:file-list="fileList"
               @change="handleUploadChange"
               accept=".pdf,.doc,.docx"
-              :max="1"
+              :max="1"d
               directory-dnd
             >
-              <n-upload-dragger class="py-12 bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-2xl transition-all hover:bg-white hover:border-primary">
-                <div style="margin-bottom: 16px">
-                  <n-icon size="56" class="text-gray-300" :component="CloudUpload" />
-                </div>
-                <h3 class="text-xl font-bold text-gray-700">Drop your file here</h3>
-                <p class="text-gray-500 mt-1">PDF, DOC, or DOCX files are supported</p>
-              </n-upload-dragger>
+              <div class="border-dashed border-2 rounded-2xl p-10 border-gray-300 bg-gray-50/50 hover:bg-primary/10 hover:border-primary transition-all">
+                <n-upload-dragger class="py-12 transition-all">
+                  <div style="margin-bottom: 16px">
+                    <n-icon size="56" class="text-gray-300" :component="CloudUpload" />
+                  </div>
+                  <h3 class="text-xl font-bold text-gray-700">Drop your file here</h3>
+                  <p class="text-gray-500 mt-1">PDF, DOC, or DOCX files are supported</p>
+                </n-upload-dragger>
+              </div>
             </n-upload>
 
             <div class="mt-10">
                 <n-button 
                     type="primary" 
-                    size="large" 
+                    size="large"
+                    color="#0014B2" 
                     block
                     :loading="uploadMutation.isPending.value" 
                     :disabled="fileList.length === 0" 

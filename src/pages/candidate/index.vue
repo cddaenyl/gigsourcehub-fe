@@ -427,9 +427,12 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
             round
             :size="140"
             :src="profile?.profile_picture || undefined"
-            :fallback-src="'https://0.gravatar.com/avatar/0?d=mp'"
-            class="border-4 border-white/20 shadow-2xl transition-all group-hover:scale-105"
-          />
+            class="border-4 border-white/20 shadow-2xl transition-all group-hover:scale-105 bg-white/10"
+          >
+            <template #default>
+              <n-icon :component="User" :size="80" class="text-white/50" />
+            </template>
+          </n-avatar>
           <div 
             class="absolute bottom-1 right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center cursor-pointer shadow-lg"
             @click="triggerPictureUpload"
@@ -555,9 +558,12 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                                 round
                                 :size="100"
                                 :src="profile?.profile_picture || undefined"
-                                :fallback-src="'https://0.gravatar.com/avatar/0?d=mp'"
-                                class="shadow-lg border-2 border-white"
-                             />
+                                class="shadow-lg border-2 border-white bg-gray-100"
+                             >
+                                <template #default>
+                                  <n-icon :component="User" :size="60" class="text-gray-300" />
+                                </template>
+                             </n-avatar>
                           </div>
 
                           <div class="space-y-1">

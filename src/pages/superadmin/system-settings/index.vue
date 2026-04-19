@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { NCard, NSwitch, NSpace, NText, useMessage, NSpin } from 'naive-ui'
+import { NCard, NSwitch, NText, useMessage, NSpin } from 'naive-ui'
 import SuperAdminLayout from '../../../layouts/SuperAdminLayout.vue'
 import { fetchSystemSettings, updateSystemSettings } from '../../../services/system-setting'
 

@@ -170,6 +170,27 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/superadmin/jabatan/': RouteRecordInfo<
+      '/superadmin/jabatan/',
+      '/superadmin/jabatan',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/jabatan/create': RouteRecordInfo<
+      '/superadmin/jabatan/create',
+      '/superadmin/jabatan/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/jabatan/edit/[id]': RouteRecordInfo<
+      '/superadmin/jabatan/edit/[id]',
+      '/superadmin/jabatan/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/superadmin/posisi/': RouteRecordInfo<
       '/superadmin/posisi/',
       '/superadmin/posisi',
@@ -376,6 +397,24 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/bidang/edit/[id].vue': {
       routes:
         | '/superadmin/bidang/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/jabatan/index.vue': {
+      routes:
+        | '/superadmin/jabatan/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/jabatan/create.vue': {
+      routes:
+        | '/superadmin/jabatan/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/jabatan/edit/[id].vue': {
+      routes:
+        | '/superadmin/jabatan/edit/[id]'
       views:
         | never
     }

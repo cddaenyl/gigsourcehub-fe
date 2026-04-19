@@ -39,6 +39,10 @@ const menuOptions: MenuOption[] = [
         key: 'posisi',
       },
       {
+        label: 'Jabatan',
+        key: 'jabatan',
+      },
+      {
         label: 'Status Rekrutmen',
         key: 'status-rekrutmen',
       },

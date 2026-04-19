@@ -8,7 +8,7 @@ defineOptions({
 </script>
 
 <template>
-  <section id="cta" class="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+  <section id="cta" class="bg-background px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
     <div
       class="mx-auto flex w-full max-w-181.25 flex-col items-center justify-center gap-5 text-center"
     >

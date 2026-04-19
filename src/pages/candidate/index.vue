@@ -59,21 +59,53 @@ const confirm = confirmMutation.mutate
 
 const jobRoleOptions = computed(() => {
   const options = []
+  const roleNamesInGroups = new Set<string>()
 
   // 1. Always include a group for currently selected roles to guarantee names are shown immediately
   if (profile.value?.job_roles?.length) {
+    const selectedChildren = profile.value.job_roles.map((r: any) => {
+      roleNamesInGroups.add(r.name.toLowerCase())
+      return { label: r.name, value: r.id }
+    })
     options.push({
       type: 'group',
       label: 'Selected Roles',
       key: 'selected-roles-group',
-      children: profile.value.job_roles.map((r: any) => ({
-        label: r.name,
-        value: r.id
-      }))
+      children: selectedChildren
     })
   }
 
-  // 2. Add the industry-grouped categories once the API returns data
+  // 2. Add AI Suggested Roles (if any from current parsed data) 
+  // and they aren't already in selected roles
+  if (formData.value.applied_roles?.length) {
+    const aiChildren = formData.value.applied_roles
+      .map((r: any) => {
+        const name = typeof r === 'string' ? r : r.name
+        if (!name) return null
+        
+        // If already in selected roles, don't show here
+        if (roleNamesInGroups.has(name.toLowerCase())) return null
+
+        // Try to find the canonical ID from database roles
+        const matched = allRoles.value?.find((ar: any) => ar.name.toLowerCase() === name.toLowerCase())
+        const val = matched ? matched.id : `NEW_ROLE:${typeof r === 'object' ? r.sector : 'Undefined'}:${name}`
+        
+        roleNamesInGroups.add(name.toLowerCase())
+        return { label: name, value: val }
+      })
+      .filter(Boolean)
+
+    if (aiChildren.length > 0) {
+      options.push({
+        type: 'group',
+        label: 'AI Suggested Roles',
+        key: 'ai-suggested-group',
+        children: aiChildren
+      })
+    }
+  }
+
+  // 3. Add the industry-grouped categories once the API returns data
   if (sectors.value && allRoles.value) {
     const mainGroups = sectors.value.map(sector => ({
       type: 'group',
@@ -81,10 +113,11 @@ const jobRoleOptions = computed(() => {
       key: sector.id,
       children: allRoles.value
         .filter(role => role.sector_id === sector.id)
-        .map(role => ({
-          label: role.name,
-          value: role.id
-        }))
+        .map(role => {
+           // We don't strictly set roleNamesInGroups here to allow the normal structure 
+           // but normally selection will highlight the existing option if values match.
+           return { label: role.name, value: role.id }
+        })
     }))
     options.push(...mainGroups)
   }
@@ -103,8 +136,11 @@ const handleJobRolesUpdate = (value: string[]) => {
     }
 }
 
-const getRoleName = (id: string) => {
-  return allRoles.value?.find(r => r.id === id)?.name || id
+const getRoleName = (val: any) => {
+  if (typeof val === 'string' && val.startsWith('NEW_ROLE:')) {
+    return val.split(':')[2] || 'New Role'
+  }
+  return allRoles.value?.find(r => r.id === val)?.name || val
 }
 
 const fileList = ref<UploadFileInfo[]>([])
@@ -323,6 +359,21 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
     parsed.job_role_ids = parsed.job_role_ids || []
     parsed.gpa = Number(parsed.gpa) || 0
     parsed.years_experience = Number(parsed.years_experience) || 0
+
+    // Map applied_roles (objects) to job_role_ids (IDs if match found, else Objects)
+    if (parsed.applied_roles.length > 0) {
+       const mappedIds = parsed.applied_roles.map((r: any) => {
+          const name = typeof r === 'string' ? r : r.name
+          const matched = allRoles.value?.find((ar: any) => ar.name.toLowerCase() === name.toLowerCase())
+          if (matched) return matched.id
+          
+          // Return a composite string to preserve sector info and ensure stable value for NSelect
+          const sector = typeof r === 'object' ? r.sector : 'Undefined'
+          return `NEW_ROLE:${sector}:${name}`
+       })
+       // Enforce limit of 3
+       parsed.job_role_ids = mappedIds.slice(0, 3)
+    }
 
     formData.value = { ...formData.value, ...parsed }
   }

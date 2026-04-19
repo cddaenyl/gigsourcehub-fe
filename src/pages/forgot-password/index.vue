@@ -6,7 +6,7 @@ defineOptions({
 import { useForm, useField } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { NInput, NIcon, NButton } from 'naive-ui'
+import { NInput, NIcon } from 'naive-ui'
 import { Mail } from '@vicons/tabler'
 import AuthLayoutSide from '@/components/shared/AuthLayoutSide.vue'
 

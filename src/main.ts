@@ -48,6 +48,19 @@ axios.interceptors.request.use((config) => {
   return config
 })
 
+// Handle global error responses (401, 403)
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const authStore = useAuthStore()
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      authStore.logout()
+      router.push('/login')
+    }
+    return Promise.reject(error)
+  }
+)
+
 app.use(VueQueryPlugin)
 app.use(router)
 

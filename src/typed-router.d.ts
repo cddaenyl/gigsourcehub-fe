@@ -240,6 +240,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/superadmin/system-settings/': RouteRecordInfo<
+      '/superadmin/system-settings/',
+      '/superadmin/system-settings',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/superadmin/user-management/': RouteRecordInfo<
       '/superadmin/user-management/',
       '/superadmin/user-management',
@@ -464,6 +471,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/status-rekrutmen/edit/[id].vue': {
       routes:
         | '/superadmin/status-rekrutmen/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/system-settings/index.vue': {
+      routes:
+        | '/superadmin/system-settings/'
       views:
         | never
     }

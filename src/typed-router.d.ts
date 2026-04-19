@@ -170,6 +170,27 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/superadmin/posisi/': RouteRecordInfo<
+      '/superadmin/posisi/',
+      '/superadmin/posisi',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/posisi/create': RouteRecordInfo<
+      '/superadmin/posisi/create',
+      '/superadmin/posisi/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/posisi/edit/[id]': RouteRecordInfo<
+      '/superadmin/posisi/edit/[id]',
+      '/superadmin/posisi/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/superadmin/status-rekrutmen/': RouteRecordInfo<
       '/superadmin/status-rekrutmen/',
       '/superadmin/status-rekrutmen',
@@ -355,6 +376,24 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/bidang/edit/[id].vue': {
       routes:
         | '/superadmin/bidang/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/posisi/index.vue': {
+      routes:
+        | '/superadmin/posisi/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/posisi/create.vue': {
+      routes:
+        | '/superadmin/posisi/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/posisi/edit/[id].vue': {
+      routes:
+        | '/superadmin/posisi/edit/[id]'
       views:
         | never
     }

@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { 
   NButton, 
   NIcon, 
   NDataTable, 
   NTag, 
-  NSpace, 
   NModal, 
   NCard, 
-  NCode,
   NDropdown,
   useMessage 
 } from 'naive-ui'
@@ -393,7 +391,7 @@ import { h } from 'vue'
       <div class="flex gap-6 items-start relative">
         <!-- Filter Sidebar - Only shown if toggled -->
         <transition name="slide-fade">
-          <div v-if="showFilters" class="w-72 flex-shrink-0 sticky top-6">
+          <div v-if="showFilters" class="w-72 shrink-0 sticky top-6">
             <AuditLogFilters v-model:filters="filters" @clear="handleClearFilters" />
           </div>
         </transition>

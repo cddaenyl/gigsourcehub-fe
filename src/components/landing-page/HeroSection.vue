@@ -15,20 +15,22 @@ defineOptions({
         <!-- Hero Content -->
         <div class="font-semibold space-y-2">
           <div
-            class="px-3 py-2 my-4 bg-white/5 rounded-full outline -outline-offset-1 outline-white/10 inline-flex justify-center items-center gap-2.5 overflow-hidden"
+            class="px-3 py-2 mb-6 bg-white/5 rounded-full outline -outline-offset-1 outline-white/10 inline-flex justify-center items-center gap-2.5 overflow-hidden"
           >
             <div class="justify-center text-white text-sm font-normal">Open for new talents</div>
           </div>
-          <h1 class="text-4xl md:text-5xl lg:text-6xl">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl xl:leading-16">
             Build Impactful <br />
             <span
               class="text-4xl md:text-5xl lg:text-6xl bg-linear-to-l from-[#C27AFF] via-[#7C86FF] to-[#51A2FF] bg-clip-text text-transparent"
             >
               Solutions.
             </span>
+            <br />
+            Grow With <br />Solutionlabs.
           </h1>
-          <h1 class="text-4xl md:text-5xl lg:text-6xl">Grow With Solutionlabs.</h1>
-          <p class="text-lg text-[#CAD5E2] font-medium">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl"></h1>
+          <p class="text-lg text-[#CAD5E2] font-medium my-6 mt-8">
             Join a network of project-based professionals and collaborate on real-world technology
             and business solutions with startups and enterprises.
           </p>
@@ -65,7 +67,7 @@ defineOptions({
         </div>
 
         <!-- Hero Image/Illustration -->
-        <div class="hidden md:block">
+        <div class="hidden xl:block">
           <div class="relative">
             <div
               class="absolute inset-0 bg-blue-400 rounded-lg transform rotate-3 opacity-20"
@@ -88,10 +90,32 @@ defineOptions({
 
     <!-- Background Elements -->
     <div
-      class="absolute z-0 w-140 h-140 -top-32 -left-48 bg-[#4F39F6]/20 rounded-full blur-[100px]"
+      class="float-decor-1 absolute z-0 w-140 h-140 -top-32 -left-48 bg-[#4F39F6]/20 rounded-full blur-[100px]"
     ></div>
     <div
-      class="absolute z-0 w-140 h-140 -bottom-28 -right-36 bg-[#4F39F6]/20 rounded-full blur-[100px] overflow-clip"
+      class="float-decor-2 absolute z-0 w-140 h-140 -bottom-28 -right-36 bg-[#4F39F6]/20 rounded-full blur-[100px] overflow-clip"
     ></div>
   </section>
 </template>
+
+<style scoped>
+.float-decor-1 {
+  animation: decor-float 2.8s ease-in-out infinite;
+  will-change: translate;
+}
+
+.float-decor-2 {
+  animation: decor-float 3.2s ease-in-out infinite;
+  will-change: translate;
+}
+
+@keyframes decor-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -40px;
+  }
+}
+</style>

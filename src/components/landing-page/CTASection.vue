@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Bolt, Clock, Medal, PlugConnected, Users } from '@vicons/tabler'
+import { NIcon } from 'naive-ui'
+
 defineOptions({
   name: 'CTASection',
 })
@@ -10,23 +13,22 @@ defineOptions({
       class="mx-auto flex w-full max-w-181.25 flex-col items-center justify-center gap-5 text-center"
     >
       <div
-        class="inline-flex items-center justify-start gap-1.25 rounded-full border border-blue-900 px-3 py-1.5 pr-4 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
+        class="inline-flex items-center justify-start gap-1.25 rounded-full border border-blue-900 px-3 py-2 shadow-md"
       >
-        <div class="relative h-4 w-4">
-          <div class="absolute left-0 top-0 h-4 w-4"></div>
-          <div
-            class="absolute left-[3.33px] top-0.5 h-3 w-2.5 rounded-[1px] border border-yellow-400"
-          ></div>
+        <div class="flex relative justify-center text-yellow-400 font-normal">
+          <n-icon :size="16"><Bolt /></n-icon>
         </div>
-        <div class="text-xs leading-5 font-semibold text-slate-700">Why Freelancers Choose Us</div>
+        <div class="flex text-xs leading-5 font-semibold text-slate-700">
+          Why Freelancers Choose Us
+        </div>
       </div>
 
-      <h2 class="text-3xl leading-tight font-bold text-slate-800 sm:text-4xl">
+      <h2 class="text-3xl leading-tight font-bold text-gray-800 sm:text-4xl">
         Redefending the<br />
         <span class="text-sky-400">Freelance Experience</span>
       </h2>
 
-      <p class="w-full text-center text-base leading-7 font-medium text-slate-600 sm:text-xl">
+      <p class="w-full text-center text-base lg:leading-7 font-medium text-slate-600 sm:text-xl">
         We build a flexible and transparent project-based ecosystem designed to support your growth
         as a freelance professional.
       </p>
@@ -37,7 +39,7 @@ defineOptions({
     >
       <img
         class="h-64 w-full rounded-3xl border-x-2 border-blue-900 object-cover sm:h-80 lg:h-auto lg:w-5/12"
-        src="../assets/working_man.jpg"
+        src="../../assets/working_man.jpg"
         alt="Freelancers collaborating"
       />
 
@@ -47,7 +49,7 @@ defineOptions({
             class="flex min-h-64 flex-col items-start justify-start gap-5 rounded-3xl border-y-2 border-blue-500 bg-white px-6 pt-6 pb-12 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
           >
             <div class="inline-flex items-center justify-start rounded-[10px] bg-blue-500 p-2.5">
-              <div class="h-7 w-7 rounded-md border-2 border-white"></div>
+              <n-icon :size="28" color="#ffffff"><Clock /></n-icon>
             </div>
             <div class="flex w-full flex-col items-start justify-start gap-3.5 text-left">
               <div class="text-xl leading-6 font-semibold text-slate-800">
@@ -65,10 +67,7 @@ defineOptions({
           >
             <div class="inline-flex items-center justify-start rounded-[10px] bg-pink-500 p-2.5">
               <div class="grid h-7 w-7 grid-cols-2 gap-1">
-                <span class="h-3 w-3 rounded-sm border-2 border-white"></span>
-                <span class="h-3 w-3 rounded-sm border-2 border-white"></span>
-                <span class="h-3 w-3 rounded-sm border-2 border-white"></span>
-                <span class="h-3 w-3 rounded-sm border-2 border-white"></span>
+                <n-icon :size="28" color="#ffffff"><PlugConnected /></n-icon>
               </div>
             </div>
             <div class="flex w-full flex-col items-start justify-start gap-3.5 text-left">
@@ -88,7 +87,7 @@ defineOptions({
             class="flex min-h-64 flex-col items-start justify-start gap-5 rounded-3xl border-y-2 border-teal-500 bg-white px-6 pt-6 pb-12 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
           >
             <div class="inline-flex items-center justify-start rounded-[10px] bg-teal-500 p-2.5">
-              <div class="h-7 w-7 rounded-full border-2 border-white"></div>
+              <n-icon :size="28" color="#ffffff"><Users /></n-icon>
             </div>
             <div class="flex w-full flex-col items-start justify-start gap-3.5 text-left">
               <div class="text-xl leading-7 font-semibold text-slate-800">
@@ -105,7 +104,7 @@ defineOptions({
             class="flex min-h-64 flex-col items-start justify-start gap-5 rounded-3xl border-y-2 border-orange-500 bg-white px-6 pt-6 pb-12 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
           >
             <div class="inline-flex items-center justify-start rounded-[10px] bg-orange-500 p-2.5">
-              <div class="h-7 w-7 rounded-md border-2 border-white"></div>
+              <n-icon :size="28" color="#ffffff"><Medal /></n-icon>
             </div>
             <div class="flex w-full flex-col items-start justify-start gap-3.5 text-left">
               <div class="text-xl leading-7 font-semibold text-slate-800">

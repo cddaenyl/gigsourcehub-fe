@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import {  } from 'vue'
+import { ref, watch } from 'vue'
 import { NInput, NIcon } from 'naive-ui'
 import { Search } from '@vicons/tabler'
+import { debounce } from 'lodash-es'
 
 interface Props {
   placeholder?: string
@@ -18,18 +19,35 @@ const emit = defineEmits<{
   search: [value: string]
 }>()
 
-const handleSearch = () => {
-  emit('search', props.modelValue)
+const internalValue = ref(props.modelValue)
+
+// Keep internal value in sync with prop for external resets
+watch(() => props.modelValue, (newVal) => {
+  internalValue.value = newVal
+})
+
+const debouncedSearch = debounce((val: string) => {
+  emit('update:modelValue', val)
+  emit('search', val)
+}, 500)
+
+watch(internalValue, (newVal) => {
+  debouncedSearch(newVal)
+})
+
+const handleImmediateSearch = () => {
+  debouncedSearch.cancel()
+  emit('update:modelValue', internalValue.value)
+  emit('search', internalValue.value)
 }
 </script>
 
 <template>
   <n-input
-    :value="modelValue"
-    @update:value="emit('update:modelValue', $event)"
+    v-model:value="internalValue"
     :placeholder="props.placeholder"
     class="w-80"
-    @keyup.enter="handleSearch"
+    @keyup.enter="handleImmediateSearch"
   >
     <template #prefix>
       <n-icon :component="Search" />

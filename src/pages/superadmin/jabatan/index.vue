@@ -3,11 +3,11 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import MasterDataIndexLayout from '@/components/shared/MasterDataIndexLayout.vue'
-import SectorTable from '@/components/tables/SectorTable.vue'
+import JobTitleTable from '@/components/tables/JobTitleTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
-import { useSectors } from '@/composables/useSectors'
-import { updateSectorApi } from '@/services/sector.service'
-import type { Sector } from '@/models/Sector'
+import { useJobTitles } from '@/composables/useJobTitles'
+import { deleteJobTitleApi } from '@/services/job-title.service'
+import type { JobTitle } from '@/models/JobTitle'
 
 const router = useRouter()
 const message = useMessage()
@@ -22,7 +22,7 @@ const queryParams = computed(() => ({
   search: searchQuery.value,
 }))
 
-const { sectors, pageCount, isLoading, refetch } = useSectors(queryParams)
+const { jobTitles, pageCount, isLoading, refetch } = useJobTitles(queryParams)
 
 const handleSearch = (val: string) => {
   searchQuery.value = val
@@ -30,29 +30,20 @@ const handleSearch = (val: string) => {
 }
 
 const handleAdd = () => {
-  router.push('/superadmin/bidang/create')
+  router.push('/superadmin/jabatan/create')
 }
 
-const handleAction = async (action: string, sector: Sector) => {
+const handleAction = async (action: string, title: JobTitle) => {
   if (action === 'edit') {
-    router.push(`/superadmin/bidang/edit/${sector.id}`)
-  } else if (action === 'toggle-status') {
-    const newStatus = !sector.is_active
-    const confirmMsg = newStatus 
-      ? `Apakah Anda yakin ingin mengaktifkan bidang ${sector.name}?`
-      : `Apakah Anda yakin ingin menonaktifkan bidang ${sector.name}?`
-      
-    if (confirm(confirmMsg)) {
+    router.push(`/superadmin/jabatan/edit/${title.id}`)
+  } else if (action === 'delete') {
+    if (confirm(`Apakah Anda yakin ingin menghapus jabatan ${title.name}?`)) {
       try {
-        await updateSectorApi(sector.id, {
-          name: sector.name,
-          hex_code: sector.hex_code,
-          is_active: newStatus
-        })
-        message.success(`Bidang berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
+        await deleteJobTitleApi(title.id)
+        message.success('Jabatan berhasil dihapus')
         refetch()
       } catch (err: any) {
-        message.error(err.message || 'Gagal mengubah status bidang')
+        message.error(err.message || 'Gagal menghapus jabatan')
       }
     }
   }
@@ -61,15 +52,15 @@ const handleAction = async (action: string, sector: Sector) => {
 
 <template>
   <MasterDataIndexLayout
-    title="Master Data Bidang"
-    add-button-text="Tambah Bidang"
+    title="Master Data Jabatan"
+    add-button-text="Tambah Jabatan"
     v-model:search-query="searchQuery"
     @search="handleSearch"
     @add="handleAdd"
   >
     <template #table>
-      <SectorTable 
-        :data="sectors" 
+      <JobTitleTable 
+        :data="jobTitles" 
         :loading="isLoading" 
         @action="handleAction" 
       />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidateSearch from '@/components/CandidateSearch.vue'
@@ -11,8 +11,19 @@ import { useUsers } from '@/composables/useUsers'
 import { useBookmarkStore } from '@/stores/bookmark.store'
 import type { User } from '@/models/User'
 import type { AllCandidates } from '@/models/Table'
+import { fetchAiModeStatus } from '@/services/system-setting'
 
 const router = useRouter()
+const isAiEnabled = ref(true)
+
+onMounted(async () => {
+  try {
+    const data = await fetchAiModeStatus()
+    isAiEnabled.value = data.is_ai_mode_enabled
+  } catch (err) {
+    console.error('Failed to fetch AI mode status', err)
+  }
+})
 
 const themeOverride = {
   DataTable: {
@@ -113,7 +124,7 @@ const handleSearch = (value: string) => {
         <!-- Top Section -->
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold text-gray-700">Daftar Kandidat</h1>
-          <CandidateSearch @search="handleSearch" />
+          <CandidateSearch @search="handleSearch" :is-ai-enabled="isAiEnabled" />
         </div>
 
         <!-- Main Content -->

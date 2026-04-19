@@ -3,20 +3,20 @@ import { h } from 'vue'
 import { NDataTable, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { Edit, X, CircleCheck } from '@vicons/tabler'
-import type { Sector } from '@/models/Sector'
+import type { RecruitmentStatus } from '@/models/RecruitmentStatus'
 
 interface Props {
-  data: Sector[]
+  data: RecruitmentStatus[]
   loading?: boolean
 }
 
 defineProps<Props>()
 
 const emit = defineEmits<{
-  action: [action: string, sector: Sector]
+  action: [action: string, status: RecruitmentStatus]
 }>()
 
-const columns: DataTableColumns<Sector> = [
+const columns: DataTableColumns<RecruitmentStatus> = [
   {
     title: 'No',
     key: 'no',
@@ -24,9 +24,9 @@ const columns: DataTableColumns<Sector> = [
     render: (_, index) => index + 1
   },
   {
-    title: 'Nama Bidang',
+    title: 'Nama Status',
     key: 'name',
-    render: (row) => h('span', { class: 'text-slate-700' }, row.name)
+    render: (row) => h('span', { class: 'text-slate-700 font-medium' }, row.name)
   },
   {
     title: 'Hex Code',
@@ -45,7 +45,26 @@ const columns: DataTableColumns<Sector> = [
     ])
   },
   {
-    title: 'Status Bidang',
+    title: 'Status Chip Preview',
+    key: 'preview',
+    render: (row) => h(
+      NTag,
+      {
+        round: true,
+        bordered: false,
+        style: { 
+          backgroundColor: row.hex_code, 
+          color: '#fff',
+          fontWeight: '500',
+          padding: '0 16px',
+          fontSize: '12px'
+        }
+      },
+      { default: () => row.name }
+    )
+  },
+  {
+    title: 'Status',
     key: 'is_active',
     render: (row) => {
       const type = row.is_active ? 'success' : 'error'

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, isRef, computed, type Ref } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import {
   fetchMyAIChatsApi,
@@ -9,14 +9,17 @@ import {
 } from '@/services/ai-chat.service'
 import type { ChatMessage, AISearchParsedContent } from '@/models/CandidateSearch'
 
-export function useAIChatHistory() {
+export function useAIChatHistory(enabled: boolean | Ref<boolean> = true) {
   const queryClient = useQueryClient()
   const currentChatId = ref<string | null>(null)
+
+  const isEnabled = computed(() => (isRef(enabled) ? enabled.value : enabled))
 
   // Query for all chats
   const { data: myChats, isLoading: isLoadingChats, refetch: refetchChats } = useQuery({
     queryKey: ['ai-chats'],
-    queryFn: () => fetchMyAIChatsApi()
+    queryFn: () => fetchMyAIChatsApi(),
+    enabled: isEnabled
   })
 
   // Mutation to create a chat

@@ -149,6 +149,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/superadmin/audit-log/': RouteRecordInfo<
+      '/superadmin/audit-log/',
+      '/superadmin/audit-log',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/superadmin/bidang/': RouteRecordInfo<
       '/superadmin/bidang/',
       '/superadmin/bidang',
@@ -168,6 +175,76 @@ declare module 'vue-router/auto-routes' {
       '/superadmin/bidang/edit/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | never
+    >,
+    '/superadmin/jabatan/': RouteRecordInfo<
+      '/superadmin/jabatan/',
+      '/superadmin/jabatan',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/jabatan/create': RouteRecordInfo<
+      '/superadmin/jabatan/create',
+      '/superadmin/jabatan/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/jabatan/edit/[id]': RouteRecordInfo<
+      '/superadmin/jabatan/edit/[id]',
+      '/superadmin/jabatan/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/superadmin/posisi/': RouteRecordInfo<
+      '/superadmin/posisi/',
+      '/superadmin/posisi',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/posisi/create': RouteRecordInfo<
+      '/superadmin/posisi/create',
+      '/superadmin/posisi/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/posisi/edit/[id]': RouteRecordInfo<
+      '/superadmin/posisi/edit/[id]',
+      '/superadmin/posisi/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/superadmin/status-rekrutmen/': RouteRecordInfo<
+      '/superadmin/status-rekrutmen/',
+      '/superadmin/status-rekrutmen',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/status-rekrutmen/create': RouteRecordInfo<
+      '/superadmin/status-rekrutmen/create',
+      '/superadmin/status-rekrutmen/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/status-rekrutmen/edit/[id]': RouteRecordInfo<
+      '/superadmin/status-rekrutmen/edit/[id]',
+      '/superadmin/status-rekrutmen/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/superadmin/system-settings/': RouteRecordInfo<
+      '/superadmin/system-settings/',
+      '/superadmin/system-settings',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/superadmin/user-management/': RouteRecordInfo<
@@ -319,6 +396,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/superadmin/audit-log/index.vue': {
+      routes:
+        | '/superadmin/audit-log/'
+      views:
+        | never
+    }
     'src/pages/superadmin/bidang/index.vue': {
       routes:
         | '/superadmin/bidang/'
@@ -334,6 +417,66 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/bidang/edit/[id].vue': {
       routes:
         | '/superadmin/bidang/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/jabatan/index.vue': {
+      routes:
+        | '/superadmin/jabatan/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/jabatan/create.vue': {
+      routes:
+        | '/superadmin/jabatan/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/jabatan/edit/[id].vue': {
+      routes:
+        | '/superadmin/jabatan/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/posisi/index.vue': {
+      routes:
+        | '/superadmin/posisi/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/posisi/create.vue': {
+      routes:
+        | '/superadmin/posisi/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/posisi/edit/[id].vue': {
+      routes:
+        | '/superadmin/posisi/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/status-rekrutmen/index.vue': {
+      routes:
+        | '/superadmin/status-rekrutmen/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/status-rekrutmen/create.vue': {
+      routes:
+        | '/superadmin/status-rekrutmen/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/status-rekrutmen/edit/[id].vue': {
+      routes:
+        | '/superadmin/status-rekrutmen/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/system-settings/index.vue': {
+      routes:
+        | '/superadmin/system-settings/'
       views:
         | never
     }

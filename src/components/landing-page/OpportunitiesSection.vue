@@ -73,9 +73,11 @@ defineOptions({
           <p class="flex">
             Browse open roles we’re currently hiring for across various projects and teams.
           </p>
-          <n-button tertiary round class="flex w-1/2">
-            View All Opportunities <n-icon class="ml-1"><ArrowRight /></n-icon>
-          </n-button>
+          <div class="flex my-4 justify-end xl:my-0">
+            <n-button tertiary round>
+              View All Opportunities <n-icon class="ml-1"><ArrowRight /></n-icon>
+            </n-button>
+          </div>
         </div>
       </div>
 

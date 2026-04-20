@@ -40,7 +40,7 @@ defineOptions({
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a
           href="/sign-up"
-          class="flex items-center gap-1 bg-white text-gray-800 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] px-5 py-3 font-bold rounded-full hover:bg-gray-300 transition-colors text-center"
+          class="flex justify-center items-center gap-1 bg-white text-gray-800 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] px-5 py-3 font-bold rounded-full hover:bg-gray-300 transition-colors text-center"
         >
           Join Talent Pool
           <n-icon :size="18" :component="ArrowRight" color="#1e2939" class />
@@ -48,14 +48,14 @@ defineOptions({
 
         <a
           href="#how-it-works"
-          class="flex outline-1 outline-white/30 -outline-offset-2 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] backdrop-blur-md text-white bg-linear-to-t from-white/5 from-40% to-transparent px-5 py-3 rounded-full font-semibold transition-colors text-center hover:bg-white/10"
+          class="flex justify-center outline-1 outline-white/30 -outline-offset-2 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] backdrop-blur-md text-white bg-linear-to-t from-white/10 to-white/5 px-5 py-3 rounded-full font-semibold transition-colors text-center hover:bg-white/10"
         >
           Explore Opportunities
         </a>
       </div>
     </div>
 
-    <div class="flex gap-12 justify-center mx-auto mt-6 w-full max-w-4xl lg:mt-12">
+    <div class="flex gap-12 justify-center mx-auto mt-6 mb-8 w-full max-w-4xl lg:mt-12">
       <div class="flex justify-start items-center gap-1.25">
         <div class="flex justify-center text-white text-base font-normal leading-5 gap-2">
           <n-icon :size="18"><Shield /></n-icon> <span class="flex">Secure Platform</span>

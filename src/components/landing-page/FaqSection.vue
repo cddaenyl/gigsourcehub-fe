@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Bolt } from '@vicons/tabler'
+import { Bolt, ChevronsDown, ChevronsUp } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
 
 defineOptions({
@@ -19,7 +19,7 @@ const faqItems: FaqItem[] = [
       'It is a curated network of skilled freelancers who are reviewed, matched, and assigned to projects based on their expertise and availability.',
   },
   {
-    question: 'How long does the application process take?',
+    question: 'How long does the process take?',
     answer:
       'The review process typically takes 5-7 business days. If your profile matches our current needs, our team will reach out to you with next steps. All applications are carefully reviewed and kept on file for future opportunities.',
   },
@@ -40,7 +40,7 @@ const faqItems: FaqItem[] = [
   },
 ]
 
-const openIndex = ref(1)
+const openIndex = ref()
 const showAll = ref(false)
 
 const visibleFaqItems = computed(() => (showAll.value ? faqItems : faqItems.slice(0, 3)))
@@ -88,7 +88,7 @@ const toggleFaq = (index: number) => {
             @click="toggleFaq(index)"
           >
             <span
-              class="text-left text-lg font-medium leading-7 sm:text-xl"
+              class="text-left text-sm font-medium leading-7 sm:text-xl"
               :class="openIndex === index ? 'text-blue-900' : 'text-slate-700'"
             >
               {{ item.question }}
@@ -135,13 +135,7 @@ const toggleFaq = (index: number) => {
           @click="showAll = !showAll"
         >
           <span>{{ showAll ? 'Show Less' : 'Show More' }}</span>
-          <span aria-hidden="true" class="relative flex h-4 w-4 items-center justify-center">
-            <span class="absolute h-[1.5px] w-2.5 rounded bg-current"></span>
-            <span
-              class="absolute h-2.5 w-[1.5px] rounded bg-current transition-transform duration-200"
-              :class="showAll ? 'scale-y-0' : 'scale-y-100'"
-            ></span>
-          </span>
+          <n-icon :size="16" :component="showAll ? ChevronsUp : ChevronsDown" />
         </button>
       </div>
     </div>

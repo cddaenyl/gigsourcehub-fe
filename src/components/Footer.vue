@@ -36,10 +36,21 @@ type SocialItem = {
 
 const quickLinks: FooterLink[] = [
   { label: 'About', href: '#about' },
-  { label: 'Benefits', href: '#benefits' },
+  { label: 'Career', href: '#career' },
   { label: 'Opportunities', href: '#opportunities' },
   { label: 'FAQ', href: '#faq' },
 ]
+
+const handleQuickLinkClick = (event: MouseEvent, href: string) => {
+  if (!href.startsWith('#')) return
+
+  const target = document.querySelector(href)
+  if (!target) return
+
+  event.preventDefault()
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  window.history.replaceState(null, '', href)
+}
 
 const contactItems: ContactItem[] = [
   {
@@ -79,12 +90,6 @@ const currentYear = computed(() => new Date().getFullYear())
         <section class="space-y-5">
           <RouterLink to="/" class="inline-flex items-center gap-3">
             <img :src="logoSrc" alt="GigSourceHub" class="h-10 w-auto" />
-            <div>
-              <div class="text-xl font-semibold leading-none text-blue-400">GIGSOURCE</div>
-              <div class="text-xs font-medium uppercase tracking-[0.3em] text-white/70">
-                Company
-              </div>
-            </div>
           </RouterLink>
 
           <p class="max-w-md text-sm leading-6 text-white/75 sm:text-base">
@@ -97,7 +102,11 @@ const currentYear = computed(() => new Date().getFullYear())
           <h2 class="text-lg font-semibold text-white">Explore</h2>
           <ul class="space-y-2">
             <li v-for="link in quickLinks" :key="link.label">
-              <a :href="link.href" class="text-sm text-white/75 transition-colors hover:text-white">
+              <a
+                :href="link.href"
+                class="text-sm text-white/75 transition-colors hover:text-white"
+                @click="handleQuickLinkClick($event, link.href)"
+              >
                 {{ link.label }}
               </a>
             </li>

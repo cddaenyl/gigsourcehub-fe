@@ -55,18 +55,20 @@ defineOptions({
       </div>
     </div>
 
-    <div class="flex gap-12 justify-center mx-auto mt-6 mb-8 w-full max-w-4xl lg:mt-12">
-      <div class="flex justify-start items-center gap-1.25">
+    <div
+      class="flex flex-col lg:flex-row gap-6 lg:gap-12 justify-center mx-auto mt-12 lg:mb-8 w-full max-w-4xl"
+    >
+      <div class="flex justify-center items-center gap-1.25">
         <div class="flex justify-center text-white text-base font-normal leading-5 gap-2">
           <n-icon :size="18"><Shield /></n-icon> <span class="flex">Secure Platform</span>
         </div>
       </div>
-      <div class="flex justify-start items-center gap-1.25">
+      <div class="flex justify-center items-center gap-1.25">
         <div class="flex justify-center text-white text-base font-normal leading-5 gap-2">
           <n-icon :size="18"><Checks /></n-icon> <span class="flex">Verified Projects</span>
         </div>
       </div>
-      <div class="flex justify-start items-center gap-1.25">
+      <div class="flex justify-center items-center gap-1.25">
         <div class="flex justify-center text-white text-base font-normal leading-5 gap-2">
           <n-icon :size="18"><Users /></n-icon> <span class="flex">500+ Active Users</span>
         </div>

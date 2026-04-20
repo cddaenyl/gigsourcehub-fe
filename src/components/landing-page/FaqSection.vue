@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Bolt, ChevronsDown, ChevronsUp } from '@vicons/tabler'
+import { Bolt, ChevronsDown, ChevronsUp, ChevronUp, ChevronDown } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
 
 defineOptions({
@@ -88,7 +88,7 @@ const toggleFaq = (index: number) => {
             @click="toggleFaq(index)"
           >
             <span
-              class="text-left text-sm font-medium leading-7 sm:text-xl"
+              class="text-left text-sm font-medium leading-7 sm:text-xl hover:text-blue-900 cursor-pointer"
               :class="openIndex === index ? 'text-blue-900' : 'text-slate-700'"
             >
               {{ item.question }}
@@ -100,13 +100,7 @@ const toggleFaq = (index: number) => {
               aria-hidden="true"
             >
               <span class="relative block h-5 w-5">
-                <span
-                  class="absolute left-1/2 top-1/2 h-[1.5px] w-3 -translate-x-1/2 -translate-y-1/2 rounded bg-current"
-                ></span>
-                <span
-                  class="absolute left-1/2 top-1/2 h-3 w-[1.5px] -translate-x-1/2 -translate-y-1/2 rounded bg-current transition-transform duration-200"
-                  :class="openIndex === index ? 'scale-y-0' : 'scale-y-100'"
-                ></span>
+                <n-icon :size="16" :component="openIndex === index ? ChevronUp : ChevronDown" />
               </span>
             </span>
           </button>
@@ -131,7 +125,7 @@ const toggleFaq = (index: number) => {
       <div class="mt-6 flex justify-center sm:mt-8">
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-blue-900 transition hover:bg-blue-50 sm:text-base"
+          class="float-decor inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-blue-900 transition hover:bg-blue-50 sm:text-base"
           @click="showAll = !showAll"
         >
           <span>{{ showAll ? 'Show Less' : 'Show More' }}</span>
@@ -141,3 +135,20 @@ const toggleFaq = (index: number) => {
     </div>
   </section>
 </template>
+
+<style scoped>
+.float-decor {
+  animation: decor-float 2.8s ease-in-out infinite;
+  will-change: translate;
+}
+
+@keyframes decor-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -10px;
+  }
+}
+</style>

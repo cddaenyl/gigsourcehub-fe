@@ -68,10 +68,12 @@ defineOptions({
         </h2>
 
         <div
-          class="flex justify-between w-full text-base leading-7 font-medium text-slate-600 sm:text-xl"
+          class="flex flex-col xl:flex-row justify-between w-full text-base leading-7 font-medium text-slate-600 sm:text-xl"
         >
-          <p>Browse open roles we’re currently hiring for across various projects and teams.</p>
-          <n-button tertiary round>
+          <p class="flex">
+            Browse open roles we’re currently hiring for across various projects and teams.
+          </p>
+          <n-button tertiary round class="flex w-1/2">
             View All Opportunities <n-icon class="ml-1"><ArrowRight /></n-icon>
           </n-button>
         </div>

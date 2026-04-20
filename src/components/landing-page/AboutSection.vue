@@ -3,12 +3,12 @@ import { Bolt, Clock, Medal, PlugConnected, Users } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
 
 defineOptions({
-  name: 'CTASection',
+  name: 'AboutSection',
 })
 </script>
 
 <template>
-  <section id="cta" class="bg-background px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+  <section id="about" class="bg-background px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
     <div
       class="mx-auto flex w-full max-w-181.25 flex-col items-center justify-center gap-5 text-center"
     >

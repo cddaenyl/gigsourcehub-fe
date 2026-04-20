@@ -42,10 +42,10 @@ const onSubmit = handleSubmit((values) => {
   <div
     class="min-h-screen flex items-center h-screen justify-center bg-background py-12 px-4 sm:px-6 lg:px-8"
   >
-    <div class="flex flex-col items-center justify-center h-full w-1/2 mx-auto bg-background">
+    <div class="flex flex-col items-center justify-center h-full lg:w-1/2 mx-auto bg-background">
       <img src="../../assets/LogoGigSource.svg" alt="GigSource Logo" />
-      <form @submit.prevent="onSubmit" class="w-2/3">
-        <h2 class="text-2xl font-bold  text-gray-800 mt-6">Welcome Back!</h2>
+      <form @submit.prevent="onSubmit" class="lg:w-2/3">
+        <h2 class="hidden lg:flex text-2xl font-bold text-gray-800 mt-6">Welcome Back!</h2>
         <div class="py-2">
           <p class="mt-4 text-sm font-semibold text-gray-700">Email</p>
           <n-input
@@ -95,7 +95,9 @@ const onSubmit = handleSubmit((values) => {
           {{ error.message }}
         </div>
         <div class="mt-3 flex justify-end">
-          <router-link to="/forgot-password" class="text-sm text-blue-600 hover:text-blue-800">Forgot Password?</router-link>
+          <router-link to="/forgot-password" class="text-sm text-blue-600 hover:text-blue-800"
+            >Forgot Password?</router-link
+          >
         </div>
         <div class="my-4">
           <button
@@ -106,12 +108,14 @@ const onSubmit = handleSubmit((values) => {
             {{ isPending ? 'Loading...' : 'Login' }}
           </button>
         </div>
-      <div class="mt-4 text-center">
-        <p class="text-sm text-gray-600">
-          Don't have an account?
-          <router-link to="/register" class="text-blue-600 font-semibold hover:text-blue-800">Register Now</router-link>
-        </p>
-      </div>
+        <div class="mt-4 text-center">
+          <p class="text-sm text-gray-600">
+            Don't have an account?
+            <router-link to="/register" class="text-blue-600 font-semibold hover:text-blue-800"
+              >Register Now</router-link
+            >
+          </p>
+        </div>
       </form>
     </div>
     <AuthLayoutSide />

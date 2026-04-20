@@ -28,7 +28,7 @@ defineOptions({
 </script>
 
 <template>
-  <section id="cta" class="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+  <section id="career" class="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
     <div class="max-w-7xl mx-auto">
       <div class="flex justify-start items-start flex-col gap-5">
         <div

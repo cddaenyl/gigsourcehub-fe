@@ -3,19 +3,19 @@ defineOptions({
   name: 'RegisterPage',
 })
 
-import { useRegister } from "@/composables/useAuth"
-import { useForm, useField } from "vee-validate"
-import { toTypedSchema } from "@vee-validate/zod"
-import { z } from "zod"
-import { ref } from "vue"
-import { NInput, NIcon } from "naive-ui"
-import { Mail, Lock, Eye, EyeOff, User } from "@vicons/tabler"
+import { useRegister } from '@/composables/useAuth'
+import { useForm, useField } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
+import { ref } from 'vue'
+import { NInput, NIcon } from 'naive-ui'
+import { Mail, Lock, Eye, EyeOff, User } from '@vicons/tabler'
 import AuthLayoutSide from '@/components/shared/AuthLayoutSide.vue'
 
 const registerPayloadSchema = z.object({
-  email: z.string().email("Email tidak valid"),
-  name: z.string().min(2, "Name minimal 2 karakter").max(100, "Name maksimal 100 karakter"),
-  password: z.string().min(8, "Password minimal 8 karakter")
+  email: z.string().email('Email tidak valid'),
+  name: z.string().min(2, 'Name minimal 2 karakter').max(100, 'Name maksimal 100 karakter'),
+  password: z.string().min(8, 'Password minimal 8 karakter'),
 })
 
 export type RegisterPayload = z.infer<typeof registerPayloadSchema>
@@ -23,7 +23,7 @@ const { mutate, isPending, error } = useRegister()
 
 // Setup form with vee-validate + zod
 const { handleSubmit, meta } = useForm({
-  validationSchema: toTypedSchema(registerPayloadSchema)
+  validationSchema: toTypedSchema(registerPayloadSchema),
 })
 
 // Setup fields with vee-validate
@@ -44,96 +44,104 @@ const onSubmit = handleSubmit((values) => {
   <div
     class="min-h-screen flex items-center h-screen justify-center bg-background py-12 px-4 sm:px-6 lg:px-8"
   >
-    <div class="flex flex-col items-center justify-center h-full w-1/2 mx-auto bg-background">
+    <div
+      class="flex flex-col items-center justify-center h-full w-full lg:w-1/2 mx-auto bg-background"
+    >
       <img src="../../assets/LogoGigSource.svg" alt="GigSource Logo" />
-        <form @submit.prevent="onSubmit" class="w-2/3" autocomplete="off">
-          <h2 class="text-2xl font-bold  text-gray-800 mt-6">Create an Account</h2>
-          <p class="text-sm text-gray-400">Welcome to GigSource Hub! Let’s get started</p>
-          <div class="py-2">
-            <p class="mt-4 text-sm font-semibold text-gray-700">Name</p>
-            <n-input
-              v-model:value="name"
-              type="text"
-              placeholder="Masukkan Nama"
-              size="large"
-              :status="nameError ? 'error' : undefined"
-              class="mt-1"
-              :input-props="{ class: 'px-3 py-2', autocomplete: 'off' }"
-            >
-              <template #prefix>
-                <n-icon :component="User" />
-              </template>
-            </n-input>
-            <p v-if="nameError" class="mt-1 absolute text-sm text-red-600">
-              {{ nameError }}
-            </p>
-          </div>
-          <div class="py-2 ">
-            <p class="mt-2 text-sm font-semibold text-gray-700">Email</p>
-            <n-input
-              v-model:value="email"
-              type="text"
-              placeholder="Masukkan Email"
-              size="large"
-              :status="emailError ? 'error' : undefined"
-              class="mt-1"
-              :input-props="{ class: 'px-3 py-2', autocomplete: 'off' }"
-            >
-              <template #prefix>
-                <n-icon :component="Mail" />
-              </template>
-            </n-input>
-            <p v-if="emailError" class="mt-1 absolute text-sm text-red-600">
-              {{ emailError }}
-            </p>
-          </div>
-          <div class="py-2">
-            <p class="mt-4 text-sm font-semibold text-gray-700">Password</p>
-            <n-input
-              v-model:value="password"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="Buat Password"
-              size="large"
-              :status="passwordError ? 'error' : undefined"
-              class="mt-1"
-              :input-props="{ class: 'px-3 py-3', autocomplete: 'new-password' }"
-            >
-              <template #prefix>
-                <n-icon :component="Lock" />
-              </template>
-              <template #suffix>
-                <n-icon
-                  :component="showPassword ? EyeOff : Eye"
-                  @click="showPassword = !showPassword"
-                  class="cursor-pointer"
-                />
-              </template>
-            </n-input>
-            <p v-if="passwordError" class="mt-1 absolute text-sm text-red-600">
-              {{ passwordError }}
-            </p>
-          </div>
-          <!-- Show API error message -->
-          <div v-if="error" class="my-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded capitalize">
-            {{ error.message }}
-          </div>
+      <form @submit.prevent="onSubmit" class="w-4/5 lg:w-2/3" autocomplete="off">
+        <h2 class="text-2xl font-bold text-gray-800 mt-6">Create an Account</h2>
+        <p class="text-sm text-gray-400">Welcome to GigSource Hub! Let’s get started</p>
+        <div class="py-2">
+          <p class="mt-4 text-sm font-semibold text-gray-700">Name</p>
+          <n-input
+            v-model:value="name"
+            type="text"
+            placeholder="Masukkan Nama"
+            size="large"
+            :status="nameError ? 'error' : undefined"
+            class="mt-1"
+            :input-props="{ class: 'px-3 py-2', autocomplete: 'off' }"
+          >
+            <template #prefix>
+              <n-icon :component="User" />
+            </template>
+          </n-input>
+          <p v-if="nameError" class="mt-1 absolute text-sm text-red-600">
+            {{ nameError }}
+          </p>
+        </div>
+        <div class="py-2">
+          <p class="mt-2 text-sm font-semibold text-gray-700">Email</p>
+          <n-input
+            v-model:value="email"
+            type="text"
+            placeholder="Masukkan Email"
+            size="large"
+            :status="emailError ? 'error' : undefined"
+            class="mt-1"
+            :input-props="{ class: 'px-3 py-2', autocomplete: 'off' }"
+          >
+            <template #prefix>
+              <n-icon :component="Mail" />
+            </template>
+          </n-input>
+          <p v-if="emailError" class="mt-1 absolute text-sm text-red-600">
+            {{ emailError }}
+          </p>
+        </div>
+        <div class="py-2">
+          <p class="mt-4 text-sm font-semibold text-gray-700">Password</p>
+          <n-input
+            v-model:value="password"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="Buat Password"
+            size="large"
+            :status="passwordError ? 'error' : undefined"
+            class="mt-1"
+            :input-props="{ class: 'px-3 py-3', autocomplete: 'new-password' }"
+          >
+            <template #prefix>
+              <n-icon :component="Lock" />
+            </template>
+            <template #suffix>
+              <n-icon
+                :component="showPassword ? EyeOff : Eye"
+                @click="showPassword = !showPassword"
+                class="cursor-pointer"
+              />
+            </template>
+          </n-input>
+          <p v-if="passwordError" class="mt-1 absolute text-sm text-red-600">
+            {{ passwordError }}
+          </p>
+        </div>
+        <!-- Show API error message -->
+        <div
+          v-if="error"
+          class="my-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded capitalize"
+        >
+          {{ error.message }}
+        </div>
 
-          <div class="my-4">
-            <button
-              type="submit"
-              :disabled="isPending || !meta.valid"
-              class="w-full flex justify-center py-4 border border-transparent rounded-sm shadow-sm text-lg font-medium text-white bg-primary hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+        <div class="my-4">
+          <button
+            type="submit"
+            :disabled="isPending || !meta.valid"
+            class="w-full flex justify-center py-4 border border-transparent rounded-sm shadow-sm text-lg font-medium text-white bg-primary hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            {{ isPending ? 'Loading...' : 'Register' }}
+          </button>
+          <n-button></n-button>
+        </div>
+        <div class="mt-4 text-center">
+          <p class="text-sm text-gray-600">
+            Already have an account?
+            <router-link to="/login" class="text-blue-600 font-semibold hover:text-blue-800"
+              >Login</router-link
             >
-              {{ isPending ? 'Loading...' : 'Register' }}
-            </button>
-          </div>
-          <div class="mt-4 text-center">
-            <p class="text-sm text-gray-600">
-              Already have an account?
-              <router-link to="/login" class="text-blue-600 font-semibold hover:text-blue-800">Login</router-link>
-            </p>
-          </div>
-        </form>
+          </p>
+        </div>
+      </form>
     </div>
     <AuthLayoutSide />
   </div>

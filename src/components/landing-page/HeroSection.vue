@@ -36,16 +36,16 @@ defineOptions({
           </p>
           <div class="flex flex-col sm:flex-row gap-4">
             <a
-              href="/sign-up"
-              class="flex items-center gap-1 bg-white text-gray-800 px-5 py-3 font-bold rounded-full hover:bg-gray-300 transition-colors text-center"
+              href="/register"
+              class="flex justify-center items-center gap-1 bg-white text-gray-800 px-5 py-3 font-bold rounded-full hover:bg-gray-300 transition-colors text-center"
             >
               Join Talent Pool
               <n-icon :size="18" :component="ArrowRight" color="#1e2939" class />
             </a>
 
             <a
-              href="#how-it-works"
-              class="flex outline-1 outline-white/10 -outline-offset-1 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] backdrop-blur-md text-white bg-white/5 px-5 py-3 rounded-full font-semibold transition-colors text-center hover:bg-white/10"
+              href="#opportunities"
+              class="flex justify-center outline-1 outline-white/10 -outline-offset-1 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] backdrop-blur-md text-white bg-white/5 px-5 py-3 rounded-full font-semibold transition-colors text-center hover:bg-white/10"
             >
               Explore Opportunities
             </a>

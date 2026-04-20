@@ -15,10 +15,21 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: 'About', href: '#about' },
-  { label: 'Benefits', href: '#benefits' },
+  { label: 'Career', href: '#career' },
   { label: 'Opportunities', href: '#opportunities' },
   { label: 'FAQ', href: '#faq' },
 ]
+
+const handleQuickLinkClick = (event: MouseEvent, href: string) => {
+  if (!href.startsWith('#')) return
+
+  const target = document.querySelector(href)
+  if (!target) return
+
+  event.preventDefault()
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  window.history.replaceState(null, '', href)
+}
 
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
@@ -63,7 +74,13 @@ onUnmounted(() => {
 
       <div class="hidden md:flex md:space-x-2">
         <nav class="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
-          <a v-for="item in navItems" :key="item.label" :href="item.href" :class="navLinkClass">
+          <a
+            v-for="item in navItems"
+            :key="item.label"
+            :href="item.href"
+            :class="navLinkClass"
+            @click="handleQuickLinkClick($event, item.href)"
+          >
             {{ item.label }}
           </a>
         </nav>
@@ -115,7 +132,10 @@ onUnmounted(() => {
               ? 'text-slate-700 hover:bg-slate-900/10 hover:text-slate-900'
               : 'text-white/85 hover:bg-white/10 hover:text-white'
           "
-          @click="closeMenu"
+          @click="
+            handleQuickLinkClick($event, item.href)
+            closeMenu()
+          "
         >
           {{ item.label }}
         </a>

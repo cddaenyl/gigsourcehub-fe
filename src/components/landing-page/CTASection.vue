@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bolt, Clock, Medal, PlugConnected, Users } from '@vicons/tabler'
+import { ArrowRight, Checks, Rocket, Shield, Users } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
 
 defineOptions({
@@ -8,114 +8,69 @@ defineOptions({
 </script>
 
 <template>
-  <section id="cta" class="bg-background px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+  <section
+    id="cta"
+    class="bg-linear-to-b from-[#0723A1] to-[#2461EA] px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+  >
     <div
       class="mx-auto flex w-full max-w-181.25 flex-col items-center justify-center gap-5 text-center"
     >
       <div
-        class="inline-flex items-center justify-start gap-1.25 rounded-full border border-blue-900 px-3 py-2 shadow-md"
+        class="inline-flex items-center bg-white/10 justify-start gap-1.25 rounded-full border border-white px-3 py-2 shadow-md backdrop-blur-2xl"
       >
-        <div class="flex relative justify-center text-yellow-400 font-normal">
-          <n-icon :size="16"><Bolt /></n-icon>
+        <div class="relative flex justify-center font-normal text-yellow-400">
+          <n-icon :size="16"><Rocket /></n-icon>
         </div>
-        <div class="flex text-xs leading-5 font-semibold text-slate-700">
-          Why Freelancers Choose Us
-        </div>
+        <div class="flex text-xs leading-5 font-semibold text-white">Start Your Journey</div>
       </div>
 
-      <h2 class="text-3xl leading-tight font-bold text-gray-800 sm:text-4xl">
-        Redefending the<br />
-        <span class="text-sky-400">Freelance Experience</span>
+      <h2 class="text-3xl leading-tight font-bold text-white sm:text-4xl">
+        Ready to Join Our Talent Network?
       </h2>
 
-      <p class="w-full text-center text-base lg:leading-7 font-medium text-slate-600 sm:text-xl">
-        We build a flexible and transparent project-based ecosystem designed to support your growth
-        as a freelance professional.
+      <p
+        class="w-full text-white text-center text-base font-medium text-whites sm:text-xl lg:leading-7"
+      >
+        Start your journey with GigSource Hub today. Connect with relevant opportunities, grow your
+        skills, and expand your professional network.
       </p>
     </div>
 
+    <div class="mx-auto mt-6 w-full max-w-4xl lg:mt-12">
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a
+          href="/sign-up"
+          class="flex justify-center items-center gap-1 bg-white text-gray-800 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] px-5 py-3 font-bold rounded-full hover:bg-gray-300 transition-colors text-center"
+        >
+          Join Talent Pool
+          <n-icon :size="18" :component="ArrowRight" color="#1e2939" class />
+        </a>
+
+        <a
+          href="#how-it-works"
+          class="flex justify-center outline-1 outline-white/30 -outline-offset-2 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] backdrop-blur-md text-white bg-linear-to-t from-white/10 to-white/5 px-5 py-3 rounded-full font-semibold transition-colors text-center hover:bg-white/10"
+        >
+          Explore Opportunities
+        </a>
+      </div>
+    </div>
+
     <div
-      class="mx-auto mt-12 flex w-full max-w-7xl flex-col items-stretch justify-center gap-6 lg:mt-16 lg:flex-row lg:gap-9"
+      class="flex flex-col lg:flex-row gap-6 lg:gap-12 justify-center mx-auto mt-12 lg:mb-8 w-full max-w-4xl"
     >
-      <img
-        class="h-64 w-full rounded-3xl border-x-2 border-blue-900 object-cover sm:h-80 lg:h-auto lg:w-5/12"
-        src="../../assets/working_man.jpg"
-        alt="Freelancers collaborating"
-      />
-
-      <div class="flex w-full flex-col gap-5 sm:gap-6 lg:w-7/12 lg:gap-9">
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div
-            class="flex min-h-64 flex-col items-start justify-start gap-5 rounded-3xl border-y-2 border-blue-500 bg-white px-6 pt-6 pb-12 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
-          >
-            <div class="inline-flex items-center justify-start rounded-[10px] bg-blue-500 p-2.5">
-              <n-icon :size="28" color="#ffffff"><Clock /></n-icon>
-            </div>
-            <div class="flex w-full flex-col items-start justify-start gap-3.5 text-left">
-              <div class="text-xl leading-6 font-semibold text-slate-800">
-                Flexible Work, Your Way
-              </div>
-              <div class="text-base leading-6 font-medium text-slate-600">
-                Choose projects that align with your schedule and preferences, with a fully flexible
-                way of working.
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="flex min-h-64 flex-col items-start justify-start gap-5 rounded-3xl border-y-2 border-pink-500 bg-white px-6 pt-6 pb-12 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
-          >
-            <div class="inline-flex items-center justify-start rounded-[10px] bg-pink-500 p-2.5">
-              <div class="grid h-7 w-7 grid-cols-2 gap-1">
-                <n-icon :size="28" color="#ffffff"><PlugConnected /></n-icon>
-              </div>
-            </div>
-            <div class="flex w-full flex-col items-start justify-start gap-3.5 text-left">
-              <div class="text-xl leading-7 font-semibold text-slate-800">
-                Intelligent Project Matching
-              </div>
-              <div class="text-base leading-6 font-medium text-slate-600">
-                We match your skills with the right projects, helping you work more efficiently and
-                make a real impact.
-              </div>
-            </div>
-          </div>
+      <div class="flex justify-center items-center gap-1.25">
+        <div class="flex justify-center text-white text-base font-normal leading-5 gap-2">
+          <n-icon :size="18"><Shield /></n-icon> <span class="flex">Secure Platform</span>
         </div>
-
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div
-            class="flex min-h-64 flex-col items-start justify-start gap-5 rounded-3xl border-y-2 border-teal-500 bg-white px-6 pt-6 pb-12 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
-          >
-            <div class="inline-flex items-center justify-start rounded-[10px] bg-teal-500 p-2.5">
-              <n-icon :size="28" color="#ffffff"><Users /></n-icon>
-            </div>
-            <div class="flex w-full flex-col items-start justify-start gap-3.5 text-left">
-              <div class="text-xl leading-7 font-semibold text-slate-800">
-                Premium Talent Network
-              </div>
-              <div class="text-base leading-6 font-medium text-slate-600">
-                Collaborate with top professionals and work on projects from trusted startups to
-                enterprise clients.
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="flex min-h-64 flex-col items-start justify-start gap-5 rounded-3xl border-y-2 border-orange-500 bg-white px-6 pt-6 pb-12 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
-          >
-            <div class="inline-flex items-center justify-start rounded-[10px] bg-orange-500 p-2.5">
-              <n-icon :size="28" color="#ffffff"><Medal /></n-icon>
-            </div>
-            <div class="flex w-full flex-col items-start justify-start gap-3.5 text-left">
-              <div class="text-xl leading-7 font-semibold text-slate-800">
-                Accelerated Career Growth
-              </div>
-              <div class="text-base leading-6 font-medium text-slate-600">
-                Build your portfolio, gain valuable experience, and strengthen your professional
-                credibility through real projects.
-              </div>
-            </div>
-          </div>
+      </div>
+      <div class="flex justify-center items-center gap-1.25">
+        <div class="flex justify-center text-white text-base font-normal leading-5 gap-2">
+          <n-icon :size="18"><Checks /></n-icon> <span class="flex">Verified Projects</span>
+        </div>
+      </div>
+      <div class="flex justify-center items-center gap-1.25">
+        <div class="flex justify-center text-white text-base font-normal leading-5 gap-2">
+          <n-icon :size="18"><Users /></n-icon> <span class="flex">500+ Active Users</span>
         </div>
       </div>
     </div>

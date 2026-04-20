@@ -44,9 +44,11 @@ const onSubmit = handleSubmit((values) => {
   <div
     class="min-h-screen flex items-center h-screen justify-center bg-background py-12 px-4 sm:px-6 lg:px-8"
   >
-    <div class="flex flex-col items-center justify-center h-full lg:w-1/2 mx-auto bg-background">
+    <div
+      class="flex flex-col items-center justify-center h-full w-full lg:w-1/2 mx-auto bg-background"
+    >
       <img src="../../assets/LogoGigSource.svg" alt="GigSource Logo" />
-      <form @submit.prevent="onSubmit" class="lg:w-2/3" autocomplete="off">
+      <form @submit.prevent="onSubmit" class="w-4/5 lg:w-2/3" autocomplete="off">
         <h2 class="text-2xl font-bold text-gray-800 mt-6">Create an Account</h2>
         <p class="text-sm text-gray-400">Welcome to GigSource Hub! Let’s get started</p>
         <div class="py-2">

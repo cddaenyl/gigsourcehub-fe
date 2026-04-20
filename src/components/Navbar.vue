@@ -25,7 +25,7 @@ const handleQuickLinkClick = (event: MouseEvent, href: string) => {
 
   const target = document.querySelector(href)
   if (!target) return
-
+  closeMenu()
   event.preventDefault()
   target.scrollIntoView({ behavior: 'smooth', block: 'start' })
   window.history.replaceState(null, '', href)
@@ -132,10 +132,7 @@ onUnmounted(() => {
               ? 'text-slate-700 hover:bg-slate-900/10 hover:text-slate-900'
               : 'text-white/85 hover:bg-white/10 hover:text-white'
           "
-          @click="
-            handleQuickLinkClick($event, item.href)
-            closeMenu()
-          "
+          @click="handleQuickLinkClick($event, item.href)"
         >
           {{ item.label }}
         </a>

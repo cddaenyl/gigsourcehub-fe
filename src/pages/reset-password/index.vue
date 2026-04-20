@@ -3,13 +3,30 @@ defineOptions({
   name: 'ResetPasswordPage',
 })
 
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useResetPassword } from '@/composables/useAuth'
 import { useForm, useField } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { NInput, NIcon } from 'naive-ui'
+import { NInput, NIcon, useMessage } from 'naive-ui'
 import { Lock, Eye, EyeOff } from '@vicons/tabler'
 import AuthLayoutSide from '@/components/shared/AuthLayoutSide.vue'
+
+const route = useRoute()
+const message = useMessage()
+const { mutate, isPending } = useResetPassword()
+
+const token = ref('')
+
+onMounted(() => {
+  const queryToken = route.query.token as string
+  if (!queryToken) {
+    message.error('Token reset password tidak ditemukan atau tidak valid')
+  } else {
+    token.value = queryToken
+  }
+})
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, 'Password minimal 8 karakter'),
@@ -30,9 +47,22 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 const onSubmit = handleSubmit((values) => {
-  // Logic will be implemented when API is available
-  console.log('Resetting password:', values.password)
-  alert('Your password has been reset successfully (Demo)')
+  if (!token.value) {
+    message.error('Token tidak valid. Silakan ajukan reset password kembali.')
+    return
+  }
+
+  mutate({
+    token: token.value,
+    password: values.password
+  }, {
+    onSuccess: (response: any) => {
+      message.success(response.message || 'Password successfully reset!')
+    },
+    onError: (error: any) => {
+      message.error(error.message || 'Failed to reset password')
+    }
+  })
 })
 </script>
 
@@ -102,10 +132,10 @@ const onSubmit = handleSubmit((values) => {
 
           <button
             type="submit"
-            :disabled="!meta.valid"
+            :disabled="isPending || !meta.valid"
             class="w-full flex items-center justify-center py-4 border border-transparent rounded-sm shadow-sm text-lg font-bold text-white bg-[#0014B2] hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0014B2] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed transition-all mb-6"
           >
-            Reset Password
+            {{ isPending ? 'Resetting...' : 'Reset Password' }}
           </button>
 
           <div class="text-center">

@@ -3,12 +3,16 @@ defineOptions({
   name: 'ForgotPasswordPage',
 })
 
+import { useForgotPassword } from '@/composables/useAuth'
 import { useForm, useField } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { NInput, NIcon } from 'naive-ui'
+import { NInput, NIcon, useMessage } from 'naive-ui'
 import { Mail } from '@vicons/tabler'
 import AuthLayoutSide from '@/components/shared/AuthLayoutSide.vue'
+
+const message = useMessage()
+const { mutate, isPending } = useForgotPassword()
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Email tidak valid'),
@@ -21,9 +25,14 @@ const { handleSubmit, meta } = useForm({
 const { value: email, errorMessage: emailError } = useField<string>('email')
 
 const onSubmit = handleSubmit((values) => {
-  // Logic will be implemented when API is available
-  console.log('Forgot password for:', values.email)
-  alert('Password reset link has been sent to your email (Demo)')
+  mutate(values, {
+    onSuccess: (response: any) => {
+      message.success(response.message || 'Password reset link has been sent to your email')
+    },
+    onError: (error: any) => {
+      message.error(error.message || 'Failed to send reset link')
+    }
+  })
 })
 </script>
 
@@ -51,9 +60,9 @@ const onSubmit = handleSubmit((values) => {
             </p>
           </div>
 
-          <button type="submit" :disabled="!meta.valid"
+          <button type="submit" :disabled="isPending || !meta.valid"
             class="w-full flex items-center justify-center gap-2 py-4 border border-transparent rounded-sm shadow-sm text-lg font-bold text-white bg-[#0014B2] hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0014B2] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed transition-all mb-6">
-            Send
+            {{ isPending ? 'Sending...' : 'Send' }}
             <n-icon :component="Mail" />
           </button>
 

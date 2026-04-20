@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { loginApi, meApi, registerApi } from '@/services/auth.service'
-import type { LoginPayload, RegisterPayload } from '@/models/Auth'
+import { forgotPasswordApi, loginApi, meApi, registerApi, resetPasswordApi, verifyAccountApi } from '@/services/auth.service'
+import type { LoginPayload, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload } from '@/models/Auth'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRouter } from 'vue-router'
 import { getDefaultRouteForUser } from '@/utils/auth'
@@ -71,5 +71,34 @@ export function useMeQuery() {
     select: (response) => response.data,
     staleTime: 5 * 60 * 1000,
     retry: 1,
+  })
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (payload: ForgotPasswordPayload) => {
+      return forgotPasswordApi(payload)
+    },
+  })
+}
+
+export function useResetPassword() {
+  const router = useRouter()
+
+  return useMutation({
+    mutationFn: async (payload: ResetPasswordPayload) => {
+      return resetPasswordApi(payload)
+    },
+    onSuccess: () => {
+      router.push('/login')
+    },
+  })
+}
+
+export function useVerifyAccount() {
+  return useMutation({
+    mutationFn: async (token: string) => {
+      return verifyAccountApi(token)
+    },
   })
 }

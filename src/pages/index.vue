@@ -6,6 +6,7 @@ import CareerPathSection from '@/components/landing-page/CareerPathSection.vue'
 import OpportunitiesSection from '@/components/landing-page/OpportunitiesSection.vue'
 import ApplicationSection from '@/components/landing-page/ApplicationSection.vue'
 import FaqSection from '@/components/landing-page/FaqSection.vue'
+import CTASection from '@/components/landing-page/CTASection.vue'
 
 defineOptions({
   name: 'HomePage',
@@ -20,5 +21,6 @@ defineOptions({
     <OpportunitiesSection />
     <ApplicationSection />
     <FaqSection />
+    <CTASection />
   </LandingLayout>
 </template>

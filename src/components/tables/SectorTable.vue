@@ -11,7 +11,13 @@ interface Props {
 }
 
 defineProps<Props>()
-
+// const themeOverride = NDataTable.themeOverrides
+// themeOverride('DataTable', {
+//   borderColor: '#E5E7EB',
+//   headerColor: '#F9FAFB',
+//   headerTextColor: '#374151',
+//   rowHoverColor: '#F3F4F6',
+// })
 const emit = defineEmits<{
   action: [action: string, sector: Sector]
 }>()
@@ -21,28 +27,29 @@ const columns: DataTableColumns<Sector> = [
     title: 'No',
     key: 'no',
     width: 60,
-    render: (_, index) => index + 1
+    render: (_, index) => index + 1,
   },
   {
     title: 'Nama Bidang',
     key: 'name',
-    render: (row) => h('span', { class: 'text-slate-700' }, row.name)
+    render: (row) => h('span', { class: 'text-slate-700' }, row.name),
   },
   {
     title: 'Hex Code',
     key: 'hex_code',
-    render: (row) => h('div', { class: 'flex items-center gap-2' }, [
-      h('div', { 
-        style: { 
-          backgroundColor: row.hex_code, 
-          width: '18px', 
-          height: '18px', 
-          borderRadius: '4px',
-          border: '1px solid #e2e8f0' 
-        } 
-      }),
-      h('span', { class: 'font-mono text-slate-500' }, row.hex_code)
-    ])
+    render: (row) =>
+      h('div', { class: 'flex items-center gap-2' }, [
+        h('div', {
+          style: {
+            backgroundColor: row.hex_code,
+            width: '18px',
+            height: '18px',
+            borderRadius: '4px',
+            border: '1px solid #e2e8f0',
+          },
+        }),
+        h('span', { class: 'font-mono text-slate-500' }, row.hex_code),
+      ]),
   },
   {
     title: 'Status Bidang',
@@ -56,18 +63,19 @@ const columns: DataTableColumns<Sector> = [
           round: true,
           bordered: false,
           style: { minWidth: '80px', textAlign: 'center' },
-          color: row.is_active 
+          color: row.is_active
             ? { color: '#DCFCE7', textColor: '#166534' }
-            : { color: '#FEE2E2', textColor: '#991B1B' }
+            : { color: '#FEE2E2', textColor: '#991B1B' },
         },
-        { default: () => (row.is_active ? 'Active' : 'Inactive') }
+        { default: () => (row.is_active ? 'Active' : 'Inactive') },
       )
-    }
+    },
   },
   {
     title: 'Actions',
     key: 'action',
     width: 100,
+    className: 'action-column',
     render: (row) => {
       const actionIcon = row.is_active ? X : CircleCheck
       const actionClass = row.is_active
@@ -98,12 +106,19 @@ const columns: DataTableColumns<Sector> = [
 </script>
 
 <template>
-  <n-data-table 
-    :columns="columns" 
-    :data="data" 
-    :bordered="false" 
+  <n-data-table
+    :columns="columns"
+    :data="data"
+    :bordered="false"
     :loading="loading"
-    single-column 
-    single-row 
+    single-column
+    single-row
   />
 </template>
+
+<style scoped>
+:deep(.n-data-table-th.action-column),
+:deep(.n-data-table-td.action-column) {
+  border-left: 1px solid #e2e8f0;
+}
+</style>

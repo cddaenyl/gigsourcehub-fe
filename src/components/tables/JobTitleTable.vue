@@ -21,22 +21,23 @@ const columns: DataTableColumns<JobTitle> = [
     title: 'No',
     key: 'no',
     width: 60,
-    render: (_, index) => index + 1
+    render: (_, index) => index + 1,
   },
   {
     title: 'Nama Jabatan',
     key: 'name',
-    render: (row) => h('span', { class: 'text-slate-700 font-medium' }, row.name)
+    render: (row) => h('span', { class: 'text-slate-700 font-medium' }, row.name),
   },
   {
     title: 'Nama Bidang',
     key: 'sector',
-    render: (row) => h('span', { class: 'text-slate-600' }, row.sector?.name || '-')
+    render: (row) => h('span', { class: 'text-slate-600' }, row.sector?.name || '-'),
   },
   {
     title: 'Actions',
     key: 'action',
     width: 100,
+    className: 'action-column',
     render: (row) => {
       return h('div', { class: 'flex items-center gap-2' }, [
         h(
@@ -62,12 +63,19 @@ const columns: DataTableColumns<JobTitle> = [
 </script>
 
 <template>
-  <n-data-table 
-    :columns="columns" 
-    :data="data" 
-    :bordered="false" 
+  <n-data-table
+    :columns="columns"
+    :data="data"
+    :bordered="false"
     :loading="loading"
-    single-column 
-    single-row 
+    single-column
+    single-row
   />
 </template>
+
+<style scoped>
+:deep(.n-data-table-th.action-column),
+:deep(.n-data-table-td.action-column) {
+  border-left: 1px solid #e2e8f0;
+}
+</style>

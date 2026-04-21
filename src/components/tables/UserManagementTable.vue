@@ -64,7 +64,14 @@ const columns: DataTableColumns<UserManagementData> = [
     key: 'status',
     className: 'border-r border-slate-100',
     render: (row) => {
-      const type = row.status === 'Active' ? 'success' : row.status === 'Inactive' ? 'error' : row.status === 'Blocked' ? 'error' : 'default'
+      const type =
+        row.status === 'Active'
+          ? 'success'
+          : row.status === 'Inactive'
+            ? 'error'
+            : row.status === 'Blocked'
+              ? 'error'
+              : 'default'
       return h(
         NTag,
         {
@@ -75,7 +82,7 @@ const columns: DataTableColumns<UserManagementData> = [
           color:
             row.status === 'Active'
               ? { color: '#DCFCE7', textColor: '#166534' }
-              : (row.status === 'Inactive' || row.status === 'Blocked')
+              : row.status === 'Inactive' || row.status === 'Blocked'
                 ? { color: '#FEE2E2', textColor: '#991B1B' }
                 : { color: '#F1F5F9', textColor: '#475569' },
         },
@@ -86,6 +93,7 @@ const columns: DataTableColumns<UserManagementData> = [
   {
     title: 'Actions',
     key: 'action',
+    className: 'action-column',
     render: (row) => {
       const isBlocked = row.status === 'Blocked' || row.status === 'Inactive'
       const actionIcon = isBlocked ? CircleCheck : X
@@ -127,3 +135,10 @@ const columns: DataTableColumns<UserManagementData> = [
 <template>
   <n-data-table :columns="columns" :data="data" :bordered="false" single-column single-row />
 </template>
+
+<style scoped>
+:deep(.n-data-table-th.action-column),
+:deep(.n-data-table-td.action-column) {
+  border-left: 1px solid #e2e8f0;
+}
+</style>

@@ -6,6 +6,7 @@ export interface AllCandidates {
   appliedRole: string[]
   level: string
   status: string
+  statusHexCode?: string | null
 }
 
 export interface TalentNeed {

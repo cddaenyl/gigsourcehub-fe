@@ -87,8 +87,9 @@ const tableData = computed<AllCandidates[]>(() => {
     nama: user.name,
     bidang: user.assigned_role_id || '-',
     appliedRole: user.job_roles?.map((role) => role.name) || [],
-    level: user.recruitment_status_id || 'Un-Reviewed',
-    status: user.account_status || 'Un-Reviewed',
+    level: user.candidate_level || 'Un-Reviewed',
+    status: user.recruitment_status_name || 'Un-Reviewed',
+    statusHexCode: user.recruitment_status_hex_code,
   }))
 })
 

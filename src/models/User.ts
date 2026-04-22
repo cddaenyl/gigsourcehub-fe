@@ -11,6 +11,9 @@ export interface User {
   phone_number: string | null
   portofolio_link: string | null
   kabupaten_kota_id: string | null
+  kabupaten_kota_name?: string | null
+  kabupaten_name?: string | null
+  province_name: string | null
   years_experience: number | null
   tech_stack: string | null
   summary: string | null

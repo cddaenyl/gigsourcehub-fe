@@ -35,6 +35,14 @@ const techStack = computed((): string[] => {
     return []
   }
 })
+
+const kabupatenName = computed(() => {
+  return props.user.kabupaten_name || props.user.kabupaten_kota_name || '-'
+})
+
+const provinceName = computed(() => {
+  return props.user.province_name || '-'
+})
 </script>
 
 <template>
@@ -84,24 +92,26 @@ const techStack = computed((): string[] => {
           <n-gi>
             <n-space vertical :size="4">
               <h4 class="font-bold text-xs text-gray-500">Kabupaten/Kota</h4>
-              <span class="font-bold text-sm text-gray-700">{{ user.profile_picture || '-' }}</span>
+              <span class="font-bold text-sm text-gray-700">{{ kabupatenName }}</span>
             </n-space>
           </n-gi>
           <n-gi>
             <n-space vertical :size="4">
               <h4 class="font-bold text-xs text-gray-500">Provinsi</h4>
-              <span class="font-bold text-sm text-gray-700">{{ user.profile_picture || '-' }}</span>
+              <span class="font-bold text-sm text-gray-700">{{ provinceName }}</span>
             </n-space>
           </n-gi>
         </n-grid>
       </n-space>
       <n-space vertical :size="8">
         <h4 class="font-bold text-xs text-gray-500">Bidang Minat</h4>
-        <span class="font-bold text-sm text-gray-700">{{ user.profile_picture || '-' }}</span>
+        <span class="font-bold text-sm text-gray-700">{{ user.bidang || '-' }}</span>
       </n-space>
       <n-space vertical :size="8">
         <h4 class="font-bold text-xs text-gray-500">Applied Role</h4>
-        <span class="font-bold text-sm text-gray-700">{{ user.profile_picture || '-' }}</span>
+        <span class="font-bold text-sm text-gray-700">{{
+          user.job_roles?.map((role) => role.name).join(', ') || '-'
+        }}</span>
       </n-space>
       <n-space vertical :size="8" class="w-2/3">
         <h4 class="font-bold text-xs text-gray-500">Keahlian</h4>

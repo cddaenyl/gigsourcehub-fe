@@ -39,7 +39,7 @@ const textColor = computed(() => {
   <p v-if="!hexCode" class="text-gray-500">{{ status }}</p>
   <div
     v-else
-    class="inline-flex items-center rounded-full border px-2 py-1.5 text-xs font-semibold leading-none"
+    class="inline-flex items-center rounded-full border px-2 py-1.5 text-xs leading-none"
     :style="{
       backgroundColor: hexCode,
       borderColor: hexCode,

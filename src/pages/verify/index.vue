@@ -6,7 +6,7 @@ defineOptions({
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVerifyAccount } from '@/composables/useAuth'
-import { NIcon, NSpin, NResult, NButton } from 'naive-ui'
+import { NIcon, NSpin } from 'naive-ui'
 import { CircleCheck, CircleX } from '@vicons/tabler'
 import AuthLayoutSide from '@/components/shared/AuthLayoutSide.vue'
 

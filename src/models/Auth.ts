@@ -44,3 +44,12 @@ export interface MeResponse {
     system_role_name: string
   }
 }
+
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+export interface ResetPasswordPayload {
+  token: string
+  password: string
+}

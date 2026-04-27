@@ -289,6 +289,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/verify/': RouteRecordInfo<
+      '/verify/',
+      '/verify',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -527,6 +534,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/user-management/edit/[id].vue': {
       routes:
         | '/superadmin/user-management/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/verify/index.vue': {
+      routes:
+        | '/verify/'
       views:
         | never
     }

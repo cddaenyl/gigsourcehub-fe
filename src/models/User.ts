@@ -26,6 +26,11 @@ export interface User {
   job_title_id?: string | null
   bidang?: string | null
   job_roles?: JobRole[]
+  cv: {
+    id: string
+    name: string
+    url: string
+  }
 }
 
 export interface UsersListData {

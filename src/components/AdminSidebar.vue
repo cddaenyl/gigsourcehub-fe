@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { h } from 'vue'
-import type { Component } from 'vue'
+import { Layout2, LayoutBoard, Note, Users } from '@vicons/tabler'
 import type { MenuOption } from 'naive-ui'
-import { Users, Layout2, LayoutBoard, Note } from '@vicons/tabler'
+import type { Component } from 'vue'
+import { h } from 'vue'
 import MainSidebar from './shared/MainSidebar.vue'
 
 function renderIcon(icon: Component) {
@@ -38,6 +38,16 @@ const menuOptions: MenuOption[] = [
     label: 'CMS',
     key: 'cms',
     icon: renderIcon(LayoutBoard),
+    children: [
+      {
+        label: 'Lowongan',
+        key: 'lowongan',
+      },
+      {
+        label: 'Landing Page',
+        key: 'landing-page',
+      },
+    ],
   },
   {
     label: 'Kebutuhan Talenta',

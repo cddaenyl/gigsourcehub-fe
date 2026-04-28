@@ -51,13 +51,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/admin/cms/': RouteRecordInfo<
-      '/admin/cms/',
-      '/admin/cms',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/admin/daftar-kandidat/': RouteRecordInfo<
       '/admin/daftar-kandidat/',
       '/admin/daftar-kandidat',
@@ -82,6 +75,20 @@ declare module 'vue-router/auto-routes' {
     '/admin/interview-schedule/': RouteRecordInfo<
       '/admin/interview-schedule/',
       '/admin/interview-schedule',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/landing-page/': RouteRecordInfo<
+      '/admin/landing-page/',
+      '/admin/landing-page',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/lowongan/': RouteRecordInfo<
+      '/admin/lowongan/',
+      '/admin/lowongan',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -333,12 +340,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/admin/cms/index.vue': {
-      routes:
-        | '/admin/cms/'
-      views:
-        | never
-    }
     'src/pages/admin/daftar-kandidat/index.vue': {
       routes:
         | '/admin/daftar-kandidat/'
@@ -360,6 +361,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/interview-schedule/index.vue': {
       routes:
         | '/admin/interview-schedule/'
+      views:
+        | never
+    }
+    'src/pages/admin/landing-page/index.vue': {
+      routes:
+        | '/admin/landing-page/'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/index.vue': {
+      routes:
+        | '/admin/lowongan/'
       views:
         | never
     }

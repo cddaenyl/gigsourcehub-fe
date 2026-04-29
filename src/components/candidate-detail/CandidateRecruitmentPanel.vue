@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NCard, NSpace, NSelect, NInput, NButton, NIcon } from 'naive-ui'
+import { NCard, NSelect, NInput, NButton, NIcon } from 'naive-ui'
 import { Send } from '@vicons/tabler'
 
 defineProps<{
@@ -19,33 +19,33 @@ const handleSendNote = () => {
 </script>
 
 <template>
-  <n-space vertical :size="8" style="height: 100%; display: flex; flex-direction: column">
+  <div class="flex h-full flex-col gap-2">
     <n-card :content-style="{ padding: '20px' }">
-      <n-space vertical :size="16">
-        <n-space vertical :size="2">
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-0.5">
           <h4 class="font-bold text-sm text-gray-500">Kontrol Rekrutmen</h4>
           <p class="text-xs text-gray-400">Kelola level kandidat dan status Rekrutmen</p>
-        </n-space>
-        <n-space vertical :size="4">
+        </div>
+        <div class="flex flex-col gap-1">
           <h4 class="font-bold text-xs text-gray-500">Level Kandidat</h4>
           <n-select
             v-model:value="level"
             placeholder="Pilih Level Kandidat"
             :options="levelOptions"
           />
-        </n-space>
-        <n-space vertical :size="4">
+        </div>
+        <div class="flex flex-col gap-1">
           <h4 class="font-bold text-xs text-gray-500">Status Rekrutmen</h4>
           <n-select
             v-model:value="status"
             placeholder="Pilih Status Rekrutmen"
             :options="recruitmentOptions"
           />
-        </n-space>
+        </div>
         <div class="flex justify-end">
           <n-button type="primary">Simpan</n-button>
         </div>
-      </n-space>
+      </div>
     </n-card>
 
     <n-card
@@ -57,18 +57,14 @@ const handleSendNote = () => {
         padding: '20px',
       }"
     >
-      <n-space
-        vertical
-        :size="16"
-        style="height: 100%; display: flex; flex-direction: column; flex: 1"
-      >
-        <n-space vertical :size="2">
+      <div class="flex h-full flex-1 flex-col gap-4">
+        <div class="flex flex-col gap-0.5">
           <h4 class="font-bold text-sm text-gray-500">Catatan</h4>
-        </n-space>
-        <n-space vertical :size="2">
+        </div>
+        <div class="flex flex-col flex-1 gap-0.5">
           <h4 class="text-xs text-gray-400">Belum Ada Catatan</h4>
-        </n-space>
-        <n-space vertical :size="2">
+        </div>
+        <div class="flex flex-col gap-0.5 items-end">
           <n-input
             v-model:value="note"
             placeholder="Type here..."
@@ -89,10 +85,10 @@ const handleSendNote = () => {
               </n-button>
             </template>
           </n-input>
-        </n-space>
-      </n-space>
+        </div>
+      </div>
     </n-card>
-  </n-space>
+  </div>
 </template>
 
 <style scoped>

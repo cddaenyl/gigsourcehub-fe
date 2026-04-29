@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NTag } from 'naive-ui'
 
 interface Props {
   level: string
@@ -15,49 +14,28 @@ const chipConfig = computed(() => {
     case 'junior':
       return {
         show: true,
-        type: 'success' as const,
-        color: {
-          color: '#10B981',
-          textColor: '#ffffff',
-          borderColor: '#10B981'
-        }
+        className: 'bg-emerald-500 text-white border-emerald-500',
       }
     case 'middle':
       return {
         show: true,
-        type: 'warning' as const,
-        color: {
-          color: '#F59E0B',
-          textColor: '#ffffff',
-          borderColor: '#F59E0B'
-        }
+        className: 'bg-amber-500 text-white border-amber-500',
       }
     case 'senior':
       return {
         show: true,
-        type: 'error' as const,
-        color: {
-          color: '#EF4444',
-          textColor: '#ffffff',
-          borderColor: '#EF4444'
-        }
+        className: 'bg-red-500 text-white border-red-500',
       }
     case 'ineligible':
       return {
         show: true,
-        type: 'default' as const,
-        color: {
-          color: '#8B5CF6',
-          textColor: '#ffffff',
-          borderColor: '#8B5CF6'
-        }
+        className: 'bg-violet-500 text-white border-violet-500',
       }
     case 'un-reviewed':
     default:
       return {
         show: false,
-        type: 'default' as const,
-        color: {}
+        className: '',
       }
   }
 })
@@ -67,10 +45,10 @@ const chipConfig = computed(() => {
   <div>
     <n-tag
       v-if="chipConfig.show"
-      :type="chipConfig.type"
-      :color="chipConfig.color"
-      round
-      size="medium"
+      :class="[
+        'inline-flex items-center rounded-full border px-2 py-1.5 text-xs leading-none',
+        chipConfig.className,
+      ]"
     >
       {{ level }}
     </n-tag>

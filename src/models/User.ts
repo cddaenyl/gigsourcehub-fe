@@ -17,6 +17,8 @@ export interface User {
   profile_picture: string | null
   candidate_level?: string | null
   recruitment_status_id: string | null
+  recruitment_status_name: string | null
+  recruitment_status_hex_code: string | null
   unavailable_until: string | null
   system_role_name: string | null
   system_role_id: string | null

@@ -3,9 +3,10 @@ export interface AllCandidates {
   no: number
   nama: string
   bidang: string
-  appliedRole: string
+  appliedRole: string[]
   level: string
   status: string
+  statusHexCode: string | null
 }
 
 export interface TalentNeed {

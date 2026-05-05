@@ -2,9 +2,12 @@
 import { computed, ref } from 'vue'
 import { NConfigProvider, NInput, NIcon, NButton } from 'naive-ui'
 import { CalendarEvent, Plus, Search } from '@vicons/tabler'
+import { format } from 'date-fns'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import TalentNeedsTable from '@/components/tables/TalentNeedsTable.vue'
 import type { TalentNeed } from '@/models/Table'
+import { useRequests } from '@/composables/useRequest'
+import type { RequestItem, RequestQueryParams } from '@/models/Request'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import { useRouter } from 'vue-router'
 
@@ -27,197 +30,64 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const searchQuery = ref('')
 
-const allTalentNeeds = ref<TalentNeed[]>([
-  {
-    id: 'tn-001',
-    no: 1,
-    projectKegiatan: 'Pengembangan Sistem E-Office defwcswc',
-    jumlahSdm: 2,
-    tanggalPengajuan: '1 Mar 2026',
-    batasWaktu: '30 Apr 2026',
-    picHr: 'Aulia Rahma',
-    status: 'Diajukan',
-    urgensi: 'High',
-  },
-  {
-    id: 'tn-002',
-    no: 2,
-    projectKegiatan: 'Integrasi Payment Gateway',
-    jumlahSdm: 1,
-    tanggalPengajuan: '2 Mar 2026',
-    batasWaktu: '10 May 2026',
-    picHr: 'Rizky Pratama',
-    status: 'Diproses',
-    urgensi: 'High',
-  },
-  {
-    id: 'tn-003',
-    no: 3,
-    projectKegiatan: 'Revamp Landing Page',
-    jumlahSdm: 1,
-    tanggalPengajuan: '3 Mar 2026',
-    batasWaktu: '20 Apr 2026',
-    picHr: 'Nabila Putri',
-    status: 'Disetujui',
-    urgensi: 'Middle',
-  },
-  {
-    id: 'tn-004',
-    no: 4,
-    projectKegiatan: 'Audit Keamanan Aplikasi',
-    jumlahSdm: 2,
-    tanggalPengajuan: '5 Mar 2026',
-    batasWaktu: '25 Apr 2026',
-    picHr: 'Bima Aditya',
-    status: 'Diajukan',
-    urgensi: 'High',
-  },
-  {
-    id: 'tn-005',
-    no: 5,
-    projectKegiatan: 'Penyusunan Data Warehouse',
-    jumlahSdm: 3,
-    tanggalPengajuan: '6 Mar 2026',
-    batasWaktu: '15 Jun 2026',
-    picHr: 'Aulia Rahma',
-    status: 'Diproses',
-    urgensi: 'Middle',
-  },
-  {
-    id: 'tn-006',
-    no: 6,
-    projectKegiatan: 'Migrasi Server Produksi',
-    jumlahSdm: 2,
-    tanggalPengajuan: '7 Mar 2026',
-    batasWaktu: '5 May 2026',
-    picHr: 'Rizky Pratama',
-    status: 'Diajukan',
-    urgensi: 'High',
-  },
-  {
-    id: 'tn-007',
-    no: 7,
-    projectKegiatan: 'Optimasi SEO Website',
-    jumlahSdm: 1,
-    tanggalPengajuan: '8 Mar 2026',
-    batasWaktu: '18 Apr 2026',
-    picHr: 'Nabila Putri',
-    status: 'Disetujui',
-    urgensi: 'Low',
-  },
-  {
-    id: 'tn-008',
-    no: 8,
-    projectKegiatan: 'Pembuatan Modul Onboarding',
-    jumlahSdm: 2,
-    tanggalPengajuan: '9 Mar 2026',
-    batasWaktu: '1 May 2026',
-    picHr: 'Bima Aditya',
-    status: 'Diproses',
-    urgensi: 'Middle',
-  },
-  {
-    id: 'tn-009',
-    no: 9,
-    projectKegiatan: 'Implementasi Chatbot Support',
-    jumlahSdm: 2,
-    tanggalPengajuan: '10 Mar 2026',
-    batasWaktu: '1 Jun 2026',
-    picHr: 'Aulia Rahma',
-    status: 'Diajukan',
-    urgensi: 'Middle',
-  },
-  {
-    id: 'tn-010',
-    no: 10,
-    projectKegiatan: 'Pengembangan Mobile App v2',
-    jumlahSdm: 3,
-    tanggalPengajuan: '11 Mar 2026',
-    batasWaktu: '30 Jun 2026',
-    picHr: 'Rizky Pratama',
-    status: 'Diproses',
-    urgensi: 'High',
-  },
-  {
-    id: 'tn-011',
-    no: 11,
-    projectKegiatan: 'Uji Performa API',
-    jumlahSdm: 2,
-    tanggalPengajuan: '12 Mar 2026',
-    batasWaktu: '28 Apr 2026',
-    picHr: 'Nabila Putri',
-    status: 'Disetujui',
-    urgensi: 'Middle',
-  },
-  {
-    id: 'tn-012',
-    no: 12,
-    projectKegiatan: 'Penyelarasan SOP Rekrutmen',
-    jumlahSdm: 1,
-    tanggalPengajuan: '13 Mar 2026',
-    batasWaktu: '15 Apr 2026',
-    picHr: 'Bima Aditya',
-    status: 'Diajukan',
-    urgensi: 'Low',
-  },
-  {
-    id: 'tn-013',
-    no: 13,
-    projectKegiatan: 'Automasi Laporan Keuangan',
-    jumlahSdm: 2,
-    tanggalPengajuan: '14 Mar 2026',
-    batasWaktu: '20 May 2026',
-    picHr: 'Aulia Rahma',
-    status: 'Diproses',
-    urgensi: 'Middle',
-  },
-  {
-    id: 'tn-014',
-    no: 14,
-    projectKegiatan: 'Digitalisasi Arsip Dokumen',
-    jumlahSdm: 2,
-    tanggalPengajuan: '15 Mar 2026',
-    batasWaktu: '12 May 2026',
-    picHr: 'Rizky Pratama',
-    status: 'Disetujui',
-    urgensi: 'Low',
-  },
-  {
-    id: 'tn-015',
-    no: 15,
-    projectKegiatan: 'Penguatan Infrastruktur Jaringan',
-    jumlahSdm: 2,
-    tanggalPengajuan: '16 Mar 2026',
-    batasWaktu: '30 May 2026',
-    picHr: 'Nabila Putri',
-    status: 'Diajukan',
-    urgensi: 'High',
-  },
-])
+const queryParams = computed<RequestQueryParams>(() => ({
+  page: currentPage.value,
+  limit: pageSize.value,
+  search: searchQuery.value.trim() || undefined,
+}))
 
-const filteredTalentNeeds = computed(() => {
-  const keyword = searchQuery.value.trim().toLowerCase()
+const { requests, pageCount, isLoading } = useRequests(queryParams)
 
-  if (!keyword) {
-    return allTalentNeeds.value
+const formatDate = (value: string | null) => {
+  if (!value) {
+    return '-'
   }
 
-  return allTalentNeeds.value.filter((item) => {
-    return [item.projectKegiatan, item.picHr, item.status, item.urgensi]
-      .join(' ')
-      .toLowerCase()
-      .includes(keyword)
-  })
-})
+  const parsedDate = new Date(value)
 
-const pageCount = computed(() => {
-  return Math.max(1, Math.ceil(filteredTalentNeeds.value.length / pageSize.value))
-})
+  if (Number.isNaN(parsedDate.getTime())) {
+    return '-'
+  }
 
-const paginatedTalentNeeds = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredTalentNeeds.value.slice(start, end)
+  return format(parsedDate, 'd MMM yyyy')
+}
+
+const formatStatusLabel = (status: RequestItem['status']) => {
+  const normalizedStatus = status.toUpperCase()
+
+  const statusMap: Record<string, string> = {
+    PENDING: 'Menunggu Validasi',
+    ACCEPTED: 'Disetujui',
+    REJECTED: 'Ditolak',
+    PROCESSING: 'Diproses',
+    DONE: 'Selesai',
+  }
+
+  return statusMap[normalizedStatus] || normalizedStatus
+}
+
+const formatUrgencyLabel = (urgency: RequestItem['urgency']): TalentNeed['urgensi'] => {
+  const urgencyMap: Record<RequestItem['urgency'], TalentNeed['urgensi']> = {
+    LOW: 'Low',
+    MIDDLE: 'Middle',
+    HIGH: 'High',
+  }
+
+  return urgencyMap[urgency]
+}
+
+const paginatedTalentNeeds = computed<TalentNeed[]>(() => {
+  return requests.value.map((request, index) => ({
+    id: request.id,
+    no: (currentPage.value - 1) * pageSize.value + index + 1,
+    projectKegiatan: request.project_name,
+    jumlahSdm: request.required_headcount,
+    tanggalPengajuan: formatDate(request.created_at),
+    batasWaktu: formatDate(request.due_date),
+    picHr: request.admin_user_id || '-',
+    status: formatStatusLabel(request.status),
+    urgensi: formatUrgencyLabel(request.urgency),
+  }))
 })
 
 const handleSearch = (value: string) => {
@@ -267,6 +137,10 @@ const handleAjukanPermintaan = () => {
 
         <div class="rounded-lg p-2 py-3 space-y-4">
           <TalentNeedsTable :data="paginatedTalentNeeds" @action="handleAction" />
+
+          <div v-if="isLoading" class="py-8 text-center">
+            <p class="text-gray-500">Loading...</p>
+          </div>
 
           <CandidatePagination
             v-model:page="currentPage"

@@ -1,5 +1,53 @@
 export type RequestUrgency = 'LOW' | 'MIDDLE' | 'HIGH'
 
+export interface RequestSubrequest {
+  id: string
+  request_id: string
+  min_years_experience: number
+  job_role_id: string
+  job_role: string
+  tech_stack: string
+  notes: string
+  is_filled: boolean
+  overview: string | null
+}
+
+export interface RequestItem {
+  id: string
+  project_name: string
+  due_date: string
+  admin_user_id: string | null
+  employee_user_id: string | null
+  required_headcount: number
+  status: string
+  urgency: RequestUrgency
+  fulfillment_date: string | null
+  rejected_reason: string | null
+  subrequests: RequestSubrequest[]
+  created_at: string
+  updated_at: string
+}
+
+export interface RequestListData {
+  list: RequestItem[]
+  limit: number
+  page: number
+  total: number
+}
+
+export interface RequestQueryParams {
+  page?: number
+  limit?: number
+  search?: string
+}
+
+export interface GetRequestsResponse {
+  status: number
+  message: string
+  validation: string | null
+  data: RequestListData
+}
+
 export interface CreateRequestPayload {
   due_date: string
   project_name: string

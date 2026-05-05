@@ -28,17 +28,11 @@ const columns: DataTableColumns<TalentNeed> = [
   {
     title: 'Project/Kegiatan',
     key: 'projectKegiatan',
-    minWidth: 200,
   },
   {
-    title: 'Bidang',
-    key: 'bidang',
-    minWidth: 160,
-  },
-  {
-    title: 'Jumlah',
+    title: 'Jumlah SDM',
     key: 'jumlahSdm',
-    width: 80,
+    width: 120,
   },
   {
     title: 'Tanggal Pengajuan',

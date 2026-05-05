@@ -205,6 +205,13 @@ const handleSubmitRequest = handleSubmit(
                 <p v-if="projectNameError" class="text-xs text-red-500">{{ projectNameError }}</p>
               </n-space>
 
+              <n-space vertical :size="6">
+                <h3 class="text-xs font-bold text-gray-500">Durasi Project</h3>
+
+                <n-input v-model:value="projectName" placeholder="cth : 3 - 6 Bulan" />
+                <p v-if="projectNameError" class="text-xs text-red-500">{{ projectNameError }}</p>
+              </n-space>
+
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <n-space vertical>
                   <h3 class="text-xs font-bold text-gray-500">Tingkat Urgensi</h3>

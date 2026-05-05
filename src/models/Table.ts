@@ -13,7 +13,6 @@ export interface TalentNeed {
   id: string
   no: number
   projectKegiatan: string
-  bidang: string
   jumlahSdm: number
   tanggalPengajuan: string
   batasWaktu: string

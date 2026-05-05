@@ -149,6 +149,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/opportunities/OpportunitiesList': RouteRecordInfo<
+      '/opportunities/OpportunitiesList',
+      '/opportunities/OpportunitiesList',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/register/': RouteRecordInfo<
       '/register/',
       '/register',
@@ -421,6 +428,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/login/index.vue': {
       routes:
         | '/login/'
+      views:
+        | never
+    }
+    'src/pages/opportunities/OpportunitiesList.vue': {
+      routes:
+        | '/opportunities/OpportunitiesList'
       views:
         | never
     }

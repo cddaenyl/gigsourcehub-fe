@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import { Clock, MapPin, Bolt, ArrowRight } from '@vicons/tabler'
-import { NIcon, NButton } from 'naive-ui'
+import { ArrowRight, Bolt, Clock, MapPin } from '@vicons/tabler'
+import { NButton, NIcon } from 'naive-ui'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goToOpportunities = () => {
+  router.push('/opportunities/OpportunitiesList')
+}
 
 type OpportunityCard = {
   label: string
@@ -55,10 +62,11 @@ defineOptions({
     <div class="mx-auto max-w-7xl">
       <div class="flex flex-col items-start justify-start gap-5">
         <div
-          class="inline-flex items-center justify-start gap-1.5 rounded-full border border-blue-900 px-4 py-2 shadow-md"
-        >
+          class="inline-flex items-center justify-start gap-1.5 rounded-full border border-blue-900 px-4 py-2 shadow-md">
           <div class="flex justify-center text-yellow-400 font-normal">
-            <n-icon :size="16"><Bolt /></n-icon>
+            <n-icon :size="16">
+              <Bolt />
+            </n-icon>
           </div>
           <div class="text-xs leading-5 font-semibold text-slate-700">Featured Opportunities</div>
         </div>
@@ -68,28 +76,26 @@ defineOptions({
         </h2>
 
         <div
-          class="flex flex-col xl:flex-row justify-between w-full text-base leading-7 font-medium text-slate-600 sm:text-xl"
-        >
+          class="flex flex-col xl:flex-row justify-between w-full text-base leading-7 font-medium text-slate-600 sm:text-xl">
           <p class="flex">
             Browse open roles we’re currently hiring for across various projects and teams.
           </p>
           <div class="flex my-4 justify-end xl:my-0">
-            <n-button tertiary round>
-              View All Opportunities <n-icon class="ml-1"><ArrowRight /></n-icon>
+            <n-button tertiary round @click="goToOpportunities">
+              View All Opportunities <n-icon class="ml-1">
+                <ArrowRight />
+              </n-icon>
             </n-button>
           </div>
         </div>
       </div>
 
       <div class="py-2 grid gap-6 sm:grid-cols-2 xl:grid-cols-3 lg:mt-8 overflow-x-auto">
-        <article
-          v-for="card in opportunityCards"
-          :key="card.label"
-          class="group relative overflow-hidden rounded-3xl bg-white px-6 pt-6 pb-8 shadow-[0px_4px_4px_0px_rgba(7,34,158,0.18)] outline -outline-offset-1 outline-slate-300 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0px_16px_32px_-18px_rgba(7,34,158,0.35)] sm:px-8 sm:pt-8 sm:pb-10"
-        >
+        <article v-for="card in opportunityCards" :key="card.label"
+          class="group relative overflow-hidden rounded-3xl bg-white px-6 pt-6 pb-8 shadow-[0px_4px_4px_0px_rgba(7,34,158,0.18)] outline -outline-offset-1 outline-slate-300 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0px_16px_32px_-18px_rgba(7,34,158,0.35)] sm:px-8 sm:pt-8 sm:pb-10">
           <div
-            class="absolute right-0 top-0 h-40 w-40 rounded-bl-[100px] bg-linear-to-br from-blue-500 to-cyan-500 opacity-10 blur-[19.95px]"
-          ></div>
+            class="absolute right-0 top-0 h-40 w-40 rounded-bl-[100px] bg-linear-to-br from-blue-500 to-cyan-500 opacity-10 blur-[19.95px]">
+          </div>
 
           <div class="relative flex items-center justify-between gap-4">
             <div class="inline-flex items-center rounded-3xl px-2 py-0.5">
@@ -126,11 +132,8 @@ defineOptions({
           </div>
 
           <div class="relative mt-5 flex flex-wrap items-start gap-2">
-            <span
-              v-for="tag in card.tags"
-              :key="tag"
-              class="inline-flex items-center rounded-3xl bg-indigo-200 px-2 py-0.5 text-sm font-normal leading-5 text-blue-900"
-            >
+            <span v-for="tag in card.tags" :key="tag"
+              class="inline-flex items-center rounded-3xl bg-indigo-200 px-2 py-0.5 text-sm font-normal leading-5 text-blue-900">
               {{ tag }}
             </span>
           </div>

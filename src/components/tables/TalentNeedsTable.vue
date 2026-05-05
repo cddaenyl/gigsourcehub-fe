@@ -3,6 +3,7 @@ import { h } from 'vue'
 import { NDataTable } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import StatusChip from '@/components/chip/EmployeeStatusChip.vue'
+import UrgencyChip from '@/components/chip/UrgencyChip.vue'
 import TalentNeedsTableActions from './TalentNeedsTableActions.vue'
 import type { TalentNeed } from '@/models/Table'
 
@@ -64,6 +65,11 @@ const columns: DataTableColumns<TalentNeed> = [
     title: 'Urgensi',
     key: 'urgensi',
     minWidth: 60,
+    render: (row) => {
+      return h(UrgencyChip, {
+        urgency: row.urgensi,
+      })
+    },
   },
   {
     title: '',

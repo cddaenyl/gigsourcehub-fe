@@ -9,7 +9,7 @@ import CandidateInfoCard from '@/components/candidate-detail/CandidateInfoCard.v
 import CandidateRecruitmentPanel from '@/components/candidate-detail/CandidateRecruitmentPanel.vue'
 import CandidateOnboardingHistory from '@/components/candidate-detail/CandidateOnboardingHistory.vue'
 import { NButton, NSpin, NGrid, NGi } from 'naive-ui'
-
+import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
 const route = useRoute()
 const router = useRouter()
 
@@ -41,24 +41,15 @@ const levelOptions = [
   },
 ]
 
-const recruitmentOptions = [
-  {
-    label: 'Drive My Car',
-    value: 'song1',
-  },
-  {
-    label: 'Norwegian Wood',
-    value: 'song2',
-  },
-  {
-    label: "You Won't See",
-    value: 'song3',
-  },
-  {
-    label: 'Nowhere Man',
-    value: 'song4',
-  },
-]
+const { recruitmentStatuses } = useRecruitmentStatuses()
+const recruitmentOptions = computed(() =>
+  recruitmentStatuses.value
+    .filter((status) => status.is_active)
+    .map((status) => ({
+      label: status.name,
+      value: status.id,
+    })),
+)
 
 // Fetch user data
 const { user, isLoading, isError, error } = useUser(userId)

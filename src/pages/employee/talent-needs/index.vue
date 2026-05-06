@@ -84,7 +84,7 @@ const paginatedTalentNeeds = computed<TalentNeed[]>(() => {
     jumlahSdm: request.required_headcount,
     tanggalPengajuan: formatDate(request.created_at),
     batasWaktu: formatDate(request.due_date),
-    picHr: request.admin_user_id || '-',
+    picHr: request.admin_name || '-',
     status: formatStatusLabel(request.status),
     urgensi: formatUrgencyLabel(request.urgency),
   }))

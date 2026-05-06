@@ -22,6 +22,7 @@ import { useCreateRequest } from '@/composables/useRequest'
 import { useRoles } from '@/composables/useRoles'
 import type {
   CreateRequestPayload,
+  RequestLevel,
   RequestUrgency,
   TalentRequestFormValues,
   TalentRequestSubrequestForm,
@@ -40,22 +41,14 @@ const requestSchema = z.object({
     .array(
       z.object({
         jobRoleId: z.string().min(1, 'Nama posisi wajib dipilih'),
-        minYearsExperience: z.number().nullable(),
+        level: z.enum(['Junior', 'Middle', 'Senior'], {
+          message: 'Level senioritas wajib dipilih',
+        }),
+        overview: z.string().nullable(),
         notes: z.string(),
         techStack: z
-          .string()
-          .trim()
-          .min(1, 'Keahlian / tech stack wajib diisi')
-          .refine(
-            (value) =>
-              value
-                .split(',')
-                .map((item) => item.trim())
-                .filter(Boolean).length > 0,
-            {
-              message: 'Masukkan minimal 1 tech stack',
-            },
-          ),
+          .array(z.string().trim().min(1, 'Tech stack tidak boleh kosong'))
+          .min(1, 'Masukkan minimal 1 tech stack'),
       }),
     )
     .min(1, 'Minimal 1 subrequest harus ditambahkan'),
@@ -63,10 +56,11 @@ const requestSchema = z.object({
 })
 
 const createEmptySubRequest = (): TalentRequestSubrequestForm => ({
+  overview: null,
   jobRoleId: null,
-  minYearsExperience: null,
+  level: null,
   notes: '',
-  techStack: '',
+  techStack: [],
 })
 
 const { handleSubmit, meta, setFieldValue } = useForm<TalentRequestFormValues>({
@@ -111,7 +105,7 @@ const isFormValid = computed(() => {
   const subRequestList = getSubRequestList()
 
   const hasValidSubRequests = subRequestList.every((item) => {
-    return Boolean(item.jobRoleId) && item.techStack.trim().length > 0
+    return Boolean(item.jobRoleId) && Boolean(item.level) && item.techStack.length > 0
   })
 
   return hasRequestInfo && hasValidSubRequests && meta.value.valid
@@ -151,12 +145,10 @@ const toRequestPayload = (values: TalentRequestFormValues): CreateRequestPayload
     project_duration: values.projectDuration.trim(),
     subrequests: values.subRequests.map((subrequest) => ({
       job_role_id: subrequest.jobRoleId as string,
-      min_years_experience: subrequest.minYearsExperience ?? 0,
+      level: subrequest.level as RequestLevel,
+      overview: subrequest.overview?.trim() || null,
       notes: subrequest.notes.trim(),
-      tech_stack: subrequest.techStack
-        .split(',')
-        .map((tech) => tech.trim())
-        .filter(Boolean),
+      tech_stack: subrequest.techStack.map((tech) => tech.trim()).filter(Boolean),
     })),
     urgency: values.urgency as RequestUrgency,
   }

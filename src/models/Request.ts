@@ -1,9 +1,10 @@
 export type RequestUrgency = 'LOW' | 'MIDDLE' | 'HIGH'
+export type RequestLevel = 'Junior' | 'Middle' | 'Senior'
 
 export interface RequestSubrequest {
   id: string
   request_id: string
-  min_years_experience: number
+  level: RequestLevel | null
   job_role_id: string
   job_role: string
   tech_stack: string
@@ -18,6 +19,7 @@ export interface RequestItem {
   project_duration: string | null
   due_date: string
   admin_user_id: string | null
+  admin_name: string
   employee_user_id: string | null
   required_headcount: number
   status: string
@@ -59,7 +61,8 @@ export interface CreateRequestPayload {
 
 export interface RequestSubrequestPayload {
   job_role_id: string
-  min_years_experience: number
+  level: RequestLevel
+  overview: string | null
   notes: string
   tech_stack: string[]
 }
@@ -74,10 +77,11 @@ export interface CreateRequestResponse {
 }
 
 export interface TalentRequestSubrequestForm {
+  overview: string | null
   jobRoleId: string | null
-  minYearsExperience: number | null
+  level: RequestLevel | null
   notes: string
-  techStack: string
+  techStack: string[]
 }
 
 export interface TalentRequestFormValues {

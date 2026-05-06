@@ -1,17 +1,11 @@
 <script setup lang="ts">
-import { NButton, NCard, NIcon, NInput, NInputNumber, NSelect, NSpace } from 'naive-ui'
+import { NButton, NCard, NDynamicTags, NIcon, NInput, NSelect, NSpace } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
+import type { TalentRequestSubrequestForm } from '@/models/Request'
 import { Trash } from '@vicons/tabler'
 
-interface SubRequestForm {
-  jobRoleId: string | null
-  minYearsExperience: number | null
-  notes: string
-  techStack: string
-}
-
 interface Props {
-  modelValue: SubRequestForm
+  modelValue: TalentRequestSubrequestForm
   positionOptions: SelectOption[]
   canRemove?: boolean
   position: number
@@ -23,15 +17,28 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: SubRequestForm]
+  'update:modelValue': [value: TalentRequestSubrequestForm]
   remove: []
 }>()
 
-const updateField = <K extends keyof SubRequestForm>(field: K, value: SubRequestForm[K]) => {
+const seniorityOptions: SelectOption[] = [
+  { label: 'Junior', value: 'Junior' },
+  { label: 'Middle', value: 'Middle' },
+  { label: 'Senior', value: 'Senior' },
+]
+
+const updateField = <K extends keyof TalentRequestSubrequestForm>(
+  field: K,
+  value: TalentRequestSubrequestForm[K],
+) => {
   emit('update:modelValue', {
     ...props.modelValue,
     [field]: value,
   })
+}
+
+const handleTechStackUpdate = (value: string[]) => {
+  updateField('techStack', value)
 }
 
 const handleRemove = () => {
@@ -52,7 +59,7 @@ const handleRemove = () => {
         </n-button>
       </n-space>
 
-      <div class="grid grid-cols-1 gap-3">
+      <div class="grid grid-cols-1 gap-4">
         <div>
           <n-space vertical :size="6">
             <h3 class="text-xs font-semibold text-gray-500">Nama Posisi</h3>
@@ -69,25 +76,38 @@ const handleRemove = () => {
 
         <div>
           <n-space vertical :size="6">
-            <h3 class="text-xs font-semibold text-gray-500">Keahlian / Tech Stack</h3>
+            <h3 class="text-xs font-semibold text-gray-500">Gambaran Umum Posisi</h3>
             <n-input
-              :value="modelValue.techStack"
-              placeholder="Tambahkan keahlian utama yang wajib dimiliki kandidat."
-              @update:value="(value) => updateField('techStack', value)"
+              :value="modelValue.overview"
+              type="textarea"
+              :autosize="{ minRows: 3, maxRows: 4 }"
+              placeholder="Tambahkan catatan disini"
+              @update:value="(value) => updateField('overview', value)"
             />
           </n-space>
         </div>
 
         <div>
           <n-space vertical :size="6">
-            <h3 class="text-xs font-semibold text-gray-500">Minimal Pengalaman (Tahun)</h3>
-            <n-input-number
-              :value="modelValue.minYearsExperience"
-              :min="0"
-              placeholder="Masukkan minimal pengalaman"
+            <h3 class="text-xs font-semibold text-gray-500">Keahlian / Tech Stack</h3>
+            <n-dynamic-tags
+              :value="modelValue.techStack"
+              placeholder="Ketik tech stack lalu tekan Enter"
+              @update:value="handleTechStackUpdate"
+            />
+          </n-space>
+        </div>
+
+        <div>
+          <n-space vertical :size="6">
+            <h3 class="text-xs font-semibold text-gray-500">Level Senioritas</h3>
+            <n-select
+              :value="modelValue.level"
+              :options="seniorityOptions"
+              placeholder="Pilih level senioritas"
               class="w-full"
               clearable
-              @update:value="(value) => updateField('minYearsExperience', value)"
+              @update:value="(value) => updateField('level', value)"
             />
           </n-space>
         </div>

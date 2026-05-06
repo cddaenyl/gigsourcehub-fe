@@ -2,6 +2,8 @@
 import { h } from 'vue'
 import { NDataTable } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
+import StatusChip from '@/components/chip/EmployeeStatusChip.vue'
+import UrgencyChip from '@/components/chip/UrgencyChip.vue'
 import TalentNeedsTableActions from './TalentNeedsTableActions.vue'
 import type { TalentNeed } from '@/models/Table'
 
@@ -28,17 +30,11 @@ const columns: DataTableColumns<TalentNeed> = [
   {
     title: 'Project/Kegiatan',
     key: 'projectKegiatan',
-    minWidth: 200,
   },
   {
-    title: 'Bidang',
-    key: 'bidang',
-    minWidth: 160,
-  },
-  {
-    title: 'Jumlah',
+    title: 'Jumlah SDM',
     key: 'jumlahSdm',
-    width: 80,
+    width: 120,
   },
   {
     title: 'Tanggal Pengajuan',
@@ -59,11 +55,21 @@ const columns: DataTableColumns<TalentNeed> = [
     title: 'Status',
     key: 'status',
     minWidth: 100,
+    render: (row) => {
+      return h(StatusChip, {
+        status: row.status,
+      })
+    },
   },
   {
     title: 'Urgensi',
     key: 'urgensi',
     minWidth: 60,
+    render: (row) => {
+      return h(UrgencyChip, {
+        urgency: row.urgensi,
+      })
+    },
   },
   {
     title: '',

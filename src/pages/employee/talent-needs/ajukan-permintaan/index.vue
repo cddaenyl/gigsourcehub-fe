@@ -22,6 +22,7 @@ import { useCreateRequest } from '@/composables/useRequest'
 import { useRoles } from '@/composables/useRoles'
 import type {
   CreateRequestPayload,
+  RequestLevel,
   RequestUrgency,
   TalentRequestFormValues,
   TalentRequestSubrequestForm,
@@ -35,26 +36,19 @@ const { roles, isLoading: isRolesLoading } = useRoles({ page: 1, limit: 100 })
 const requestSchema = z.object({
   dueDate: z.number({ message: 'Target pemenuhan wajib diisi' }),
   projectName: z.string().trim().min(1, 'Nama project wajib diisi'),
+  projectDuration: z.string().trim().min(1, 'Durasi project wajib diisi'),
   subRequests: z
     .array(
       z.object({
         jobRoleId: z.string().min(1, 'Nama posisi wajib dipilih'),
-        minYearsExperience: z.number().nullable(),
+        level: z.enum(['Junior', 'Middle', 'Senior'], {
+          message: 'Level senioritas wajib dipilih',
+        }),
+        overview: z.string().nullable(),
         notes: z.string(),
         techStack: z
-          .string()
-          .trim()
-          .min(1, 'Keahlian / tech stack wajib diisi')
-          .refine(
-            (value) =>
-              value
-                .split(',')
-                .map((item) => item.trim())
-                .filter(Boolean).length > 0,
-            {
-              message: 'Masukkan minimal 1 tech stack',
-            },
-          ),
+          .array(z.string().trim().min(1, 'Tech stack tidak boleh kosong'))
+          .min(1, 'Masukkan minimal 1 tech stack'),
       }),
     )
     .min(1, 'Minimal 1 subrequest harus ditambahkan'),
@@ -62,10 +56,11 @@ const requestSchema = z.object({
 })
 
 const createEmptySubRequest = (): TalentRequestSubrequestForm => ({
+  overview: null,
   jobRoleId: null,
-  minYearsExperience: null,
+  level: null,
   notes: '',
-  techStack: '',
+  techStack: [],
 })
 
 const { handleSubmit, meta, setFieldValue } = useForm<TalentRequestFormValues>({
@@ -79,6 +74,8 @@ const { handleSubmit, meta, setFieldValue } = useForm<TalentRequestFormValues>({
 })
 
 const { value: projectName, errorMessage: projectNameError } = useField<string>('projectName')
+const { value: projectDuration, errorMessage: projectDurationError } =
+  useField<string>('projectDuration')
 const { value: urgency, errorMessage: urgencyError } = useField<RequestUrgency | null>('urgency')
 const { value: dueDate, errorMessage: dueDateError } = useField<number | null>('dueDate')
 const { value: subRequests, errorMessage: subRequestsError } =
@@ -108,7 +105,7 @@ const isFormValid = computed(() => {
   const subRequestList = getSubRequestList()
 
   const hasValidSubRequests = subRequestList.every((item) => {
-    return Boolean(item.jobRoleId) && item.techStack.trim().length > 0
+    return Boolean(item.jobRoleId) && Boolean(item.level) && item.techStack.length > 0
   })
 
   return hasRequestInfo && hasValidSubRequests && meta.value.valid
@@ -145,14 +142,13 @@ const toRequestPayload = (values: TalentRequestFormValues): CreateRequestPayload
   return {
     due_date: dueDateString,
     project_name: values.projectName.trim(),
+    project_duration: values.projectDuration.trim(),
     subrequests: values.subRequests.map((subrequest) => ({
       job_role_id: subrequest.jobRoleId as string,
-      min_years_experience: subrequest.minYearsExperience ?? 0,
+      level: subrequest.level as RequestLevel,
+      overview: subrequest.overview?.trim() || null,
       notes: subrequest.notes.trim(),
-      tech_stack: subrequest.techStack
-        .split(',')
-        .map((tech) => tech.trim())
-        .filter(Boolean),
+      tech_stack: subrequest.techStack.map((tech) => tech.trim()).filter(Boolean),
     })),
     urgency: values.urgency as RequestUrgency,
   }
@@ -203,6 +199,15 @@ const handleSubmitRequest = handleSubmit(
                   placeholder="Masukkan nama project / kegiatan"
                 />
                 <p v-if="projectNameError" class="text-xs text-red-500">{{ projectNameError }}</p>
+              </n-space>
+
+              <n-space vertical :size="6">
+                <h3 class="text-xs font-bold text-gray-500">Durasi Project</h3>
+
+                <n-input v-model:value="projectDuration" placeholder="cth : 3 - 6 Bulan" />
+                <p v-if="projectDurationError" class="text-xs text-red-500">
+                  {{ projectDurationError }}
+                </p>
               </n-space>
 
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">

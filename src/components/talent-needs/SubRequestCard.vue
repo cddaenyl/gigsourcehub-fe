@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { NButton, NCard, NDynamicTags, NIcon, NInput, NSelect, NSpace } from 'naive-ui'
+import { computed, ref } from 'vue'
+import { NButton, NCard, NIcon, NInput, NSelect, NSpace, NTag } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
 import type { TalentRequestSubrequestForm } from '@/models/Request'
 import { Trash } from '@vicons/tabler'
@@ -27,6 +28,10 @@ const seniorityOptions: SelectOption[] = [
   { label: 'Senior', value: 'Senior' },
 ]
 
+const techStackInput = ref('')
+
+const techStackTags = computed(() => props.modelValue.techStack)
+
 const updateField = <K extends keyof TalentRequestSubrequestForm>(
   field: K,
   value: TalentRequestSubrequestForm[K],
@@ -37,8 +42,36 @@ const updateField = <K extends keyof TalentRequestSubrequestForm>(
   })
 }
 
-const handleTechStackUpdate = (value: string[]) => {
-  updateField('techStack', value)
+const addTechStack = () => {
+  const nextValue = techStackInput.value.trim()
+
+  if (!nextValue) {
+    return
+  }
+
+  if (techStackTags.value.some((item) => item.toLowerCase() === nextValue.toLowerCase())) {
+    techStackInput.value = ''
+    return
+  }
+
+  updateField('techStack', [...techStackTags.value, nextValue])
+  techStackInput.value = ''
+}
+
+const removeTechStack = (tagToRemove: string) => {
+  updateField(
+    'techStack',
+    techStackTags.value.filter((tag) => tag !== tagToRemove),
+  )
+}
+
+const handleTechStackKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'Enter') {
+    return
+  }
+
+  event.preventDefault()
+  addTechStack()
 }
 
 const handleRemove = () => {
@@ -50,7 +83,7 @@ const handleRemove = () => {
   <n-card size="small" :bordered="true">
     <n-space vertical class="mb-4">
       <n-space align="center" justify="space-between">
-        <h3 v-if="canRemove" class="text-xs font-bold text-gray-500">- Posisi #{{ position }}</h3>
+        <h3 v-if="canRemove" class="text-sm font-bold text-gray-500">#{{ position }}</h3>
         <n-button v-if="canRemove" tertiary size="small" type="error" @click="handleRemove">
           <template #icon>
             <n-icon :component="Trash" />
@@ -90,11 +123,27 @@ const handleRemove = () => {
         <div>
           <n-space vertical :size="6">
             <h3 class="text-xs font-semibold text-gray-500">Keahlian / Tech Stack</h3>
-            <n-dynamic-tags
-              :value="modelValue.techStack"
-              placeholder="Ketik tech stack lalu tekan Enter"
-              @update:value="handleTechStackUpdate"
+
+            <n-input
+              v-model:value="techStackInput"
+              placeholder="Tambahkan keahlian lalu tekan Enter"
+              clearable
+              @keydown="handleTechStackKeydown"
+              @blur="addTechStack"
             />
+
+            <div v-if="techStackTags.length > 0" class="mt-1 flex flex-wrap gap-2">
+              <n-tag
+                v-for="tag in techStackTags"
+                :key="tag"
+                closable
+                round
+                :color="{ color: '#C7D0F3', textColor: '#07229E' }"
+                @close="removeTechStack(tag)"
+              >
+                {{ tag }}
+              </n-tag>
+            </div>
           </n-space>
         </div>
 

@@ -15,6 +15,7 @@ export interface RequestSubrequest {
 export interface RequestItem {
   id: string
   project_name: string
+  project_duration: string | null
   due_date: string
   admin_user_id: string | null
   employee_user_id: string | null
@@ -51,6 +52,7 @@ export interface GetRequestsResponse {
 export interface CreateRequestPayload {
   due_date: string
   project_name: string
+  project_duration: string | null
   subrequests: RequestSubrequestPayload[]
   urgency: RequestUrgency
 }
@@ -81,6 +83,7 @@ export interface TalentRequestSubrequestForm {
 export interface TalentRequestFormValues {
   dueDate: number | null
   projectName: string
+  projectDuration: string
   subRequests: TalentRequestSubrequestForm[]
   urgency: RequestUrgency | null
 }

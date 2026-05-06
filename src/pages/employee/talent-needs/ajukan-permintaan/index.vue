@@ -35,6 +35,7 @@ const { roles, isLoading: isRolesLoading } = useRoles({ page: 1, limit: 100 })
 const requestSchema = z.object({
   dueDate: z.number({ message: 'Target pemenuhan wajib diisi' }),
   projectName: z.string().trim().min(1, 'Nama project wajib diisi'),
+  projectDuration: z.string().trim().min(1, 'Durasi project wajib diisi'),
   subRequests: z
     .array(
       z.object({
@@ -79,6 +80,8 @@ const { handleSubmit, meta, setFieldValue } = useForm<TalentRequestFormValues>({
 })
 
 const { value: projectName, errorMessage: projectNameError } = useField<string>('projectName')
+const { value: projectDuration, errorMessage: projectDurationError } =
+  useField<string>('projectDuration')
 const { value: urgency, errorMessage: urgencyError } = useField<RequestUrgency | null>('urgency')
 const { value: dueDate, errorMessage: dueDateError } = useField<number | null>('dueDate')
 const { value: subRequests, errorMessage: subRequestsError } =
@@ -145,6 +148,7 @@ const toRequestPayload = (values: TalentRequestFormValues): CreateRequestPayload
   return {
     due_date: dueDateString,
     project_name: values.projectName.trim(),
+    project_duration: values.projectDuration.trim(),
     subrequests: values.subRequests.map((subrequest) => ({
       job_role_id: subrequest.jobRoleId as string,
       min_years_experience: subrequest.minYearsExperience ?? 0,
@@ -208,8 +212,10 @@ const handleSubmitRequest = handleSubmit(
               <n-space vertical :size="6">
                 <h3 class="text-xs font-bold text-gray-500">Durasi Project</h3>
 
-                <n-input v-model:value="projectName" placeholder="cth : 3 - 6 Bulan" />
-                <p v-if="projectNameError" class="text-xs text-red-500">{{ projectNameError }}</p>
+                <n-input v-model:value="projectDuration" placeholder="cth : 3 - 6 Bulan" />
+                <p v-if="projectDurationError" class="text-xs text-red-500">
+                  {{ projectDurationError }}
+                </p>
               </n-space>
 
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">

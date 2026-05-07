@@ -24,15 +24,25 @@ export interface User {
   system_role_id: string | null
   assigned_role_id: string | null
   account_status: string | null
+  must_reset_password?: boolean
   is_bookmark?: boolean
   job_title_id?: string | null
   bidang?: string | null
   job_roles?: JobRole[]
+  province?: {
+    id: string
+    name: string
+  } | null
   cv: {
     id: string
     name: string
     url: string
   }
+}
+
+export interface UserRecruitmentStatusPayload {
+  candidate_level: string | null
+  recruitment_status_id: string | null
 }
 
 export interface UsersListData {

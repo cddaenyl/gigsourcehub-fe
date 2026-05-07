@@ -1,20 +1,50 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NCard, NSelect, NInput, NButton, NIcon } from 'naive-ui'
+import { computed, ref, watch } from 'vue'
+import { NCard, NSelect, NInput, NButton, NIcon, type SelectOption } from 'naive-ui'
 import { Send } from '@vicons/tabler'
 
-defineProps<{
-  levelOptions: Array<{ label: string; value: string }>
-  recruitmentOptions: Array<{ label: string; value: string }>
+const props = defineProps<{
+  levelOptions: SelectOption[]
+  recruitmentOptions: SelectOption[]
+  initialLevel: string | null
+  initialStatus: string | null
+  isSaving?: boolean
 }>()
 
-const level = ref<string | null>(null)
-const status = ref<string | null>(null)
+const emit = defineEmits<{
+  (
+    event: 'save',
+    payload: { candidate_level: string | null; recruitment_status_id: string | null },
+  ): void
+}>()
+
+const level = ref<string | null>(props.initialLevel ?? null)
+const status = ref<string | null>(props.initialStatus ?? null)
 const note = ref('')
+
+const isDirty = computed(
+  () => level.value !== props.initialLevel || status.value !== props.initialStatus,
+)
+
+watch(
+  () => [props.initialLevel, props.initialStatus],
+  ([nextLevel, nextStatus]) => {
+    level.value = nextLevel ?? null
+    status.value = nextStatus ?? null
+  },
+)
 
 const handleSendNote = () => {
   if (!note.value.trim()) return
   note.value = ''
+}
+
+const handleSave = () => {
+  if (!isDirty.value) return
+  emit('save', {
+    candidate_level: level.value,
+    recruitment_status_id: status.value,
+  })
 }
 </script>
 
@@ -43,7 +73,14 @@ const handleSendNote = () => {
           />
         </div>
         <div class="flex justify-end">
-          <n-button type="primary">Simpan</n-button>
+          <n-button
+            type="primary"
+            :disabled="!isDirty || isSaving"
+            :loading="isSaving"
+            @click="handleSave"
+          >
+            Simpan
+          </n-button>
         </div>
       </div>
     </n-card>

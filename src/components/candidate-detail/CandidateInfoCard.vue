@@ -181,8 +181,8 @@ const provinsiName = computed(() => {
             </div>
             <div class="flex flex-col">
               <a
-                v-if="user.cv.id"
-                :href="user.cv.url"
+                v-if="user.cv?.id"
+                :href="user.cv?.url"
                 target="_blank"
                 class="text-gray-700 font-semibold text-sm truncate"
               >

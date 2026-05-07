@@ -1,5 +1,10 @@
 import axios, { AxiosError } from 'axios'
-import type { UsersResponse, UsersQueryParams, UserResponse } from '@/models/User'
+import type {
+  UsersResponse,
+  UsersQueryParams,
+  UserResponse,
+  UserRecruitmentStatusPayload,
+} from '@/models/User'
 
 export const getUsersApi = async (params: UsersQueryParams = {}): Promise<UsersResponse> => {
   try {
@@ -89,8 +94,8 @@ export const uploadProfilePictureApi = async (file: File): Promise<void> => {
     formData.append('file', file)
     await axios.post('/profile/picture', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        'Content-Type': 'multipart/form-data',
+      },
     })
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {
@@ -100,9 +105,13 @@ export const uploadProfilePictureApi = async (file: File): Promise<void> => {
   }
 }
 
-export const getUserProfilePictureApi = async (id: string): Promise<{ profile_picture_url: string | null }> => {
+export const getUserProfilePictureApi = async (
+  id: string,
+): Promise<{ profile_picture_url: string | null }> => {
   try {
-    const response = await axios.get<{ data: { profile_picture_url: string | null } }>(`/users/${id}/profile-picture`)
+    const response = await axios.get<{ data: { profile_picture_url: string | null } }>(
+      `/users/${id}/profile-picture`,
+    )
     return response.data.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {
@@ -170,6 +179,21 @@ export const createUserApi = async (data: any): Promise<void> => {
 export const updateUserBySuperadminApi = async (id: string, data: any): Promise<void> => {
   try {
     await axios.put(`/users/${id}`, data)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const updateUserRecruitmentStatusApi = async (
+  id: string,
+  payload: UserRecruitmentStatusPayload,
+): Promise<UserResponse> => {
+  try {
+    const response = await axios.patch<UserResponse>(`/users/${id}/recruitment-status`, payload)
+    return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {
       throw new Error(error.response.data.message)

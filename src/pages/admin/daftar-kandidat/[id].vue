@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
 import AdminLayout from '@/layouts/AdminLayout.vue'
@@ -8,10 +8,12 @@ import CandidateProfileCard from '@/components/candidate-detail/CandidateProfile
 import CandidateInfoCard from '@/components/candidate-detail/CandidateInfoCard.vue'
 import CandidateRecruitmentPanel from '@/components/candidate-detail/CandidateRecruitmentPanel.vue'
 import CandidateOnboardingHistory from '@/components/candidate-detail/CandidateOnboardingHistory.vue'
-import { NButton, NSpin, NGrid, NGi } from 'naive-ui'
+import { NButton, NSpin, NGrid, NGi, useMessage, type SelectOption } from 'naive-ui'
 import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
+import type { UserRecruitmentStatusPayload } from '@/models/User'
 const route = useRoute()
 const router = useRouter()
+const message = useMessage()
 
 const userId = computed((): string => {
   const params = route.params as Record<string, string | string[]>
@@ -22,7 +24,7 @@ const userId = computed((): string => {
   return id || ''
 })
 
-const levelOptions = [
+const levelOptions: SelectOption[] = [
   {
     label: 'Junior',
     value: 'Junior',
@@ -42,7 +44,7 @@ const levelOptions = [
 ]
 
 const { recruitmentStatuses } = useRecruitmentStatuses()
-const recruitmentOptions = computed(() =>
+const recruitmentOptions = computed<SelectOption[]>(() =>
   recruitmentStatuses.value
     .filter((status) => status.is_active)
     .map((status) => ({
@@ -52,7 +54,31 @@ const recruitmentOptions = computed(() =>
 )
 
 // Fetch user data
-const { user, isLoading, isError, error } = useUser(userId)
+const { user, isLoading, isError, error, updateRecruitmentStatus, isUpdatingRecruitmentStatus } =
+  useUser(userId)
+
+const optimisticLevel = ref<string | null>(null)
+const optimisticStatus = ref<string | null>(null)
+
+const displayedLevel = computed(() => optimisticLevel.value ?? user.value?.candidate_level ?? null)
+const displayedStatus = computed(
+  () => optimisticStatus.value ?? user.value?.recruitment_status_id ?? null,
+)
+
+watch(userId, () => {
+  optimisticLevel.value = null
+  optimisticStatus.value = null
+})
+
+watch(
+  () => [user.value?.candidate_level, user.value?.recruitment_status_id],
+  ([nextLevel, nextStatus]) => {
+    if (nextLevel === optimisticLevel.value && nextStatus === optimisticStatus.value) {
+      optimisticLevel.value = null
+      optimisticStatus.value = null
+    }
+  },
+)
 
 // Handlers
 const handleBack = () => {
@@ -67,6 +93,20 @@ const handleRecruit = () => {
 const handleChat = () => {
   console.log('Chat with candidate:', user.value)
   // TODO: Implement chat logic
+}
+
+const handleSaveRecruitment = async (payload: UserRecruitmentStatusPayload) => {
+  try {
+    const response = await updateRecruitmentStatus(payload)
+    optimisticLevel.value = response.data.candidate_level ?? null
+    optimisticStatus.value = response.data.recruitment_status_id ?? null
+    message.success(response.message || 'Status rekrutmen berhasil diperbarui.', {
+      duration: 2500,
+    })
+  } catch (err) {
+    const messageText = err instanceof Error ? err.message : 'Gagal memperbarui status.'
+    message.error(messageText, { duration: 3000 })
+  }
 }
 </script>
 
@@ -101,6 +141,10 @@ const handleChat = () => {
             <CandidateRecruitmentPanel
               :level-options="levelOptions"
               :recruitment-options="recruitmentOptions"
+              :initial-level="displayedLevel"
+              :initial-status="displayedStatus"
+              :is-saving="isUpdatingRecruitmentStatus"
+              @save="handleSaveRecruitment"
             />
           </n-gi>
         </n-grid>

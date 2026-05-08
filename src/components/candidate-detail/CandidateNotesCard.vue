@@ -76,7 +76,7 @@ const onKeydown = (e: KeyboardEvent) => {
           type="textarea"
           style="border-radius: 2rem"
           class="py-1"
-          :autosize="autosize ?? { minRows: 1, maxRows: 3 }"
+          :autosize="autosize ?? { minRows: 1, maxRows: 1 }"
           :disabled="disabled"
           @keydown="onKeydown"
         >

@@ -52,12 +52,38 @@ const handleSave = () => {
 
 const formatNoteDate = (value: string) => {
   if (!value) return '-'
-  return new Date(value).toLocaleString('id-ID', {
+  const date = new Date(value)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+
+  if (Number.isNaN(diffMs) || diffMs < 0) {
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    })
+  }
+
+  const minutes = Math.floor(diffMs / 60000)
+  const hours = Math.floor(diffMs / 3600000)
+  const days = Math.floor(diffMs / 86400000)
+
+  if (minutes < 60) {
+    return `${minutes || 1} menit lalu`
+  }
+
+  if (hours < 24) {
+    return `${hours} Jam lalu`
+  }
+
+  if (days <= 30) {
+    return `${days} Hari Lalu`
+  }
+
+  return date.toLocaleDateString('id-ID', {
     day: '2-digit',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
   })
 }
 
@@ -116,6 +142,7 @@ const handleSendNote = (payload: { text: string }) => {
       :disabled="notesLoading || notesPosting"
       :loading="notesPosting"
       @send="handleSendNote"
+      :clear-on-send="true"
     >
       <template #header>
         <div class="flex flex-col gap-0.5">
@@ -129,7 +156,7 @@ const handleSendNote = (payload: { text: string }) => {
         <div v-else-if="notes.length">
           <div v-for="noteItem in notes" :key="noteItem.id" class="flex gap-4 rounded-md py-2">
             <div
-              class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700"
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-sm font-semibold text-gray-100"
             >
               {{ getInitials(noteItem.admin_user_name || '') }}
             </div>

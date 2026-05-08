@@ -48,6 +48,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 <template>
   <n-card
+    class="flex-1 min-h-0"
     style="flex: 1"
     :content-style="{
       height: '100%',
@@ -56,17 +57,15 @@ const onKeydown = (e: KeyboardEvent) => {
       padding: '20px',
     }"
   >
-    <div class="flex h-full flex-1 flex-col gap-4">
+    <div class="flex h-full flex-1 min-h-0 flex-col gap-4">
       <slot name="header">
         <div class="flex flex-col gap-0.5">
           <h4 class="font-bold text-sm text-gray-500">Catatan</h4>
         </div>
       </slot>
 
-      <div class="flex flex-col flex-1 gap-0.5">
-        <slot>
-          <h4 class="text-xs text-gray-400">Belum Ada Catatan</h4>
-        </slot>
+      <div class="flex flex-col flex-1 min-h-0 gap-0.5 overflow-y-auto">
+        <slot></slot>
       </div>
 
       <div class="flex flex-col gap-0.5 items-end">

@@ -11,6 +11,7 @@ import CandidateOnboardingHistory from '@/components/candidate-detail/CandidateO
 import { NButton, NSpin, NGrid, NGi, useMessage, type SelectOption } from 'naive-ui'
 import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
 import type { UserRecruitmentStatusPayload } from '@/models/User'
+import { useCandidateNotesStore } from '@/stores/notes.store'
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
@@ -57,6 +58,12 @@ const recruitmentOptions = computed<SelectOption[]>(() =>
 const { user, isLoading, isError, error, updateRecruitmentStatus, isUpdatingRecruitmentStatus } =
   useUser(userId)
 
+const notesStore = useCandidateNotesStore()
+const notes = computed(() => notesStore.sortedNotes)
+const isNotesLoading = computed(() => notesStore.isLoading)
+const isNotesPosting = computed(() => notesStore.isPosting)
+const notesError = computed(() => notesStore.error)
+
 const optimisticLevel = ref<string | null>(null)
 const optimisticStatus = ref<string | null>(null)
 
@@ -69,6 +76,21 @@ watch(userId, () => {
   optimisticLevel.value = null
   optimisticStatus.value = null
 })
+
+watch(
+  userId,
+  async (id) => {
+    notesStore.reset()
+    if (!id) return
+    try {
+      await notesStore.fetchNotes(id)
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : 'Gagal memuat catatan.'
+      message.error(messageText, { duration: 3000 })
+    }
+  },
+  { immediate: true },
+)
 
 watch(
   () => [user.value?.candidate_level, user.value?.recruitment_status_id],
@@ -108,6 +130,17 @@ const handleSaveRecruitment = async (payload: UserRecruitmentStatusPayload) => {
     message.error(messageText, { duration: 3000 })
   }
 }
+
+const handleSendNote = async (payload: { text: string }) => {
+  if (!userId.value) return
+  try {
+    await notesStore.createNote(userId.value, payload.text)
+    message.success('Catatan berhasil ditambahkan.', { duration: 2000 })
+  } catch (err) {
+    const messageText = err instanceof Error ? err.message : 'Gagal menambahkan catatan.'
+    message.error(messageText, { duration: 3000 })
+  }
+}
 </script>
 
 <template>
@@ -144,7 +177,12 @@ const handleSaveRecruitment = async (payload: UserRecruitmentStatusPayload) => {
               :initial-level="displayedLevel"
               :initial-status="displayedStatus"
               :is-saving="isUpdatingRecruitmentStatus"
+              :notes="notes"
+              :notes-loading="isNotesLoading"
+              :notes-posting="isNotesPosting"
+              :notes-error="notesError"
               @save="handleSaveRecruitment"
+              @send-note="handleSendNote"
             />
           </n-gi>
         </n-grid>

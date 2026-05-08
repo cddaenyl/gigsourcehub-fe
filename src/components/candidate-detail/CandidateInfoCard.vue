@@ -4,18 +4,24 @@ import type { User } from '@/models/User'
 import { NCard, NTag, NIcon, NSpace, NGrid, NGi } from 'naive-ui'
 import { Download, Eye, Link } from '@vicons/tabler'
 import { useKabupaten, useProvinsi } from '@/composables/useRegion'
+import { format } from 'date-fns'
 
 const props = defineProps<{
   user: User
 }>()
 
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+const formatDate = (value: string | null) => {
+  if (!value) {
+    return '-'
+  }
+
+  const parsedDate = new Date(value)
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return '-'
+  }
+
+  return format(parsedDate, 'd MMM, yyyy')
 }
 
 const getCandidateAge = (dateString: string | null) => {
@@ -158,18 +164,17 @@ const provinsiName = computed(() => {
 
       <n-space vertical :size="8">
         <h4 class="font-bold text-xs text-gray-500">Link Portofolio</h4>
-        <n-space align="center" :size="8">
+        <n-space v-if="user.portofolio_link" align="center" :size="8">
           <n-icon :component="Link" size="20" color="#64748B" />
           <a
-            v-if="user.portofolio_link"
             :href="user.portofolio_link"
             target="_blank"
             class="underline text-blue-700 font-semibold text-md truncate"
           >
             {{ user.portofolio_link }}
           </a>
-          <span v-else>-</span>
         </n-space>
+        <span v-else>-</span>
       </n-space>
 
       <n-space vertical :size="8">
@@ -189,7 +194,7 @@ const provinsiName = computed(() => {
                 {{ user.cv.name }}
               </a>
               <span v-else>-</span>
-              <p class="text-xs text-gray-500">7 Feb, 2026 • 2:30 PM (Masih Hardcode Tanggalnya)</p>
+              <p class="text-xs text-gray-500">{{ formatDate(user.cv?.created_at || '-') }}</p>
             </div>
           </div>
           <div class="flex justify-end space-x-2 pr-2">

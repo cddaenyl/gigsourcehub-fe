@@ -64,11 +64,11 @@ const onKeydown = (e: KeyboardEvent) => {
         </div>
       </slot>
 
-      <div class="flex flex-col flex-1 min-h-0 gap-0.5 overflow-y-auto">
+      <div class="flex flex-col overflow-y-auto max-h-112 gap-3 pr-1">
         <slot></slot>
       </div>
 
-      <div class="flex flex-col gap-0.5 items-end">
+      <div class="flex flex-1 flex-col gap-0.5 items-end">
         <n-input
           v-model:value="internal"
           :placeholder="placeholder ?? 'Type here...'"

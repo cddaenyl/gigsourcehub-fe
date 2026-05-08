@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { NCard, NSelect, type SelectOption } from 'naive-ui'
+import { NCard, NButton, NSelect, type SelectOption } from 'naive-ui'
 import CandidateNotesCard from './CandidateNotesCard.vue'
 import type { CandidateNote } from '@/models/Note'
 
@@ -112,11 +112,10 @@ const handleSendNote = (payload: { text: string }) => {
 
     <CandidateNotesCard
       v-model="note"
-      class="flex-1 max-h-150"
+      class="flex-1"
       :disabled="notesLoading || notesPosting"
       :loading="notesPosting"
       @send="handleSendNote"
-      :clear-on-send="true"
     >
       <template #header>
         <div class="flex flex-col gap-0.5">
@@ -127,7 +126,7 @@ const handleSendNote = (payload: { text: string }) => {
       <template #default>
         <div v-if="notesLoading" class="text-xs text-gray-400">Memuat catatan...</div>
         <div v-else-if="notesError" class="text-xs text-red-500">{{ notesError }}</div>
-        <div v-else-if="notes.length" class="flex flex-col gap-3 pr-1">
+        <div v-else-if="notes.length">
           <div v-for="noteItem in notes" :key="noteItem.id" class="flex gap-4 rounded-md py-2">
             <div
               class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700"

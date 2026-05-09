@@ -2,6 +2,10 @@
 import { NConfigProvider } from 'naive-ui'
 import AdminSidebar from '../components/AdminSidebar.vue'
 
+defineProps<{
+  noPadding?: boolean
+}>()
+
 // You can customize Naive UI theme here
 const themeOverrides = {
   common: {
@@ -33,8 +37,8 @@ const themeOverrides = {
       </div>
 
       <!-- Main Content Area -->
-      <div class="flex-1 overflow-auto bg-gray-50">
-        <div class="container mx-auto p-6">
+      <div class="flex-1 bg-gray-50 flex flex-col min-w-0 min-h-0" :class="noPadding ? 'overflow-hidden' : 'overflow-auto'">
+        <div :class="noPadding ? 'flex-1 flex flex-col min-h-0' : 'container mx-auto p-6'">
           <slot />
         </div>
       </div>

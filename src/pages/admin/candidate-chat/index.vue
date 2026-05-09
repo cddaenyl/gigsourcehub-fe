@@ -24,6 +24,7 @@ const messagesContainer = ref<HTMLElement | null>(null)
 const searchQuery = ref('')
 const activeTab = ref('All')
 const replyingTo = ref<MessageResp | null>(null)
+const firstUnreadId = ref<string | null>(null)
 
 // Composables
 const { data: conversationsData, isLoading: isLoadingConversations } = useConversations(page, limit)
@@ -89,12 +90,19 @@ const scrollToBottom = async () => {
 }
 
 // Watchers
-watch(messages, () => {
+watch(messages, (newMessages) => {
+  if (!firstUnreadId.value && newMessages.length > 0) {
+    const unread = newMessages.find(m => m.sender_user_id !== authStore.user?.id && !m.read_at)
+    if (unread) {
+      firstUnreadId.value = unread.id
+    }
+  }
   scrollToBottom()
 }, { deep: true })
 
 watch(selectedConversationId, (newId) => {
   if (newId) {
+    firstUnreadId.value = null
     refetchMessages()
     // Check if we need to mark as read
     const conv = conversations.value.find((c: ConversationResp) => c.id === newId)
@@ -338,6 +346,7 @@ const isUnread = (c: ConversationResp) => {
                     <p class="text-sm text-gray-600 truncate pr-2" :class="{'font-semibold text-gray-900': isUnread(conv)}">
                       <span v-if="typingStatus[conv.id]" class="text-blue-500 italic">typing...</span>
                       <template v-else>
+                        <span v-if="conv.last_message?.sender_user_id === authStore.user?.id" class="text-gray-400">You: </span>
                         {{ conv.last_message?.content || 'No messages yet' }}
                       </template>
                     </p>
@@ -375,8 +384,16 @@ const isUnread = (c: ConversationResp) => {
               <n-spin size="medium" />
             </div>
             <div v-else class="space-y-6">
-              <div v-for="msg in messages" :key="msg.id" :id="'msg-' + msg.id" class="flex flex-col group" 
-                   :class="msg.sender_user_id === authStore.user?.id ? 'items-end' : 'items-start'">
+              <template v-for="msg in messages" :key="msg.id">
+                <!-- New Messages Separator -->
+                <div v-if="msg.id === firstUnreadId" class="flex items-center gap-4 my-8">
+                  <div class="flex-1 h-px bg-gray-200"></div>
+                  <span class="text-xs font-bold text-primary/60 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm">New Messages</span>
+                  <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
+
+                <div :id="'msg-' + msg.id" class="flex flex-col group" 
+                     :class="msg.sender_user_id === authStore.user?.id ? 'items-end' : 'items-start'">
                 
                 <div class="flex items-center gap-2 max-w-[75%]">
                   <!-- Reply Button for Received Messages -->
@@ -398,7 +415,7 @@ const isUnread = (c: ConversationResp) => {
                     </div>
 
                     <div class="flex flex-col">
-                      <p class="text-[15px] whitespace-pre-wrap leading-relaxed pb-3" v-html="formatMessage(msg.content)"></p>
+                      <p class="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed pb-3" v-html="formatMessage(msg.content)"></p>
                       
                       <!-- Inline Timestamp -->
                       <div class="absolute bottom-1 right-2 flex items-center gap-1">
@@ -420,8 +437,9 @@ const isUnread = (c: ConversationResp) => {
                   <n-icon size="14" class="text-blue-500" title="Read"><Eye /></n-icon>
                 </div>
               </div>
-            </div>
+            </template>
           </div>
+        </div>
 
           <!-- Typing Indicator & Input Area -->
           <div class="shrink-0 bg-white border-t border-gray-200">

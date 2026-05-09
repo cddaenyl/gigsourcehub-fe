@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProfile } from '@/composables/useProfile'
@@ -21,10 +21,25 @@ defineOptions({
   name: 'CandidateLayout',
 })
 
+import { useConversations } from '@/composables/useChat'
+import { useChatWebSocket } from '@/composables/useChatWebSocket'
+import { useQueryClient } from '@tanstack/vue-query'
+
 const route = useRoute()
 const authStore = useAuthStore()
 const { profile } = useProfile()
 const logout = useLogout()
+const queryClient = useQueryClient()
+
+const { data: chatData } = useConversations(ref(1), ref(10))
+const unreadMessagesCount = computed(() => chatData.value?.data.unread_total || 0)
+
+const { incomingMessage } = useChatWebSocket()
+watch(incomingMessage, (msg) => {
+  if (msg) {
+    queryClient.invalidateQueries({ queryKey: ['conversations'] })
+  }
+})
 
 const isScrolled = ref(false)
 const handleScroll = () => {
@@ -39,13 +54,13 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-const menuItems = [
+const menuItems = computed(() => [
   { label: 'Profile', icon: User, path: '/candidate/profile' },
-  { label: 'Message', icon: Message, path: '/candidate/chat' },
+  { label: 'Message', icon: Message, path: '/candidate/chat', badge: unreadMessagesCount.value },
   { label: 'Recruitment', icon: Briefcase, path: '/candidate/recruitment' },
   { label: 'Notifications', icon: Bell, path: '/candidate/notifications', badge: 1 },
   { label: 'Account', icon: Settings, path: '/candidate/account' },
-]
+])
 
 const isActive = (path: string) => {
   return route.path === path || (path !== '/candidate' && route.path.startsWith(path))

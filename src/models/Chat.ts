@@ -35,6 +35,7 @@ export interface ConversationResp {
   candidate_user_name: string
   candidate_user_profile_picture?: string | null
   last_message: MessageResp | null
+  unread_count: number
   created_at: string
   updated_at: string
 }
@@ -54,6 +55,7 @@ export interface ChatListResponse {
   limit: number
   page: number
   total: number
+  unread_total: number
   cursor: string | null
 }
 

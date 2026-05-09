@@ -3,6 +3,7 @@ import { ref, watch, computed, onMounted } from 'vue'
 import CandidateLayout from '@/layouts/CandidateLayout.vue'
 import { useUploadCV, useParsedCV, useConfirmCV, useCVDownloadLink } from '@/composables/useCV'
 import { useProvinsi, useKabupaten } from '@/composables/useRegion'
+import { useAuthStore } from '@/stores/auth.store'
 import { useProfile } from '@/composables/useProfile'
 import { useJobRole } from '@/composables/useJobRole'
 import { 
@@ -45,6 +46,7 @@ onMounted(async () => {
 })
 
 // Composables
+const authStore = useAuthStore()
 const { profile, uploadPicture, isUploadingPicture, isLoading: isLoadingProfile, updateProfile, isUpdatingProfile } = useProfile()
 const { sectors, allRoles, isLoading: isLoadingJobRoles } = useJobRole()
 const { data: cvLinkData } = useCVDownloadLink()
@@ -464,10 +466,10 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                         <n-avatar
                           round
                           :size="100"
-                          :src="profile?.profile_picture || undefined"
+                          :src="profile?.profile_picture || authStore.user?.profile_picture || 'https://i.pravatar.cc/150?u=' + (profile?.id || authStore.user?.id)"
                           class="shadow-lg border-2 border-white bg-gray-100 transition-all group-hover:scale-105"
                         >
-                          <template #default>
+                          <template #fallback>
                             <n-icon :component="User" :size="60" class="text-gray-300" />
                           </template>
                         </n-avatar>
@@ -566,7 +568,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                           <div class="col-span-1 md:col-span-2 space-y-3 pt-2">
                             <p class="text-sm font-bold text-primary">Skills</p>
                             <div class="flex flex-wrap gap-2">
-                               <n-tag v-for="skill in techStackList" :key="skill" type="primary" size="small" round secondary class="bg-blue-50 font-bold border-blue-100">
+                               <n-tag v-for="skill in techStackList" :key="skill" round :color="{ borderColor: '#07229E', textColor: '#07229E'}">
                                   {{ skill }}
                                </n-tag>
                             </div>
@@ -575,7 +577,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                             <p class="text-sm font-bold text-primary">Link Portofolio</p>
                             <div v-if="profile?.portofolio_link" class="flex items-center gap-2">
                                <n-icon :component="ExternalLink" class="text-blue-500" />
-                               <a :href="profile.portofolio_link" target="_blank" class="text-[17px] font-bold text-blue-600 hover:underline">
+                               <a :href="profile.portofolio_link" target="_blank" class="text-lg underline font-bold text-blue-700">
                                   {{ profile.portofolio_link.replace(/^https?:\/\//, '') }}
                                </a>
                             </div>

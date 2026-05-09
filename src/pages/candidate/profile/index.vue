@@ -446,10 +446,15 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                 <div :class="{ 'blur-sm select-none pointer-events-none grayscale-40': isProfileLocked }">
                   <div class="flex justify-between items-center mb-6 border-b border-gray-100">
                     <h2 class="text-2xl font-bold text-primary">Your Profile</h2>
-                    <n-button type="primary" color="#0014B2" size="small" @click="startEditing" class="font-bold">
-                       <template #icon><n-icon :component="Edit" /></template>
-                       Edit Profile
-                    </n-button>
+                      <n-button
+                        type="primary"
+                        color="#0014B2"
+                        @click="startEditing"
+                        class="font-bold"
+                      >
+                        <span>Edit Profile</span>
+                        <n-icon class="ml-2" :component="Edit" />
+                      </n-button>
                   </div>
 
                   <div class="space-y-12">

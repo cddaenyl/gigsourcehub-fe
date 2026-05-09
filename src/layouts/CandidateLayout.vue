@@ -70,33 +70,47 @@ const recruitmentStatus = computed(() => profile.value?.recruitment_status_name 
   <div class="min-h-screen flex flex-col bg-gray-50">
     <!-- Header/Navigation -->
     <header 
-      class="sticky top-0 z-50 transition-all duration-300"
-      :class="isScrolled ? 'backdrop-blur-xl bg-slate-950/90 border-b border-white/10' : 'bg-slate-950'"
+      class="sticky top-0 z-50 transition-all duration-300 backdrop-blur-xl"
+      :class="isScrolled ? 'bg-white/65 border-b border-slate-200/80' : 'bg-linear-to-r from-violet-950 to-black to-60%'"
     >
-      <div class="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between">
+      <div class="max-w-7xl mx-auto px-8 h-18 flex items-center justify-between">
         <RouterLink to="/" class="flex items-center gap-2">
-          <img :src="logoSrc" alt="Logo" class="h-9 brightness-0 invert" />
+          <img 
+            :src="logoSrc" 
+            alt="Logo" 
+            class="h-9 transition-all duration-300"
+            :class="!isScrolled ? 'brightness-0 invert' : ''"
+          />
         </RouterLink>
         
-        <div class="flex items-center gap-8">
-          <RouterLink to="/" class="text-sm font-medium text-white/80 hover:text-white transition-colors">Home</RouterLink>
+        <div class="flex items-center gap-6">
+          <RouterLink 
+            to="/" 
+            class="text-sm font-medium transition-colors"
+            :class="isScrolled ? 'text-slate-900 hover:text-primary' : 'text-white hover:text-white/80'"
+          >
+            Home
+          </RouterLink>
           <button 
             @click="handleLogout"
-            class="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold outline -outline-offset-1 transition-all duration-200 bg-white/10 text-white outline-white/10 hover:bg-white/20 hover:scale-105"
+            class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold outline -outline-offset-1 transition-all duration-200"
+            :class="isScrolled 
+              ? 'bg-slate-900/5 text-slate-900 outline-slate-900/10 hover:bg-slate-900/10 hover:scale-105' 
+              : 'bg-white/10 text-white outline-white/10 hover:bg-white/20 hover:scale-105'"
           >
-            <n-icon :size="18"><Logout /></n-icon>
             Logout
+            <n-icon :size="18"><Logout /></n-icon>
           </button>
         </div>
       </div>
     </header>
 
     <!-- Hero Section (Always shown on candidate pages) -->
-    <section v-if="route.path.startsWith('/candidate')" class="bg-slate-950 text-white overflow-hidden relative">
+    <section v-if="route.path.startsWith('/candidate')" class="bg-linear-to-r from-violet-950 to-black to-60% text-white overflow-hidden relative">
       <!-- Background elements -->
       <div class="absolute top-0 right-0 w-1/3 h-full bg-[radial-gradient(circle_at_top_right,rgba(var(--color-primary-rgb),0.15),transparent_70%)] pointer-events-none"></div>
       
-      <div class="max-w-7xl mx-auto px-4 py-4 pb-12 relative z-10">
+      <div class="max-w-7xl mx-auto px-8 py-4 pb-12 relative z-10">
         <div class="flex items-center gap-10">
           <div class="relative group">
             <n-avatar
@@ -126,7 +140,7 @@ const recruitmentStatus = computed(() => profile.value?.recruitment_status_name 
 
     <!-- Main Content -->
     <main class="flex-1 pb-20 mt-8 relative z-20">
-      <div class="max-w-7xl mx-auto px-4">
+      <div class="max-w-7xl mx-auto px-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <!-- Sidebar -->
           <div class="lg:col-span-3">

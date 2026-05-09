@@ -95,15 +95,7 @@ watch(selectedConversationId, (newId) => {
   }
 })
 
-const getThumbUrl = (url: string | null | undefined) => {
-  if (!url) return undefined
-  const parts = url.split('.')
-  if (parts.length > 1) {
-    const ext = parts.pop()
-    return `${parts.join('.')}_thumb.${ext}`
-  }
-  return `${url}_thumb`
-}
+
 
 // WebSocket Watchers
 watch(incomingMessage, (msg) => {

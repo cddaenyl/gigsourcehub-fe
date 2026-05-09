@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import UserLayout from '@/layouts/UserLayout.vue'
+import CandidateLayout from '@/layouts/CandidateLayout.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
-import { NInput, NAvatar, NSpin, NEmpty, NIcon, NCard, NGrid, NGi, NTag } from 'naive-ui'
-import { Send, FilePlus, User, Message, Briefcase, Bell, Settings, Eye, ArrowBackUp, X } from '@vicons/tabler'
+import { NInput, NSpin, NEmpty, NIcon } from 'naive-ui'
+import { Send, FilePlus, Eye, ArrowBackUp, X } from '@vicons/tabler'
 import type { ConversationResp, MessageResp } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
-const router = useRouter()
 
 // Local state
 const page = ref(1)
@@ -182,9 +180,6 @@ const sendMessage = () => {
 
 const handleReply = (msg: MessageResp) => {
   replyingTo.value = msg
-  nextTick(() => {
-    // Focus the input if possible
-  })
 }
 
 const scrollToMessage = (id: string) => {
@@ -229,195 +224,137 @@ const formatMessage = (content: string) => {
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline break-all">${url}</a>`
   })
 }
-
-const navigateTo = (path: string) => {
-  router.push(path)
-}
 </script>
 
 <template>
-  <UserLayout>
-    <div class="bg-[#0A1A5C] pb-24 pt-8 px-8">
-      <div class="max-w-7xl mx-auto flex items-center gap-6 text-white">
-        <n-avatar round :size="80" :src="authStore.user?.profile_picture || undefined" class="border-2 border-white/20">
-          <template #fallback><n-icon><User /></n-icon></template>
-        </n-avatar>
-        <div>
-          <h1 class="text-3xl font-bold">{{ authStore.user?.name }}</h1>
-          <p class="text-blue-200 mt-1">{{ authStore.user?.job_title_id || 'Candidate' }}</p>
-          <n-tag type="info" round size="small" class="mt-2 bg-blue-900/50 border-blue-800 text-blue-200">Available</n-tag>
+  <CandidateLayout>
+    <div class="h-[calc(100vh-95px)] flex flex-col relative">
+      <template v-if="isLoadingConversations">
+          <div class="flex-1 flex items-center justify-center min-h-[500px]">
+            <n-spin size="large" />
+          </div>
+      </template>
+      <template v-else-if="!activeConversation">
+          <div class="flex-1 flex items-center justify-center min-h-[500px]">
+            <n-empty description="You don't have any active chats with HR yet." />
+          </div>
+      </template>
+      <div v-else class="flex flex-col h-full absolute inset-0">
+        <!-- Chat Header -->
+        <div class="p-6 border-b border-gray-100 flex items-center gap-4 bg-white shrink-0">
+          <div>
+              <h2 class="text-xl font-bold text-primary">{{ activeConversation.admin_user_name || 'Human Resource' }}</h2>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="flex-1 overflow-y-auto p-6 bg-gray-50/30" ref="messagesContainer">
+          <div v-if="isLoadingMessages" class="flex justify-center p-8">
+            <n-spin size="medium" />
+          </div>
+          <div v-else class="space-y-6">
+            <div v-for="msg in messages" :key="msg.id" :id="'msg-' + msg.id" class="flex flex-col group"
+                  :class="msg.sender_user_id === authStore.user?.id ? 'items-end' : 'items-start'">
+              
+              <div class="flex items-center gap-2 max-w-[75%]">
+                <!-- Reply Button for Received Messages -->
+                <div v-if="msg.sender_user_id !== authStore.user?.id" 
+                      class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 hover:text-gray-700 order-2 shrink-0"
+                      @click="handleReply(msg)">
+                  <n-icon size="16"><ArrowBackUp /></n-icon>
+                </div>
+
+                <div class="rounded-md px-5 py-3 shadow-sm relative overflow-hidden"
+                      :class="msg.sender_user_id === authStore.user?.id ? 'bg-gray-200 text-gray-900 order-2' : 'bg-gray-100 border border-gray-100 text-gray-800 order-1'">
+                  
+                  <!-- Reply Context -->
+                  <div v-if="msg.reply_to" 
+                        class="mb-2 p-2 rounded bg-black/5 border-l-4 border-primary text-xs cursor-pointer hover:bg-black/10 transition-colors"
+                        @click="scrollToMessage(msg.reply_to.id)">
+                    <div class="font-bold opacity-70 mb-0.5">{{ msg.reply_to.sender_name }}</div>
+                    <div class="line-clamp-2 opacity-60">{{ msg.reply_to.content }}</div>
+                  </div>
+
+                  <div class="flex flex-col">
+                    <p class="text-[15px] whitespace-pre-wrap leading-relaxed pb-3" v-html="formatMessage(msg.content)"></p>
+                    
+                    <!-- Inline Timestamp -->
+                    <div class="absolute bottom-1 right-2 flex items-center gap-1">
+                      <span class="text-[10px] opacity-50 font-medium">{{ formatTime(msg.created_at) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Reply Button for Sent Messages (on the left of bubble) -->
+                <div v-if="msg.sender_user_id === authStore.user?.id" 
+                      class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 hover:text-gray-700 order-1 shrink-0"
+                      @click="handleReply(msg)">
+                  <n-icon size="16"><ArrowBackUp /></n-icon>
+                </div>
+              </div>
+              
+              <!-- Read Status Icon (External) -->
+              <div v-if="msg.sender_user_id === authStore.user?.id && msg.id === lastReadMsgId" class="mt-1 px-1">
+                <n-icon size="14" class="text-blue-500" title="Read"><Eye /></n-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator & Input Area -->
+        <div class="shrink-0 bg-white border-t border-gray-100">
+          <!-- Reply Preview Bar -->
+          <div v-if="replyingTo" class="px-6 py-2 bg-gray-50 border-b border-gray-100 flex items-center gap-3 animate-in slide-in-from-bottom-2">
+            <div class="w-1 h-8 bg-primary rounded-full"></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-primary">Replying to {{ replyingTo.sender_name }}</div>
+              <div class="text-xs text-gray-500 truncate">{{ replyingTo.content }}</div>
+            </div>
+            <div class="p-1 hover:bg-gray-200 rounded-full cursor-pointer text-gray-400" @click="replyingTo = null">
+              <n-icon size="16"><X /></n-icon>
+            </div>
+          </div>
+
+          <div class="px-6 py-1 h-6 bg-gray-50/50 flex items-center gap-2">
+            <template v-if="selectedConversationId && typingStatus[selectedConversationId]">
+              <div class="flex gap-1 items-center">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+              <span class="text-[11px] text-gray-400 font-medium italic">Typing...</span>
+            </template>
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors shrink-0">
+                <n-icon size="24"><FilePlus /></n-icon>
+              </div>
+              <n-input 
+                v-model:value="messageInput" 
+                type="textarea" 
+                :autosize="{ minRows: 1, maxRows: 5 }"
+                placeholder="Type here..." 
+                size="large"
+                class="flex-1 bg-gray-50 text-base !rounded-xl"
+                @input="handleTyping"
+                @keydown.enter="handleEnter"
+              />
+            <div 
+              class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-sm shrink-0"
+              :class="messageInput.trim() ? 'bg-primary text-white hover:opacity-90' : 'bg-gray-200 text-gray-400 pointer-events-none'"
+              @click="sendMessage"
+            >
+              <n-icon size="20"><Send /></n-icon>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
     </div>
-
-    <div class="max-w-7xl mx-auto p-8 mt-[-60px]">
-      <n-grid :cols="24" :x-gap="32" :y-gap="32" item-responsive responsive="screen">
-        <!-- Sidebar Navigation -->
-        <n-gi span="24 m:6">
-          <n-card :bordered="false" class="shadow-sm bg-white rounded-2xl">
-            <div class="py-2">
-              <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-4 mb-4">Menu</h3>
-              <div class="space-y-1">
-                <div @click="navigateTo('/candidate')" class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 text-slate-500 font-medium hover:bg-slate-100 hover:text-slate-900 border border-transparent">
-                  <n-icon :component="User" size="18" />
-                  <span>Profile</span>
-                </div>
-                <div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 bg-blue-50 text-blue-600 border border-blue-100 font-medium">
-                  <n-icon :component="Message" size="18" />
-                  <span>Message</span>
-                </div>
-                <div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 text-slate-500 font-medium hover:bg-slate-100 hover:text-slate-900 border border-transparent">
-                  <n-icon :component="Briefcase" size="18" />
-                  <span>Recruitment</span>
-                </div>
-                <div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 text-slate-500 font-medium hover:bg-slate-100 hover:text-slate-900 border border-transparent">
-                  <n-icon :component="Bell" size="18" />
-                  <span>Notifications</span>
-                </div>
-                <div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 text-slate-500 font-medium hover:bg-slate-100 hover:text-slate-900 border border-transparent">
-                  <n-icon :component="Settings" size="18" />
-                  <span>Account</span>
-                </div>
-              </div>
-            </div>
-          </n-card>
-        </n-gi>
-
-        <!-- Main Chat Area -->
-        <n-gi span="24 m:18">
-          <n-card :bordered="false" class="shadow-sm min-h-[600px] h-[70vh] bg-white rounded-2xl flex flex-col overflow-hidden !p-0">
-            <template v-if="isLoadingConversations">
-               <div class="flex-1 flex items-center justify-center min-h-[500px]">
-                  <n-spin size="large" />
-               </div>
-            </template>
-            <template v-else-if="!activeConversation">
-               <div class="flex-1 flex items-center justify-center min-h-[500px]">
-                  <n-empty description="You don't have any active chats with HR yet." />
-               </div>
-            </template>
-            <div v-else class="flex flex-col h-full absolute inset-0">
-              <!-- Chat Header -->
-              <div class="p-6 border-b border-gray-100 flex items-center gap-4 bg-white shrink-0">
-                <n-avatar round :size="48" :src="getThumbUrl(activeConversation.admin_user_profile_picture) || undefined">
-                   <template #fallback><n-icon><User /></n-icon></template>
-                </n-avatar>
-                <div>
-                   <h2 class="text-xl font-bold text-[#0A1A5C]">{{ activeConversation.admin_user_name || 'Human Resource' }}</h2>
-                   <p class="text-sm text-gray-500">Company HR</p>
-                </div>
-              </div>
-
-              <!-- Messages -->
-              <div class="flex-1 overflow-y-auto p-6 bg-gray-50/50" ref="messagesContainer">
-                <div v-if="isLoadingMessages" class="flex justify-center p-8">
-                  <n-spin size="medium" />
-                </div>
-                <div v-else class="space-y-6">
-                  <div v-for="msg in messages" :key="msg.id" :id="'msg-' + msg.id" class="flex flex-col group"
-                       :class="msg.sender_user_id === authStore.user?.id ? 'items-end' : 'items-start'">
-                    
-                    <div class="flex items-center gap-2 max-w-[75%]">
-                      <!-- Reply Button for Received Messages -->
-                      <div v-if="msg.sender_user_id !== authStore.user?.id" 
-                           class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 hover:text-gray-700 order-2 shrink-0"
-                           @click="handleReply(msg)">
-                        <n-icon size="16"><ArrowBackUp /></n-icon>
-                      </div>
-
-                      <div class="rounded-2xl px-5 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.02)] relative overflow-hidden"
-                           :class="msg.sender_user_id === authStore.user?.id ? 'bg-[#EAEFF8] text-[#0A1A5C] rounded-br-none order-2' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none order-1'">
-                        
-                        <!-- Reply Context -->
-                        <div v-if="msg.reply_to" 
-                             class="mb-2 p-2 rounded bg-black/5 border-l-4 border-primary text-xs cursor-pointer hover:bg-black/10 transition-colors"
-                             @click="scrollToMessage(msg.reply_to.id)">
-                          <div class="font-bold opacity-70 mb-0.5">{{ msg.reply_to.sender_name }}</div>
-                          <div class="line-clamp-2 opacity-60">{{ msg.reply_to.content }}</div>
-                        </div>
-
-                        <div class="flex flex-col">
-                          <p class="text-[15px] whitespace-pre-wrap leading-relaxed pb-3" v-html="formatMessage(msg.content)"></p>
-                          
-                          <!-- Inline Timestamp -->
-                          <div class="absolute bottom-1 right-2 flex items-center gap-1">
-                            <span class="text-[10px] opacity-50 font-medium">{{ formatTime(msg.created_at) }}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Reply Button for Sent Messages (on the left of bubble) -->
-                      <div v-if="msg.sender_user_id === authStore.user?.id" 
-                           class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 hover:text-gray-700 order-1 shrink-0"
-                           @click="handleReply(msg)">
-                        <n-icon size="16"><ArrowBackUp /></n-icon>
-                      </div>
-                    </div>
-                    
-                    <!-- Read Status Icon (External) -->
-                    <div v-if="msg.sender_user_id === authStore.user?.id && msg.id === lastReadMsgId" class="mt-1 px-1">
-                      <n-icon size="14" class="text-blue-500" title="Read"><Eye /></n-icon>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Typing Indicator & Input Area -->
-              <div class="shrink-0 bg-white border-t border-gray-100">
-                <!-- Reply Preview Bar -->
-                <div v-if="replyingTo" class="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center gap-3 animate-in slide-in-from-bottom-2">
-                  <div class="w-1 h-8 bg-primary rounded-full"></div>
-                  <div class="flex-1 min-w-0">
-                    <div class="text-xs font-bold text-primary">Replying to {{ replyingTo.sender_name }}</div>
-                    <div class="text-xs text-gray-500 truncate">{{ replyingTo.content }}</div>
-                  </div>
-                  <div class="p-1 hover:bg-gray-200 rounded-full cursor-pointer text-gray-400" @click="replyingTo = null">
-                    <n-icon size="16"><X /></n-icon>
-                  </div>
-                </div>
-
-                <div class="px-6 py-1 h-6 bg-gray-50/50 flex items-center gap-2">
-                  <template v-if="selectedConversationId && typingStatus[selectedConversationId]">
-                    <div class="flex gap-1 items-center">
-                      <div class="typing-dot"></div>
-                      <div class="typing-dot"></div>
-                      <div class="typing-dot"></div>
-                    </div>
-                    <span class="text-[11px] text-gray-400 font-medium italic">Typing...</span>
-                  </template>
-                </div>
-                <div class="p-6">
-                  <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors shrink-0">
-                      <n-icon size="24"><FilePlus /></n-icon>
-                    </div>
-                    <n-input 
-                      v-model:value="messageInput" 
-                      type="textarea" 
-                      :autosize="{ minRows: 1, maxRows: 5 }"
-                      placeholder="Type here..." 
-                      size="large"
-                      class="flex-1 bg-gray-50 text-base !rounded-xl"
-                      @input="handleTyping"
-                      @keydown.enter="handleEnter"
-                    />
-                  <div 
-                    class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-sm shrink-0"
-                    :class="messageInput.trim() ? 'bg-[#0A1A5C] text-white hover:bg-blue-800' : 'bg-gray-200 text-gray-400 pointer-events-none'"
-                    @click="sendMessage"
-                  >
-                    <n-icon size="20"><Send /></n-icon>
-                  </div>
-                </div>
-              </div>
-              </div>
-            </div>
-          </n-card>
-        </n-gi>
-      </n-grid>
-    </div>
-  </UserLayout>
+  </CandidateLayout>
 </template>
+
 
 <style scoped>
 /* Scoped overrides to allow full height filling inside the card */

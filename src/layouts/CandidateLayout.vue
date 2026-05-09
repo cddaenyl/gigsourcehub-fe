@@ -1,0 +1,173 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
+import { useProfile } from '@/composables/useProfile'
+import { useLogout } from '@/composables/useAuth'
+import { onMounted, onUnmounted, ref } from 'vue'
+import Footer from '@/components/Footer.vue'
+import { 
+  User, 
+  Message, 
+  Briefcase, 
+  Bell, 
+  Settings, 
+  Logout
+} from '@vicons/tabler'
+import { NIcon, NAvatar, NBadge } from 'naive-ui'
+import logoSrc from '@/assets/LogoGigSource.svg'
+
+defineOptions({
+  name: 'CandidateLayout',
+})
+
+const route = useRoute()
+const authStore = useAuthStore()
+const { profile } = useProfile()
+const logout = useLogout()
+
+const isScrolled = ref(false)
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 50
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
+const menuItems = [
+  { label: 'Profile', icon: User, path: '/candidate/profile' },
+  { label: 'Message', icon: Message, path: '/candidate/chat' },
+  { label: 'Recruitment', icon: Briefcase, path: '/candidate/recruitment' },
+  { label: 'Notifications', icon: Bell, path: '/candidate/notifications', badge: 1 },
+  { label: 'Account', icon: Settings, path: '/candidate/account' },
+]
+
+const isActive = (path: string) => {
+  return route.path === path || (path !== '/candidate' && route.path.startsWith(path))
+}
+
+const handleLogout = () => {
+  logout()
+}
+
+const candidateName = computed(() => profile.value?.name || authStore.user?.name || 'Candidate')
+const candidateRole = computed(() => {
+  if (profile.value?.job_roles?.length) {
+    return profile.value.job_roles.map((r: any) => r.name).join(', ')
+  }
+  return 'Candidate'
+})
+
+const recruitmentStatus = computed(() => profile.value?.recruitment_status_name || 'Avaliable')
+</script>
+
+<template>
+  <div class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Header/Navigation -->
+    <header 
+      class="sticky top-0 z-50 transition-all duration-300"
+      :class="isScrolled ? 'backdrop-blur-xl bg-slate-950/90 border-b border-white/10' : 'bg-slate-950'"
+    >
+      <div class="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between">
+        <RouterLink to="/" class="flex items-center gap-2">
+          <img :src="logoSrc" alt="Logo" class="h-9 brightness-0 invert" />
+        </RouterLink>
+        
+        <div class="flex items-center gap-8">
+          <RouterLink to="/" class="text-sm font-medium text-white/80 hover:text-white transition-colors">Home</RouterLink>
+          <button 
+            @click="handleLogout"
+            class="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold outline -outline-offset-1 transition-all duration-200 bg-white/10 text-white outline-white/10 hover:bg-white/20 hover:scale-105"
+          >
+            <n-icon :size="18"><Logout /></n-icon>
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section (Always shown on candidate pages) -->
+    <section v-if="route.path.startsWith('/candidate')" class="bg-slate-950 text-white overflow-hidden relative">
+      <!-- Background elements -->
+      <div class="absolute top-0 right-0 w-1/3 h-full bg-[radial-gradient(circle_at_top_right,rgba(var(--color-primary-rgb),0.15),transparent_70%)] pointer-events-none"></div>
+      
+      <div class="max-w-7xl mx-auto px-4 py-4 pb-12 relative z-10">
+        <div class="flex items-center gap-10">
+          <div class="relative group">
+            <n-avatar
+              round
+              :size="110"
+              :src="authStore.user?.profile_picture || 'https://i.pravatar.cc/150?u=' + authStore.user?.id" 
+              class="border-4 border-white/10 shadow-2xl transition-transform group-hover:scale-105"
+            >
+              <template #fallback>
+                <n-icon size="50"><User /></n-icon>
+              </template>
+            </n-avatar>
+          </div>
+          
+          <div class="space-y-2">
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">{{ candidateName }}</h1>
+            <p class="text-white/60 text-lg font-medium">{{ candidateRole }}</p>
+            
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 bg-white/5 text-white/80 rounded-full text-[10px] font-semibold border border-white/10">
+              <div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+              {{ recruitmentStatus }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="flex-1 pb-20 mt-8 relative z-20">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <!-- Sidebar -->
+          <div class="lg:col-span-3">
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden sticky top-26">
+              <div class="p-6">
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Menu</h3>
+                <nav class="space-y-1.5">
+                  <RouterLink 
+                    v-for="item in menuItems" 
+                    :key="item.path"
+                    :to="item.path"
+                    class="flex items-center justify-between px-3 py-2 rounded-3xl transition-all duration-200 group"
+                    :class="isActive(item.path) 
+                      ? 'bg-primary/5 text-primary border border-primary shadow-xs font-semibold' 
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border border-transparent'"
+                  >
+                    <div class="flex items-center gap-3">
+                      <n-icon 
+                        :size="20" 
+                        :component="item.icon" 
+                        :class="isActive(item.path) ? 'text-primary' : 'text-slate-400 group-hover:text-slate-600'"
+                      />
+                      <span>{{ item.label }}</span>
+                    </div>
+                    <n-badge v-if="item.badge" :value="item.badge" type="error" />
+                  </RouterLink>
+                </nav>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page Content -->
+          <div class="lg:col-span-9 flex flex-col">
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex flex-col">
+              <slot />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <Footer />
+  </div>
+</template>

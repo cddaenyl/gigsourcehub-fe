@@ -107,9 +107,37 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/candidate/account/': RouteRecordInfo<
+      '/candidate/account/',
+      '/candidate/account',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/candidate/chat/': RouteRecordInfo<
       '/candidate/chat/',
       '/candidate/chat',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/candidate/notifications/': RouteRecordInfo<
+      '/candidate/notifications/',
+      '/candidate/notifications',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/candidate/profile/': RouteRecordInfo<
+      '/candidate/profile/',
+      '/candidate/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/candidate/recruitment/': RouteRecordInfo<
+      '/candidate/recruitment/',
+      '/candidate/recruitment',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -402,9 +430,33 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/candidate/account/index.vue': {
+      routes:
+        | '/candidate/account/'
+      views:
+        | never
+    }
     'src/pages/candidate/chat/index.vue': {
       routes:
         | '/candidate/chat/'
+      views:
+        | never
+    }
+    'src/pages/candidate/notifications/index.vue': {
+      routes:
+        | '/candidate/notifications/'
+      views:
+        | never
+    }
+    'src/pages/candidate/profile/index.vue': {
+      routes:
+        | '/candidate/profile/'
+      views:
+        | never
+    }
+    'src/pages/candidate/recruitment/index.vue': {
+      routes:
+        | '/candidate/recruitment/'
       views:
         | never
     }

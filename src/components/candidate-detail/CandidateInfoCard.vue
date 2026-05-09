@@ -98,15 +98,21 @@ const provinsiName = computed(() => {
           <n-gi>
             <n-space vertical :size="4">
               <h4 class="font-bold text-xs text-gray-500">Universitas/Sekolah</h4>
-              <span class="font-bold text-sm text-gray-700">{{
-                user.school_university || '-'
-              }}</span>
+              <h5
+                class="font-bold text-sm text-gray-700 overflow-hidden text-ellipsis whitespace-nowrap"
+              >
+                {{ user.school_university || '-' }}
+              </h5>
             </n-space>
           </n-gi>
           <n-gi>
             <n-space vertical :size="4">
               <h4 class="font-bold text-xs text-gray-500">Jurusan</h4>
-              <span class="font-bold text-sm text-gray-700">{{ user.major || '-' }}</span>
+              <h5
+                class="font-bold text-sm text-gray-700 overflow-hidden text-ellipsis whitespace-nowrap"
+              >
+                {{ user.major || '-' }}
+              </h5>
             </n-space>
           </n-gi>
         </n-grid>
@@ -147,9 +153,9 @@ const provinsiName = computed(() => {
         }}</span>
       </n-space>
 
-      <n-space vertical :size="8" class="w-2/3">
+      <n-space vertical :size="8">
         <h4 class="font-bold text-xs text-gray-500">Keahlian</h4>
-        <n-space v-if="techStack.length > 0" :size="8">
+        <n-space v-if="techStack.length > 0" :size="8" class="tech-stack-list">
           <n-tag
             v-for="tech in techStack"
             :key="tech"
@@ -207,4 +213,10 @@ const provinsiName = computed(() => {
   </n-card>
 </template>
 
-<style scoped></style>
+<style scoped>
+.tech-stack-list {
+  max-height: 70px;
+  overflow-y: auto;
+  padding-bottom: 4px;
+}
+</style>

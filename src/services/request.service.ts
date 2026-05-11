@@ -37,6 +37,36 @@ export const getAdminRequestsApi = async (
   }
 }
 
+export const getAdminPendingRequestsApi = async (
+  params: RequestQueryParams = {},
+): Promise<GetRequestsResponse> => {
+  try {
+    const response = await axios.get<GetRequestsResponse>('/admin/requests/pending', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const getAdminMyRequestsApi = async (
+  params: RequestQueryParams = {},
+): Promise<GetRequestsResponse> => {
+  try {
+    const response = await axios.get<GetRequestsResponse>('/admin/requests/my-requests', {
+      params,
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
 export const getRequestDetail = async (id: string): Promise<GetRequestResponse> => {
   try {
     const response = await axios.get<GetRequestResponse>(`requests/${id}`)

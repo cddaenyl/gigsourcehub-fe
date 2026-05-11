@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton, NConfigProvider, NIcon, NInput, NModal, useMessage } from 'naive-ui'
 import { CalendarEvent, Check, Search } from '@vicons/tabler'
@@ -9,7 +9,7 @@ import TalentNeedsTable from '@/components/tables/TalentNeedsTable.vue'
 import TalentNeedsTabs from '@/components/TalentNeedsTabs.vue'
 import type { TalentNeed } from '@/models/Table'
 import type { RequestItem, RequestQueryParams } from '@/models/Request'
-import { useAdminRequests, useValidateAdminRequest } from '@/composables/useRequest'
+import { useAdminRequestsByTab, useValidateAdminRequest } from '@/composables/useRequest'
 
 const themeOverride = {
   DataTable: {
@@ -30,6 +30,7 @@ const message = useMessage()
 const currentPage = ref(1)
 const pageSize = ref(10)
 const searchQuery = ref('')
+const activeTab = ref<'semua' | 'menunggu validasi' | 'tugas saya'>('semua')
 const selectedRequest = ref<TalentNeed | null>(null)
 const showValidateModal = ref(false)
 
@@ -39,8 +40,12 @@ const queryParams = computed<RequestQueryParams>(() => ({
   search: searchQuery.value.trim() || undefined,
 }))
 
-const { requests, pageCount, isLoading, refetch } = useAdminRequests(queryParams)
+const { requests, pageCount, isLoading, refetch } = useAdminRequestsByTab(queryParams, activeTab)
 const { mutateAsync: validateRequest, isPending: isValidating } = useValidateAdminRequest()
+
+watch(activeTab, () => {
+  currentPage.value = 1
+})
 
 const formatDate = (value: string | null) => {
   if (!value) {
@@ -162,7 +167,7 @@ const handleValidate = async () => {
         </div>
 
         <div class="rounded-lg p-2 py-3 space-y-4">
-          <TalentNeedsTabs />
+          <TalentNeedsTabs v-model="activeTab" />
           <TalentNeedsTable
             :data="paginatedTalentNeeds"
             :actions="['detail', 'validate']"

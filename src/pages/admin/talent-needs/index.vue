@@ -2,10 +2,11 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton, NConfigProvider, NIcon, NInput, NModal, useMessage } from 'naive-ui'
-import { Check, Search } from '@vicons/tabler'
+import { CalendarEvent, Check, Search } from '@vicons/tabler'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import TalentNeedsTable from '@/components/tables/TalentNeedsTable.vue'
+import TalentNeedsTabs from '@/components/TalentNeedsTabs.vue'
 import type { TalentNeed } from '@/models/Table'
 import type { RequestItem, RequestQueryParams } from '@/models/Request'
 import { useAdminRequests, useValidateAdminRequest } from '@/composables/useRequest'
@@ -139,19 +140,29 @@ const handleValidate = async () => {
       <div class="space-y-6">
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold text-gray-700">Kebutuhan Talenta</h1>
-          <n-input
-            :value="searchQuery"
-            placeholder="Search by Project"
-            class="max-w-sm"
-            @update:value="handleSearch"
-          >
-            <template #prefix>
-              <n-icon :component="Search" />
-            </template>
-          </n-input>
+          <div class="flex space-x-2">
+            <n-input
+              :value="searchQuery"
+              placeholder="Search by Project"
+              class="max-w-sm"
+              @update:value="handleSearch"
+            >
+              <template #prefix>
+                <n-icon :component="Search" />
+              </template>
+            </n-input>
+            <div class="border border-gray-300 rounded-xs hover:border-gray-600 transition-colors">
+              <n-button color="#FFFFFF" :bordered="true">
+                <template #icon>
+                  <n-icon color="#64748B" :component="CalendarEvent" />
+                </template>
+              </n-button>
+            </div>
+          </div>
         </div>
 
         <div class="rounded-lg p-2 py-3 space-y-4">
+          <TalentNeedsTabs />
           <TalentNeedsTable
             :data="paginatedTalentNeeds"
             :actions="['detail', 'validate']"

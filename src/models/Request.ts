@@ -35,6 +35,17 @@ export interface RequestDecisionPayload {
   rejected_reason: string
 }
 
+export interface AssignCandidatePayload {
+  candidate_user_id: string
+}
+
+export interface AssignCandidateResponse {
+  status: number
+  message: string
+  validation: string | null
+  data: unknown
+}
+
 export interface GetRequestResponse {
   status: number
   message: string

@@ -2,15 +2,27 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
+import { useAdminMyRequests, useAssignCandidateToSubrequest } from '@/composables/useRequest'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidateDetailHeader from '@/components/candidate-detail/CandidateDetailHeader.vue'
 import CandidateProfileCard from '@/components/candidate-detail/CandidateProfileCard.vue'
 import CandidateInfoCard from '@/components/candidate-detail/CandidateInfoCard.vue'
 import CandidateRecruitmentPanel from '@/components/candidate-detail/CandidateRecruitmentPanel.vue'
 import CandidateOnboardingHistory from '@/components/candidate-detail/CandidateOnboardingHistory.vue'
-import { NButton, NSpin, NGrid, NGi, useMessage, type SelectOption } from 'naive-ui'
+import {
+  NButton,
+  NSpin,
+  NGrid,
+  NGi,
+  NModal,
+  NSelect,
+  NSpace,
+  useMessage,
+  type SelectOption,
+} from 'naive-ui'
 import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
 import type { UserRecruitmentStatusPayload } from '@/models/User'
+import type { RequestQueryParams } from '@/models/Request'
 import { useCandidateNotesStore } from '@/stores/notes.store'
 const route = useRoute()
 const router = useRouter()
@@ -55,8 +67,33 @@ const recruitmentOptions = computed<SelectOption[]>(() =>
 )
 
 // Fetch user data
-const { user, isLoading, isError, error, updateRecruitmentStatus, isUpdatingRecruitmentStatus } =
-  useUser(userId)
+const {
+  user,
+  isLoading,
+  isError,
+  error,
+  refetch: refetchUser,
+  updateRecruitmentStatus,
+  isUpdatingRecruitmentStatus,
+} = useUser(userId)
+
+const recruitModalVisible = ref(false)
+const selectedRequestId = ref<string | null>(null)
+const selectedSubrequestId = ref<string | null>(null)
+const assignedPairKeys = ref<string[]>([])
+
+const myRequestsParams = computed<RequestQueryParams>(() => ({
+  page: 1,
+  limit: 100,
+}))
+
+const {
+  requests: myRequests,
+  isLoading: isMyRequestsLoading,
+  refetch: refetchMyRequests,
+} = useAdminMyRequests(myRequestsParams)
+const { mutateAsync: assignCandidateToSubrequest, isPending: isAssigningCandidate } =
+  useAssignCandidateToSubrequest()
 
 const notesStore = useCandidateNotesStore()
 const notes = computed(() => notesStore.sortedNotes)
@@ -72,9 +109,78 @@ const displayedStatus = computed(
   () => optimisticStatus.value ?? user.value?.recruitment_status_id ?? null,
 )
 
+const requestOptions = computed<SelectOption[]>(() =>
+  myRequests.value.map((request) => ({
+    label: request.project_name,
+    value: request.id,
+  })),
+)
+
+const selectedRequest = computed(
+  () => myRequests.value.find((request) => request.id === selectedRequestId.value) || null,
+)
+
+const subrequestOptions = computed<SelectOption[]>(() => {
+  if (!selectedRequest.value) {
+    return []
+  }
+
+  const totalPerJobRole = new Map<string, number>()
+  const seenPerJobRole = new Map<string, number>()
+
+  for (const subrequest of selectedRequest.value.subrequests) {
+    totalPerJobRole.set(
+      subrequest.job_role_id,
+      (totalPerJobRole.get(subrequest.job_role_id) || 0) + 1,
+    )
+  }
+
+  return selectedRequest.value.subrequests.map((subrequest) => {
+    const currentIndex = (seenPerJobRole.get(subrequest.job_role_id) || 0) + 1
+    seenPerJobRole.set(subrequest.job_role_id, currentIndex)
+
+    const hasDuplicateJobRole = (totalPerJobRole.get(subrequest.job_role_id) || 0) > 1
+    const suffix = hasDuplicateJobRole ? ` #${currentIndex}` : ''
+
+    return {
+      label: `${subrequest.job_role}${suffix}`,
+      value: subrequest.id,
+    }
+  })
+})
+
+const buildAssignmentPairKey = (candidateId: string, requestId: string, subrequestId: string) =>
+  `${candidateId}:${requestId}:${subrequestId}`
+
+const isDuplicateAssignment = computed(() => {
+  if (!user.value?.id || !selectedRequestId.value || !selectedSubrequestId.value) {
+    return false
+  }
+
+  const pairKey = buildAssignmentPairKey(
+    user.value.id,
+    selectedRequestId.value,
+    selectedSubrequestId.value,
+  )
+
+  return assignedPairKeys.value.includes(pairKey)
+})
+
+const canSubmitAssignment = computed(
+  () =>
+    Boolean(selectedRequestId.value && selectedSubrequestId.value) &&
+    !isDuplicateAssignment.value &&
+    !isAssigningCandidate.value,
+)
+
 watch(userId, () => {
   optimisticLevel.value = null
   optimisticStatus.value = null
+  assignedPairKeys.value = []
+})
+
+watch(selectedRequestId, () => {
+  selectedSubrequestId.value = null
 })
 
 watch(
@@ -108,8 +214,9 @@ const handleBack = () => {
 }
 
 const handleRecruit = () => {
-  console.log('Recruit candidate:', user.value)
-  // TODO: Implement recruit logic
+  selectedRequestId.value = null
+  selectedSubrequestId.value = null
+  recruitModalVisible.value = true
 }
 
 const handleChat = () => {
@@ -138,6 +245,48 @@ const handleSendNote = async (payload: { text: string }) => {
     message.success('Catatan berhasil ditambahkan.', { duration: 2000 })
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal menambahkan catatan.'
+    message.error(messageText, { duration: 3000 })
+  }
+}
+
+const closeRecruitModal = () => {
+  recruitModalVisible.value = false
+  selectedRequestId.value = null
+  selectedSubrequestId.value = null
+}
+
+const handleAssignCandidate = async () => {
+  if (!user.value?.id || !selectedRequestId.value || !selectedSubrequestId.value) {
+    return
+  }
+
+  if (isDuplicateAssignment.value) {
+    message.warning('Kandidat sudah pernah di-assign ke subrequest ini pada sesi saat ini.')
+    return
+  }
+
+  try {
+    const response = await assignCandidateToSubrequest({
+      requestId: selectedRequestId.value,
+      subrequestId: selectedSubrequestId.value,
+      payload: { candidate_user_id: user.value.id },
+    })
+
+    const pairKey = buildAssignmentPairKey(
+      user.value.id,
+      selectedRequestId.value,
+      selectedSubrequestId.value,
+    )
+
+    if (!assignedPairKeys.value.includes(pairKey)) {
+      assignedPairKeys.value = [...assignedPairKeys.value, pairKey]
+    }
+
+    message.success(response.message || 'Kandidat berhasil di-assign ke permintaan.')
+    closeRecruitModal()
+    await Promise.all([refetchUser(), refetchMyRequests()])
+  } catch (err) {
+    const messageText = err instanceof Error ? err.message : 'Gagal meng-assign kandidat.'
     message.error(messageText, { duration: 3000 })
   }
 }
@@ -189,6 +338,68 @@ const handleSendNote = async (payload: { text: string }) => {
         <CandidateOnboardingHistory />
       </div>
     </div>
+
+    <n-modal
+      v-model:show="recruitModalVisible"
+      preset="card"
+      :bordered="false"
+      style="width: 40rem"
+    >
+      <div class="">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800 -mt-8">Assign Kandidat ke Permintaan</h2>
+          <p class="text-sm text-slate-500">Tentukan permintaan rekrutmen untuk kandidat ini.</p>
+        </div>
+
+        <n-space vertical :size="16" class="my-6">
+          <div class="space-y-1">
+            <h3 class="text-xs font-semibold text-slate-500">Permintaan</h3>
+            <n-select
+              v-model:value="selectedRequestId"
+              placeholder="Pilih permintaan"
+              :options="requestOptions"
+              :loading="isMyRequestsLoading"
+              filterable
+              clearable
+            />
+          </div>
+
+          <div class="space-y-1">
+            <h3 class="text-xs font-semibold text-slate-500">Posisi</h3>
+            <n-select
+              v-model:value="selectedSubrequestId"
+              placeholder="Pilih posisi"
+              :options="subrequestOptions"
+              :disabled="!selectedRequestId"
+              filterable
+              clearable
+            />
+          </div>
+
+          <!-- <p class="text-sm text-slate-500">
+            Catatan: Tombol Simpan akan dinonaktifkan jika kombinasi kandidat dan subrequest ini
+            sudah pernah di-assign pada sesi ini.
+          </p> -->
+          <p v-if="isDuplicateAssignment" class="text-sm text-amber-600">
+            Kandidat ini sudah di-assign ke posisi terpilih pada sesi ini. Pilih posisi lain.
+          </p>
+        </n-space>
+
+        <div class="-mx-6 -mb-6 bg-slate-100 px-6 py-5">
+          <div class="flex justify-center gap-3">
+            <n-button secondary @click="closeRecruitModal">Batal</n-button>
+            <n-button
+              type="primary"
+              :loading="isAssigningCandidate"
+              :disabled="!canSubmitAssignment"
+              @click="handleAssignCandidate"
+            >
+              Simpan
+            </n-button>
+          </div>
+        </div>
+      </div>
+    </n-modal>
   </AdminLayout>
 </template>
 

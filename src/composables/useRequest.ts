@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/vue-query'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import {
+  assignCandidateToSubrequestApi,
   createRequestApi,
   getAdminMyRequestsApi,
   getAdminPendingRequestsApi,
@@ -11,6 +12,7 @@ import {
   validateAdminRequestApi,
 } from '@/services/request.service'
 import type {
+  AssignCandidatePayload,
   CreateRequestPayload,
   RequestDecisionPayload,
   RequestQueryParams,
@@ -50,6 +52,28 @@ export function useAdminRequests(params: MaybeRefOrGetter<RequestQueryParams> = 
   const query = useQuery({
     queryKey: computed(() => ['admin-requests', toValue(params)]),
     queryFn: () => getAdminRequestsApi(toValue(params)),
+  })
+
+  const requests = computed(() => query.data.value?.data.list || [])
+  const pagination = computed(() => ({
+    page: query.data.value?.data.page || 1,
+    limit: query.data.value?.data.limit || 10,
+    total: query.data.value?.data.total || 0,
+  }))
+  const pageCount = computed(() => Math.ceil(pagination.value.total / pagination.value.limit))
+
+  return {
+    ...query,
+    requests,
+    pagination,
+    pageCount,
+  }
+}
+
+export function useAdminMyRequests(params: MaybeRefOrGetter<RequestQueryParams> = {}) {
+  const query = useQuery({
+    queryKey: computed(() => ['admin-my-requests', toValue(params)]),
+    queryFn: () => getAdminMyRequestsApi(toValue(params)),
   })
 
   const requests = computed(() => query.data.value?.data.list || [])
@@ -133,6 +157,22 @@ export function useValidateAdminRequest() {
   return useMutation({
     mutationFn: async (id: string) => {
       return validateAdminRequestApi(id)
+    },
+  })
+}
+
+export function useAssignCandidateToSubrequest() {
+  return useMutation({
+    mutationFn: async (variables: {
+      requestId: string
+      subrequestId: string
+      payload: AssignCandidatePayload
+    }) => {
+      return assignCandidateToSubrequestApi(
+        variables.requestId,
+        variables.subrequestId,
+        variables.payload,
+      )
     },
   })
 }

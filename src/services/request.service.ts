@@ -1,5 +1,7 @@
 import axios, { AxiosError } from 'axios'
 import type {
+  AssignCandidatePayload,
+  AssignCandidateResponse,
   CreateRequestPayload,
   CreateRequestResponse,
   GetRequestResponse,
@@ -58,6 +60,25 @@ export const getAdminMyRequestsApi = async (
     const response = await axios.get<GetRequestsResponse>('/admin/requests/my-requests', {
       params,
     })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const assignCandidateToSubrequestApi = async (
+  requestId: string,
+  subrequestId: string,
+  payload: AssignCandidatePayload,
+): Promise<AssignCandidateResponse> => {
+  try {
+    const response = await axios.post<AssignCandidateResponse>(
+      `/admin/requests/${requestId}/subrequests/${subrequestId}/assign`,
+      payload,
+    )
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {

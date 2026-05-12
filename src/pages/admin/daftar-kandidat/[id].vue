@@ -393,6 +393,7 @@ const handleAssignCandidate = async (): Promise<void> => {
               :notes-loading="isNotesLoading"
               :notes-posting="isNotesPosting"
               :notes-error="notesError"
+              :user="user"
               @save="handleSaveRecruitment"
               @send-note="handleSendNote"
             />

@@ -51,7 +51,7 @@ const showCancelRecruitmentButton = computed(() => {
 })
 
 const handleChatKandidat = (): void => {
-  router.push(`/admin/candidate-chat/${props.user.id}`)
+  router.push(`/admin/candidate-chat/`)
 }
 
 const handleStartChat = (): void => {
@@ -72,7 +72,7 @@ const handleStartChat = (): void => {
 
       <div class="flex-1">
         <h2 class="text-lg font-bold text-gray-800">{{ user.name }}</h2>
-        <n-tag size="small" type="primary" round>Available (Api Not Developed)</n-tag>
+        <n-tag size="small" type="primary" round>{{ recruitmentStatusName }}</n-tag>
       </div>
       <div class="flex items-center gap-2">
         <n-button style="width: 40px; height: 35px; padding: 0">

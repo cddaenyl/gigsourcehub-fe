@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { NCard, NButton, NSelect, type SelectOption } from 'naive-ui'
 import CandidateNotesCard from './CandidateNotesCard.vue'
+import type { User } from '@/models/User'
 import type { CandidateNote } from '@/models/Note'
 
 const props = defineProps<{
@@ -14,6 +15,7 @@ const props = defineProps<{
   notesLoading?: boolean
   notesPosting?: boolean
   notesError?: string | null
+  user: User
 }>()
 
 const emit = defineEmits<{
@@ -23,6 +25,8 @@ const emit = defineEmits<{
   ): void
   (event: 'send-note', payload: { text: string }): void
 }>()
+
+const recruitmentStatusName = computed(() => props.user.recruitment_status_name || '')
 
 const level = ref<string | null>(props.initialLevel ?? null)
 const status = ref<string | null>(props.initialStatus ?? null)
@@ -86,6 +90,10 @@ const formatNoteDate = (value: string) => {
     year: 'numeric',
   })
 }
+const disableRecruitmentSelect = computed(() => {
+  const status = recruitmentStatusName.value
+  return status === 'Available' || status === 'Assigned'
+})
 
 const getInitials = (name: string) => {
   const tokens = name.trim().split(/\s+/)
@@ -118,6 +126,7 @@ const handleSendNote = (payload: { text: string }) => {
         <div class="flex flex-col gap-1">
           <h4 class="font-bold text-xs text-gray-500">Status Rekrutmen</h4>
           <n-select
+            :disabled="disableRecruitmentSelect"
             v-model:value="status"
             placeholder="Pilih Status Rekrutmen"
             :options="recruitmentOptions"

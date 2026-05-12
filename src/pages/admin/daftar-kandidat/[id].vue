@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
 import { useAdminMyRequests, useAssignCandidateToSubrequest } from '@/composables/useRequest'
+import { useStartChat } from '@/composables/useChat'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidateDetailHeader from '@/components/candidate-detail/CandidateDetailHeader.vue'
 import CandidateProfileCard from '@/components/candidate-detail/CandidateProfileCard.vue'
@@ -78,6 +79,7 @@ const {
 } = useUser(userId)
 
 const recruitModalVisible = ref(false)
+const successModalVisible = ref(false)
 const selectedRequestId = ref<string | null>(null)
 const selectedSubrequestId = ref<string | null>(null)
 const assignedPairKeys = ref<string[]>([])
@@ -94,6 +96,7 @@ const {
 } = useAdminMyRequests(myRequestsParams)
 const { mutateAsync: assignCandidateToSubrequest, isPending: isAssigningCandidate } =
   useAssignCandidateToSubrequest()
+const { mutateAsync: startChat, isPending: isStartingChat } = useStartChat()
 
 const notesStore = useCandidateNotesStore()
 const notes = computed(() => notesStore.sortedNotes)
@@ -255,6 +258,34 @@ const closeRecruitModal = () => {
   selectedSubrequestId.value = null
 }
 
+const closeSuccessModal = () => {
+  successModalVisible.value = false
+  message.success('Kandidat berhasil di-assign ke permintaan.')
+  Promise.all([refetchUser(), refetchMyRequests()])
+}
+
+const handleStartChat = async () => {
+  if (!user.value?.id || !selectedSubrequestId.value) {
+    return
+  }
+
+  try {
+    const response = await startChat({
+      candidate_user_id: user.value.id,
+      subrequest_id: selectedSubrequestId.value,
+    })
+
+    message.success('Chat dimulai dengan kandidat.', { duration: 2000 })
+    successModalVisible.value = false
+
+    // Refetch to get updated status
+    await Promise.all([refetchUser(), refetchMyRequests()])
+  } catch (err) {
+    const messageText = err instanceof Error ? err.message : 'Gagal memulai chat dengan kandidat.'
+    message.error(messageText, { duration: 3000 })
+  }
+}
+
 const handleAssignCandidate = async () => {
   if (!user.value?.id || !selectedRequestId.value || !selectedSubrequestId.value) {
     return
@@ -282,9 +313,9 @@ const handleAssignCandidate = async () => {
       assignedPairKeys.value = [...assignedPairKeys.value, pairKey]
     }
 
-    message.success(response.message || 'Kandidat berhasil di-assign ke permintaan.')
-    closeRecruitModal()
-    await Promise.all([refetchUser(), refetchMyRequests()])
+    // Close recruit modal and show success modal
+    recruitModalVisible.value = false
+    successModalVisible.value = true
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal meng-assign kandidat.'
     message.error(messageText, { duration: 3000 })
@@ -381,7 +412,7 @@ const handleAssignCandidate = async () => {
             sudah pernah di-assign pada sesi ini.
           </p> -->
           <p v-if="isDuplicateAssignment" class="text-sm text-amber-600">
-            Kandidat ini sudah di-assign ke posisi terpilih pada sesi ini. Pilih posisi lain.
+            Kandidat ini sudah di-assign ke posisi terpilih pada. Pilih posisi lain.
           </p>
         </n-space>
 
@@ -395,6 +426,35 @@ const handleAssignCandidate = async () => {
               @click="handleAssignCandidate"
             >
               Simpan
+            </n-button>
+          </div>
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="successModalVisible"
+      preset="card"
+      :bordered="false"
+      :close-on-esc="false"
+      :mask-closable="false"
+      style="width: 40rem"
+    >
+      <div class="">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800 -mt-8">Kandidat Berhasil di Assign</h2>
+        </div>
+
+        <p class="text-sm text-slate-600 mt-4 mb-6">
+          Kandidat siap untuk memulai proses onboarding. Apakah Anda ingin memulai percakapan dengan
+          kandidat?
+        </p>
+
+        <div class="-mx-6 -mb-6 bg-slate-100 px-6 py-5">
+          <div class="flex justify-center gap-3">
+            <n-button secondary @click="closeSuccessModal">Batal</n-button>
+            <n-button type="primary" :loading="isStartingChat" @click="handleStartChat">
+              Mulai Chat
             </n-button>
           </div>
         </div>

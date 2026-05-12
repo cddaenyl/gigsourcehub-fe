@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { getUserByIdApi, updateUserRecruitmentStatusApi } from '@/services/user.service'
+import {
+  getUserByIdApi,
+  updateUserRecruitmentStatusApi,
+  cancelRecruitmentApi,
+} from '@/services/user.service'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import type { UserRecruitmentStatusPayload } from '@/models/User'
 
@@ -19,6 +23,13 @@ export function useUser(id: MaybeRefOrGetter<string>) {
     },
   })
 
+  const cancelRecruitmentMutation = useMutation({
+    mutationFn: () => cancelRecruitmentApi(toValue(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user', toValue(id)] })
+    },
+  })
+
   const user = computed(() => query.data.value?.data)
 
   return {
@@ -26,5 +37,7 @@ export function useUser(id: MaybeRefOrGetter<string>) {
     user,
     updateRecruitmentStatus: updateRecruitmentStatusMutation.mutateAsync,
     isUpdatingRecruitmentStatus: updateRecruitmentStatusMutation.isPending,
+    cancelRecruitment: cancelRecruitmentMutation.mutateAsync,
+    isCancellingRecruitment: cancelRecruitmentMutation.isPending,
   }
 }

@@ -31,6 +31,35 @@ export interface RequestItem {
   updated_at: string
 }
 
+export interface RequestDecisionPayload {
+  rejected_reason: string
+}
+
+export interface AssignCandidatePayload {
+  candidate_user_id: string
+}
+
+export interface AssignCandidateResponse {
+  status: number
+  message: string
+  validation: string | null
+  data: unknown
+}
+
+export interface GetRequestResponse {
+  status: number
+  message: string
+  validation: string | null
+  data: RequestItem
+}
+
+export interface RequestActionResponse {
+  status: number
+  message: string
+  validation: string | null
+  data: RequestItem
+}
+
 export interface RequestListData {
   list: RequestItem[]
   limit: number

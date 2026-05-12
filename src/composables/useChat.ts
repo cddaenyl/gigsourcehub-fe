@@ -6,7 +6,8 @@ import {
   fetchMessagesApi,
   sendMessageApi,
   markAsReadApi,
-  createConversationApi
+  createConversationApi,
+  startChatApi,
 } from '@/services/chat.service'
 import type { CreateConversationRequest, SendMessageRequest } from '@/models/Chat'
 
@@ -40,13 +41,14 @@ export const useCreateConversation = () => {
     mutationFn: (payload: CreateConversationRequest) => createConversationApi(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] })
-    }
+    },
   })
 }
 
 export const useSendMessage = () => {
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string, payload: SendMessageRequest }) => sendMessageApi(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: SendMessageRequest }) =>
+      sendMessageApi(id, payload),
     // onSuccess cache invalidation handled by component/websocket
   })
 }
@@ -58,6 +60,17 @@ export const useMarkAsRead = () => {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] })
       queryClient.invalidateQueries({ queryKey: ['messages', id] })
-    }
+    },
+  })
+}
+
+export const useStartChat = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: { candidate_user_id: string; subrequest_id: string }) =>
+      startChatApi(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] })
+    },
   })
 }

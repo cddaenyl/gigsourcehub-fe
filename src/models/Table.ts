@@ -11,6 +11,8 @@ export interface AllCandidates {
 
 export interface TalentNeed {
   id: string
+  requestId?: string
+  employeeUserId?: string | null
   no: number
   projectKegiatan: string
   jumlahSdm: number

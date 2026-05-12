@@ -201,3 +201,15 @@ export const updateUserRecruitmentStatusApi = async (
     throw error
   }
 }
+
+export const cancelRecruitmentApi = async (id: string): Promise<UserResponse> => {
+  try {
+    const response = await axios.patch<UserResponse>(`/users/${id}/cancel-recruitment`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

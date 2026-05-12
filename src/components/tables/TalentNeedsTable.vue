@@ -9,9 +9,10 @@ import type { TalentNeed } from '@/models/Table'
 
 interface Props {
   data: TalentNeed[]
+  actions?: Array<'detail' | 'edit' | 'delete' | 'validate'>
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   action: [action: string, item: TalentNeed]
@@ -78,6 +79,7 @@ const columns: DataTableColumns<TalentNeed> = [
     render: (row) => {
       return h(TalentNeedsTableActions, {
         item: row,
+        actions: props.actions,
         onAction: handleAction,
       })
     },

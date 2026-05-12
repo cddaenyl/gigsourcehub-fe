@@ -24,6 +24,15 @@ const formatDate = (value: string | null) => {
   return format(parsedDate, 'd MMM, yyyy')
 }
 
+const formatBirthDate = (dateString: string | null) => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
 const getCandidateAge = (dateString: string | null) => {
   if (!dateString) return '-'
   const birthDate = new Date(dateString)
@@ -77,7 +86,7 @@ const provinsiName = computed(() => {
       <n-space vertical :size="8">
         <h4 class="font-bold text-xs text-gray-500">Tanggal Lahir</h4>
         <n-space horizontal>
-          <span class="font-bold text-sm text-gray-700">{{ formatDate(user.birthdate) }}</span>
+          <span class="font-bold text-sm text-gray-700">{{ formatBirthDate(user.birthdate) }}</span>
           <span class="text-[12px]">({{ getCandidateAge(user.birthdate) }} tahun)</span>
         </n-space>
       </n-space>

@@ -76,10 +76,13 @@ const {
   refetch: refetchUser,
   updateRecruitmentStatus,
   isUpdatingRecruitmentStatus,
+  cancelRecruitment,
+  isCancellingRecruitment,
 } = useUser(userId)
 
 const recruitModalVisible = ref(false)
-const successModalVisible = ref(false)
+const chatModalVisible = ref(false)
+const cancelRecruitmentModalVisible = ref(false)
 const selectedRequestId = ref<string | null>(null)
 const selectedSubrequestId = ref<string | null>(null)
 const assignedPairKeys = ref<string[]>([])
@@ -152,10 +155,13 @@ const subrequestOptions = computed<SelectOption[]>(() => {
   })
 })
 
-const buildAssignmentPairKey = (candidateId: string, requestId: string, subrequestId: string) =>
-  `${candidateId}:${requestId}:${subrequestId}`
+const buildAssignmentPairKey = (
+  candidateId: string,
+  requestId: string,
+  subrequestId: string,
+): string => `${candidateId}:${requestId}:${subrequestId}`
 
-const isDuplicateAssignment = computed(() => {
+const isDuplicateAssignment = computed((): boolean => {
   if (!user.value?.id || !selectedRequestId.value || !selectedSubrequestId.value) {
     return false
   }
@@ -170,25 +176,25 @@ const isDuplicateAssignment = computed(() => {
 })
 
 const canSubmitAssignment = computed(
-  () =>
+  (): boolean =>
     Boolean(selectedRequestId.value && selectedSubrequestId.value) &&
     !isDuplicateAssignment.value &&
     !isAssigningCandidate.value,
 )
 
-watch(userId, () => {
+watch(userId, (): void => {
   optimisticLevel.value = null
   optimisticStatus.value = null
   assignedPairKeys.value = []
 })
 
-watch(selectedRequestId, () => {
+watch(selectedRequestId, (): void => {
   selectedSubrequestId.value = null
 })
 
 watch(
   userId,
-  async (id) => {
+  async (id: string): Promise<void> => {
     notesStore.reset()
     if (!id) return
     try {
@@ -202,8 +208,8 @@ watch(
 )
 
 watch(
-  () => [user.value?.candidate_level, user.value?.recruitment_status_id],
-  ([nextLevel, nextStatus]) => {
+  () => ({ level: user.value?.candidate_level, status: user.value?.recruitment_status_id }),
+  ({ level: nextLevel, status: nextStatus }): void => {
     if (nextLevel === optimisticLevel.value && nextStatus === optimisticStatus.value) {
       optimisticLevel.value = null
       optimisticStatus.value = null
@@ -212,22 +218,25 @@ watch(
 )
 
 // Handlers
-const handleBack = () => {
+const handleBack = (): void => {
   router.push('/admin/daftar-kandidat')
 }
 
-const handleRecruit = () => {
+const handleRecruit = (): void => {
   selectedRequestId.value = null
   selectedSubrequestId.value = null
   recruitModalVisible.value = true
 }
 
-const handleChat = () => {
-  console.log('Chat with candidate:', user.value)
-  // TODO: Implement chat logic
+const handleStartChat = (): void => {
+  chatModalVisible.value = true
 }
 
-const handleSaveRecruitment = async (payload: UserRecruitmentStatusPayload) => {
+const handleCancelRecruitmentClick = (): void => {
+  cancelRecruitmentModalVisible.value = true
+}
+
+const handleSaveRecruitment = async (payload: UserRecruitmentStatusPayload): Promise<void> => {
   try {
     const response = await updateRecruitmentStatus(payload)
     optimisticLevel.value = response.data.candidate_level ?? null
@@ -241,7 +250,7 @@ const handleSaveRecruitment = async (payload: UserRecruitmentStatusPayload) => {
   }
 }
 
-const handleSendNote = async (payload: { text: string }) => {
+const handleSendNote = async (payload: { text: string }): Promise<void> => {
   if (!userId.value) return
   try {
     await notesStore.createNote(userId.value, payload.text)
@@ -252,31 +261,48 @@ const handleSendNote = async (payload: { text: string }) => {
   }
 }
 
-const closeRecruitModal = () => {
+const closeRecruitModal = (): void => {
   recruitModalVisible.value = false
   selectedRequestId.value = null
   selectedSubrequestId.value = null
 }
 
-const closeSuccessModal = () => {
-  successModalVisible.value = false
-  message.success('Kandidat berhasil di-assign ke permintaan.')
-  Promise.all([refetchUser(), refetchMyRequests()])
+const closeChatModal = (): void => {
+  chatModalVisible.value = false
+  void Promise.all([refetchUser(), refetchMyRequests()])
 }
 
-const handleStartChat = async () => {
+const closeCancelRecruitmentModal = (): void => {
+  cancelRecruitmentModalVisible.value = false
+}
+
+const handleConfirmCancelRecruitment = async (): Promise<void> => {
+  if (!user.value?.id) return
+
+  try {
+    await cancelRecruitment()
+    message.success('Rekrutmen kandidat berhasil dibatalkan.', { duration: 2000 })
+    cancelRecruitmentModalVisible.value = false
+    await Promise.all([refetchUser(), refetchMyRequests()])
+  } catch (err) {
+    const messageText = err instanceof Error ? err.message : 'Gagal membatalkan rekrutmen.'
+    message.error(messageText, { duration: 3000 })
+  }
+}
+
+const handleStartChatConfirm = async (): Promise<void> => {
   if (!user.value?.id || !selectedSubrequestId.value) {
     return
   }
 
   try {
-    const response = await startChat({
+    await startChat({
       candidate_user_id: user.value.id,
       subrequest_id: selectedSubrequestId.value,
     })
 
     message.success('Chat dimulai dengan kandidat.', { duration: 2000 })
-    successModalVisible.value = false
+    chatModalVisible.value = false
 
     // Refetch to get updated status
     await Promise.all([refetchUser(), refetchMyRequests()])
@@ -286,7 +312,7 @@ const handleStartChat = async () => {
   }
 }
 
-const handleAssignCandidate = async () => {
+const handleAssignCandidate = async (): Promise<void> => {
   if (!user.value?.id || !selectedRequestId.value || !selectedSubrequestId.value) {
     return
   }
@@ -297,7 +323,7 @@ const handleAssignCandidate = async () => {
   }
 
   try {
-    const response = await assignCandidateToSubrequest({
+    await assignCandidateToSubrequest({
       requestId: selectedRequestId.value,
       subrequestId: selectedSubrequestId.value,
       payload: { candidate_user_id: user.value.id },
@@ -313,9 +339,10 @@ const handleAssignCandidate = async () => {
       assignedPairKeys.value = [...assignedPairKeys.value, pairKey]
     }
 
-    // Close recruit modal and show success modal
+    // Close recruit modal and show chat modal
     recruitModalVisible.value = false
-    successModalVisible.value = true
+    message.success('Kandidat berhasil di-assign ke permintaan.')
+    chatModalVisible.value = true
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal meng-assign kandidat.'
     message.error(messageText, { duration: 3000 })
@@ -343,7 +370,12 @@ const handleAssignCandidate = async () => {
 
       <!-- Content -->
       <div v-else-if="user" class="space-y-6">
-        <CandidateProfileCard :user="user" @chat="handleChat" @recruit="handleRecruit" />
+        <CandidateProfileCard
+          :user="user"
+          @recruit="handleRecruit"
+          @start-chat="handleStartChat"
+          @cancel-recruitment="handleCancelRecruitmentClick"
+        />
 
         <n-grid :x-gap="8" :cols="2" item-responsive>
           <n-gi>
@@ -433,7 +465,7 @@ const handleAssignCandidate = async () => {
     </n-modal>
 
     <n-modal
-      v-model:show="successModalVisible"
+      v-model:show="chatModalVisible"
       preset="card"
       :bordered="false"
       :close-on-esc="false"
@@ -452,13 +484,31 @@ const handleAssignCandidate = async () => {
 
         <div class="-mx-6 -mb-6 bg-slate-100 px-6 py-5">
           <div class="flex justify-center gap-3">
-            <n-button secondary @click="closeSuccessModal">Batal</n-button>
-            <n-button type="primary" :loading="isStartingChat" @click="handleStartChat">
+            <n-button secondary @click="closeChatModal">Batal</n-button>
+            <n-button type="primary" :loading="isStartingChat" @click="handleStartChatConfirm">
               Mulai Chat
             </n-button>
           </div>
         </div>
       </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="cancelRecruitmentModalVisible"
+      preset="dialog"
+      type="warning"
+      title="Batalkan Rekrutmen"
+      positive-text="Ya, Batalkan"
+      negative-text="Batal"
+      :positive-button-props="{ loading: isCancellingRecruitment }"
+      :negative-button-props="{ disabled: isCancellingRecruitment }"
+      @positive-click="handleConfirmCancelRecruitment"
+      @negative-click="closeCancelRecruitmentModal"
+    >
+      <p>
+        Apakah Anda yakin ingin membatalkan rekrutmen kandidat ini? Status akan kembali menjadi
+        Available.
+      </p>
     </n-modal>
   </AdminLayout>
 </template>

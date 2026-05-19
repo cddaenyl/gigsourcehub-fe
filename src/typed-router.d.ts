@@ -93,6 +93,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/lowongan/create': RouteRecordInfo<
+      '/admin/lowongan/create',
+      '/admin/lowongan/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/lowongan/edit/[id]': RouteRecordInfo<
+      '/admin/lowongan/edit/[id]',
+      '/admin/lowongan/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/talent-needs/': RouteRecordInfo<
       '/admin/talent-needs/',
       '/admin/talent-needs',
@@ -422,6 +436,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/lowongan/index.vue': {
       routes:
         | '/admin/lowongan/'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/create.vue': {
+      routes:
+        | '/admin/lowongan/create'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/edit/[id].vue': {
+      routes:
+        | '/admin/lowongan/edit/[id]'
       views:
         | never
     }

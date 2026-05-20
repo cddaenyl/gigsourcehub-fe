@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
+import { getUserRole } from '@/utils/auth'
 import type { User } from '@/models/User'
 import CandidateBookmark from '@/components/CandidateBookmark.vue'
-import { NCard, NButton, NIcon, NTag, NAvatar } from 'naive-ui'
-import { UserSearch, MessageCircle2, X } from '@vicons/tabler'
+import { NCard, NButton, NIcon, NTag, NAvatar, useMessage } from 'naive-ui'
+import { UserSearch, MessageCircle2, X, Bookmark, Checks } from '@vicons/tabler'
+import { useBookmarkStore } from '@/stores/bookmark.store'
 
 const router = useRouter()
+
+const authStore = useAuthStore()
+const isAdmin = computed(() => getUserRole(authStore.user) === 'admin')
+const isEmployee = computed(() => getUserRole(authStore.user) === 'employee')
 
 const props = defineProps<{
   user: User
@@ -17,6 +24,33 @@ const emit = defineEmits<{
   (event: 'start-chat'): void
   (event: 'cancel-recruitment'): void
 }>()
+
+const bookmarkStore = useBookmarkStore()
+const message = useMessage()
+
+const isBookmarked = computed(() => bookmarkStore.isBookmarked(props.user.id))
+
+const toggleBookmark = async () => {
+  if (bookmarkStore.isLoading) return
+  const wasBookmarked = isBookmarked.value
+
+  try {
+    await bookmarkStore.toggleBookmark(props.user.id)
+
+    message.success(
+      wasBookmarked ? 'Candidate removed from bookmarks.' : 'Candidate added to bookmarks.',
+      {
+        duration: 2500,
+      },
+    )
+  } catch (error) {
+    const messageText = error instanceof Error ? error.message : 'Please try again in a moment.'
+
+    message.error(`Bookmark update failed: ${messageText}`, {
+      duration: 3000,
+    })
+  }
+}
 
 const getProfilePictureThumbnail = (url: string | null): string | undefined => {
   if (!url) return undefined
@@ -36,19 +70,26 @@ const profilePictureThumbnail = computed(() =>
 
 const recruitmentStatusName = computed(() => props.user.recruitment_status_name || '')
 
-const showRecruitButton = computed(() => recruitmentStatusName.value === 'Available')
+const showRecruitButton = computed(
+  () => recruitmentStatusName.value === 'Available' && isAdmin.value,
+)
 
-const showStartChatButton = computed(() => recruitmentStatusName.value === 'Assigned')
+const showStartChatButton = computed(
+  () => recruitmentStatusName.value === 'Assigned' && isAdmin.value,
+)
 
 const showChatKandidatButton = computed(() => {
   const status = recruitmentStatusName.value
-  return status !== 'Available' && status !== 'Assigned'
+  return status !== 'Available' && status !== 'Assigned' && isAdmin.value
 })
 
 const showCancelRecruitmentButton = computed(() => {
   const status = recruitmentStatusName.value
-  return status !== 'Available' && status !== 'Assigned'
+  return status !== 'Available' && status !== 'Assigned' && isAdmin.value
 })
+
+const showAdminBookmarkButton = computed(() => isAdmin.value)
+const showEmployeeBookmarkButton = computed(() => isEmployee.value)
 
 const handleChatKandidat = (): void => {
   router.push(`/admin/candidate-chat/`)
@@ -75,9 +116,27 @@ const handleStartChat = (): void => {
         <n-tag size="small" type="primary" round>{{ recruitmentStatusName }}</n-tag>
       </div>
       <div class="flex items-center gap-2">
-        <n-button style="width: 40px; height: 35px; padding: 0">
+        <n-button v-if="showAdminBookmarkButton" style="width: 40px; height: 35px; padding: 0">
           <CandidateBookmark class="scale-125" :user-id="user.id" />
         </n-button>
+        <button v-if="showEmployeeBookmarkButton" class="flex" @click="toggleBookmark">
+          <div
+            class="cursor-pointer transition-all gap-2 px-4 py-2 w-full relative justify-center items-center flex hover:scale-105 rounded-xs"
+            :class="isBookmarked ? 'border border-primary' : 'bg-primary'"
+          >
+            <div v-if="!isBookmarked" class="flex">
+              <n-icon :component="Bookmark" :size="20" class="text-white transition-colors" />
+            </div>
+            <div v-else class="justify-center items-center flex">
+              <n-icon :component="Checks" :size="20" class="text-primary transition-colors" />
+            </div>
+            <div class="flex justify-center items-center text-white text-sm">
+              <p :class="isBookmarked ? 'text-primary' : 'text-white'">
+                {{ isBookmarked ? 'Disimpan' : 'Simpan' }}
+              </p>
+            </div>
+          </div>
+        </button>
         <!-- Recruit Button - Show only if Available -->
         <n-button v-if="showRecruitButton" type="primary" @click="emit('recruit')">
           <template #icon>

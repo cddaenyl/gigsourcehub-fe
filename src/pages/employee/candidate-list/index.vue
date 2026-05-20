@@ -86,7 +86,7 @@ const tableData = computed<AllCandidates[]>(() => {
 const handleAction = (action: string, candidate: AllCandidates) => {
   switch (action) {
     case 'detail':
-      router.push(`/admin/daftar-kandidat/${candidate.id}`)
+      router.push(`/employee/candidate-list/${candidate.id}`)
       break
     case 'recruit':
       console.log('Recruit candidate:', candidate)

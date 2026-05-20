@@ -162,7 +162,7 @@ const handleSendNote = (payload: { text: string }) => {
       <template #default>
         <div v-if="notesLoading" class="text-xs text-gray-400">Memuat catatan...</div>
         <div v-else-if="notesError" class="text-xs text-red-500">{{ notesError }}</div>
-        <div v-else-if="notes.length">
+        <div v-else-if="notes.length" class="max-h-123">
           <div v-for="noteItem in notes" :key="noteItem.id" class="flex gap-4 rounded-md py-2">
             <div
               class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-sm font-semibold text-gray-100"

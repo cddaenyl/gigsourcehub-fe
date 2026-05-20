@@ -64,7 +64,7 @@ const onKeydown = (e: KeyboardEvent) => {
         </div>
       </slot>
 
-      <div class="flex flex-1 flex-col overflow-y-auto max-h-123 gap-3 pr-1 justify-end-safe">
+      <div class="flex flex-1 flex-col overflow-y-auto gap-3 pr-1 justify-end-safe">
         <slot></slot>
       </div>
 

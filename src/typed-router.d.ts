@@ -170,6 +170,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/employee/candidate-list/[id]': RouteRecordInfo<
+      '/employee/candidate-list/[id]',
+      '/employee/candidate-list/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/employee/my-team/': RouteRecordInfo<
       '/employee/my-team/',
       '/employee/my-team',
@@ -502,6 +509,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/employee/candidate-list/index.vue': {
       routes:
         | '/employee/candidate-list/'
+      views:
+        | never
+    }
+    'src/pages/employee/candidate-list/[id].vue': {
+      routes:
+        | '/employee/candidate-list/[id]'
       views:
         | never
     }

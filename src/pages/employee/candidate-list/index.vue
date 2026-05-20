@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import CandidateSearch from '@/components/CandidateSearch.vue'
 import CandidateTable from '@/components/tables/CandidateTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import { NConfigProvider } from 'naive-ui'
@@ -9,22 +8,12 @@ import { useUsers } from '@/composables/useUsers'
 import { useBookmarkStore } from '@/stores/bookmark.store'
 import type { User } from '@/models/User'
 import type { AllCandidates } from '@/models/Table'
-import { fetchAiModeStatus } from '@/services/system-setting'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import EmployeeTabs from '@/components/EmployeeTabs.vue'
+import SearchInput from '@/components/shared/SearchInput.vue'
 
 const router = useRouter()
-const isAiEnabled = ref(true)
-
-onMounted(async () => {
-  try {
-    const data = await fetchAiModeStatus()
-    isAiEnabled.value = data.is_ai_mode_enabled
-  } catch (err) {
-    console.error('Failed to fetch AI mode status', err)
-  }
-})
-
+const searchValue = ref('')
 const themeOverride = {
   DataTable: {
     thColor: '#F1F5F9',
@@ -124,8 +113,12 @@ const handleSearch = (value: string) => {
       <div class="space-y-6">
         <!-- Top Section -->
         <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-gray-700">Daftar Kandidat</h1>
-          <CandidateSearch @search="handleSearch" :is-ai-enabled="isAiEnabled" />
+          <div>
+            <h1 class="text-2xl font-bold text-gray-700">Daftar Kandidat</h1>
+          </div>
+          <div>
+            <SearchInput v-model="searchValue" placeholder="Cari kandidat" @search="handleSearch" />
+          </div>
         </div>
 
         <!-- Main Content -->

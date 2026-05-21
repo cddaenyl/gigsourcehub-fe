@@ -34,6 +34,7 @@ export interface ConversationResp {
   candidate_user_id: string
   candidate_user_name: string
   candidate_user_profile_picture?: string | null
+  candidate_user_recruitment_status_name?: string
   last_message: MessageResp | null
   unread_count: number
   created_at: string

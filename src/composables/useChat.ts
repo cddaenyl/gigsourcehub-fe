@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { computed } from 'vue'
 import type { Ref } from 'vue'
 import {
   fetchMyConversationsApi,
@@ -29,7 +30,7 @@ export const useConversationDetail = (id: Ref<string | null>) => {
 
 export const useMessages = (id: Ref<string | null>, page: Ref<number>, limit: Ref<number>) => {
   return useQuery({
-    queryKey: ['messages', id, page, limit],
+    queryKey: computed(() => ['messages', id.value, page.value, limit.value]),
     queryFn: () => fetchMessagesApi(id.value!, page.value, limit.value),
     enabled: () => !!id.value,
   })

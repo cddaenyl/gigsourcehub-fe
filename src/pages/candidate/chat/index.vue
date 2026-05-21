@@ -208,6 +208,21 @@ const formatTime = (isoString: string) => {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
+const formatDateDivider = (isoString: string) => {
+  const d = new Date(isoString)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  
+  if (d.toDateString() === today.toDateString()) return 'Today'
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday'
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+const isChatAvailable = computed(() => {
+  return !!activeConversation.value
+})
+
 const formatMessage = (content: string) => {
   if (!content) return ''
   const escapeHtml = (unsafe: string) => {
@@ -253,7 +268,14 @@ const formatMessage = (content: string) => {
             <n-spin size="medium" />
           </div>
           <div v-else class="space-y-6">
-            <template v-for="msg in messages" :key="msg.id">
+            <template v-for="(msg, index) in messages" :key="msg.id">
+              <!-- Date Divider -->
+              <div v-if="index === 0 || new Date(msg.created_at).toDateString() !== new Date(messages[index-1]?.created_at || '').toDateString()" class="flex items-center gap-4 my-8">
+                <div class="flex-1 h-px bg-gray-200"></div>
+                <span class="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm">{{ formatDateDivider(msg.created_at) }}</span>
+                <div class="flex-1 h-px bg-gray-200"></div>
+              </div>
+
               <!-- New Messages Separator -->
               <div v-if="msg.id === firstUnreadId" class="flex items-center gap-4 my-8">
                 <div class="flex-1 h-px bg-gray-200"></div>
@@ -336,14 +358,15 @@ const formatMessage = (content: string) => {
           </div>
           <div class="p-6">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors shrink-0">
+              <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors shrink-0" :class="{ 'opacity-50 pointer-events-none': !isChatAvailable }">
                 <n-icon size="24"><FilePlus /></n-icon>
               </div>
               <n-input 
                 v-model:value="messageInput" 
                 type="textarea" 
                 :autosize="{ minRows: 1, maxRows: 5 }"
-                placeholder="Type here..." 
+                :placeholder="'Type here...'" 
+                :disabled="!isChatAvailable"
                 size="large"
                 class="flex-1 bg-gray-50 text-base !rounded-xl"
                 @input="handleTyping"
@@ -351,7 +374,7 @@ const formatMessage = (content: string) => {
               />
             <div 
               class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-sm shrink-0"
-              :class="messageInput.trim() ? 'bg-primary text-white hover:opacity-90' : 'bg-gray-200 text-gray-400 pointer-events-none'"
+              :class="messageInput.trim() && isChatAvailable ? 'bg-primary text-white hover:opacity-90' : 'bg-gray-200 text-gray-400 pointer-events-none'"
               @click="sendMessage"
             >
               <n-icon size="20"><Send /></n-icon>

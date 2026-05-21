@@ -268,6 +268,27 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/superadmin/interview-stages/': RouteRecordInfo<
+      '/superadmin/interview-stages/',
+      '/superadmin/interview-stages',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/interview-stages/create': RouteRecordInfo<
+      '/superadmin/interview-stages/create',
+      '/superadmin/interview-stages/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/interview-stages/edit/[id]': RouteRecordInfo<
+      '/superadmin/interview-stages/edit/[id]',
+      '/superadmin/interview-stages/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/superadmin/jabatan/': RouteRecordInfo<
       '/superadmin/jabatan/',
       '/superadmin/jabatan',
@@ -593,6 +614,24 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/bidang/edit/[id].vue': {
       routes:
         | '/superadmin/bidang/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/interview-stages/index.vue': {
+      routes:
+        | '/superadmin/interview-stages/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/interview-stages/create.vue': {
+      routes:
+        | '/superadmin/interview-stages/create'
+      views:
+        | never
+    }
+    'src/pages/superadmin/interview-stages/edit/[id].vue': {
+      routes:
+        | '/superadmin/interview-stages/edit/[id]'
       views:
         | never
     }

@@ -46,6 +46,10 @@ const menuOptions: MenuOption[] = [
         label: 'Status Rekrutmen',
         key: 'status-rekrutmen',
       },
+      {
+        label: 'Tahap Interview',
+        key: 'interview-stages',
+      },
     ],
   },
   {

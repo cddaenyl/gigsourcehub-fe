@@ -60,8 +60,14 @@ export const useSidebarStore = defineStore('sidebar', {
         this.activeKey = 'talent-needs'
       } else if (cleanPath.startsWith('candidate-list')) {
         this.activeKey = 'candidate-list'
-      } else if (cleanPath.startsWith('bidang')) {
-        this.activeKey = 'bidang'
+      } else if (
+        cleanPath.startsWith('bidang') ||
+        cleanPath.startsWith('posisi') ||
+        cleanPath.startsWith('jabatan') ||
+        cleanPath.startsWith('status-rekrutmen') ||
+        cleanPath.startsWith('interview-stages')
+      ) {
+        this.activeKey = cleanPath.split('/')[0] || null
         if (!this.expandedKeys.includes('master-data')) {
           this.expandedKeys.push('master-data')
         }

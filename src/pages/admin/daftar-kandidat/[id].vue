@@ -482,9 +482,9 @@ const handleAssignCandidate = async (): Promise<void> => {
             Catatan: Tombol Simpan akan dinonaktifkan jika kombinasi kandidat dan subrequest ini
             sudah pernah di-assign pada sesi ini.
           </p> -->
-          <p v-if="isDuplicateAssignment" class="text-sm text-amber-600">
+          <!-- <p v-if="isDuplicateAssignment" class="text-sm text-amber-600">
             Kandidat ini sudah di-assign ke posisi terpilih pada. Pilih posisi lain.
-          </p>
+          </p> -->
         </n-space>
 
         <div class="-mx-6 -mb-6 bg-slate-100 px-6 py-5">
@@ -509,23 +509,23 @@ const handleAssignCandidate = async (): Promise<void> => {
       :bordered="false"
       :close-on-esc="false"
       :mask-closable="false"
-      style="width: 40rem"
+      style="width: 30rem"
     >
-      <div class="">
-        <div>
-          <h2 class="text-lg font-semibold text-gray-800 -mt-8">Kandidat Berhasil di Assign</h2>
+      <div class="flex flex-col">
+        <div class="flex justify-center items-center">
+          <h2 class="text-lg font-semibold text-gray-800 -mt-8">Kandidat Berhasil di-Assign</h2>
         </div>
 
-        <p class="text-sm text-slate-600 mt-4 mb-6">
-          Kandidat siap untuk memulai proses onboarding. Apakah Anda ingin memulai percakapan dengan
-          kandidat?
-        </p>
-
-        <div class="mb-6 rounded-md bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <div class="flex flex-col text-center mb-6 rounded-md px-4 py-3 text-sm text-slate-600">
+          <p class="text-sm text-slate-600">Kandidat telah dihubungkan ke permintaan</p>
           <p v-if="isActiveSubrequestLoading">Memuat subrequest aktif...</p>
-          <p v-else-if="activeSubrequest">
-            Subrequest aktif: {{ activeSubrequest.project_name }} - {{ activeSubrequest.job_role }}
-          </p>
+          <div v-else-if="activeSubrequest" class="font-medium text-primary">
+            {{ activeSubrequest.project_name }} - {{ activeSubrequest.job_role }} <br />
+            <br />
+            <h2 class="font-normal text-sm text-slate-600">
+              Silahkan hubungi kandidat untuk memulai proses rekrutmen kandidat melalui fitur chat.
+            </h2>
+          </div>
           <p v-else class="text-amber-600">Subrequest aktif belum ditemukan untuk kandidat ini.</p>
         </div>
 

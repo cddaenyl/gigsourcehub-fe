@@ -296,16 +296,14 @@ const handleStartChatConfirm = async (): Promise<void> => {
   }
 
   try {
-    await startChat({
+    const result = await startChat({
       candidate_user_id: user.value.id,
       subrequest_id: selectedSubrequestId.value,
     })
 
-    message.success('Chat dimulai dengan kandidat.', { duration: 2000 })
     chatModalVisible.value = false
-
-    // Refetch to get updated status
-    await Promise.all([refetchUser(), refetchMyRequests()])
+    // Navigate directly to the chat room
+    router.push({ path: '/admin/candidate-chat', query: { conversation_id: result.data.id } })
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal memulai chat dengan kandidat.'
     message.error(messageText, { duration: 3000 })

@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
 import { NInput, NAvatar, NBadge, NSpin, NEmpty, NIcon, NTag, useMessage } from 'naive-ui'
-import { Search, Send, FilePlus, Copy, User, Eye, Message, ArrowBackUp, X } from '@vicons/tabler'
+import { Search, Send, FilePlus, Copy, User, Eye, Message, ArrowBackUp, X, Clock } from '@vicons/tabler'
 import type { ConversationResp, MessageResp } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
 const router = useRouter()
+const route = useRoute()
 const naiveMessage = useMessage()
 
 // Local state
@@ -25,6 +26,8 @@ const searchQuery = ref('')
 const activeTab = ref('All')
 const replyingTo = ref<MessageResp | null>(null)
 const firstUnreadId = ref<string | null>(null)
+const pendingMessages = ref<Array<MessageResp & { _pending: true }>>([])  
+let _tempIdCounter = 0
 
 // Composables
 const { data: conversationsData, isLoading: isLoadingConversations } = useConversations(page, limit)
@@ -37,7 +40,10 @@ const { incomingMessage, readReceipt, typingStatus, sendTyping } = useChatWebSoc
 const conversations = computed(() => conversationsData.value?.data.list || [])
 const messages = computed(() => {
   // Sort messages oldest first for display
-  return [...(messagesData.value?.data.list || [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  const confirmed = [...(messagesData.value?.data.list || [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  // Append pending messages that haven't been confirmed yet
+  const pending = pendingMessages.value.filter(pm => !confirmed.some(m => m.content === pm.content && m.sender_user_id === pm.sender_user_id))
+  return [...confirmed, ...pending] as Array<MessageResp & { _pending?: true }>
 })
 
 const lastReadMsgId = computed(() => {
@@ -120,12 +126,12 @@ watch(incomingMessage, (msg) => {
   if (msg.conversation_id === selectedConversationId.value) {
     // Optimistic update of messages cache
     queryClient.setQueryData(['messages', msg.conversation_id, 1, 100], (oldData: any) => {
-      if (!oldData) return oldData
+      const newList = oldData?.data?.list ?? []
       return {
-        ...oldData,
+        ...(oldData ?? {}),
         data: {
-          ...oldData.data,
-          list: [msg, ...oldData.data.list]
+          ...(oldData?.data ?? {}),
+          list: [msg, ...newList]
         }
       }
     })
@@ -174,7 +180,23 @@ const handleTyping = () => {
 
 const selectConversation = (id: string) => {
   selectedConversationId.value = id
+  router.replace({ query: { ...route.query, conversation_id: id } })
 }
+
+// Restore selected conversation from URL on mount
+onMounted(() => {
+  const qId = route.query.conversation_id
+  if (typeof qId === 'string' && qId) {
+    selectedConversationId.value = qId
+  }
+})
+
+// Also react if the query changes externally (e.g. browser back/forward)
+watch(() => route.query.conversation_id, (qId) => {
+  if (typeof qId === 'string' && qId && qId !== selectedConversationId.value) {
+    selectedConversationId.value = qId
+  }
+})
 
 const copyName = async () => {
   if (activeConversation.value?.candidate_user_name) {
@@ -199,22 +221,45 @@ const sendMessage = () => {
   
   const content = messageInput.value
   const replyToId = replyingTo.value?.id
+  const convId = selectedConversationId.value
   
   messageInput.value = ''
   replyingTo.value = null
+
+  // Add optimistic pending message immediately
+  const tempId = `pending-${++_tempIdCounter}`
+  const optimisticMsg = {
+    id: tempId,
+    conversation_id: convId,
+    sender_user_id: authStore.user?.id ?? '',
+    sender_name: authStore.user?.name ?? '',
+    content,
+    reply_to_message_id: replyToId ?? null,
+    reply_to: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    read_at: null,
+    file_url: null,
+    _pending: true as const,
+  }
+  pendingMessages.value.push(optimisticMsg as any)
+  scrollToBottom()
   
   sendMessageMutation.mutate(
-    { id: selectedConversationId.value, payload: { content, reply_to_message_id: replyToId } },
+    { id: convId, payload: { content, reply_to_message_id: replyToId } },
     {
       onSuccess: (res) => {
-        // Optimistically add to list
-        queryClient.setQueryData(['messages', selectedConversationId.value, 1, 100], (oldData: any) => {
-          if (!oldData) return oldData
+        // Remove pending
+        pendingMessages.value = pendingMessages.value.filter(m => m.id !== tempId)
+
+        // Add confirmed message to cache
+        queryClient.setQueryData(['messages', convId, 1, 100], (oldData: any) => {
+          const newList = oldData?.data?.list ?? []
           return {
-            ...oldData,
+            ...(oldData ?? {}),
             data: {
-              ...oldData.data,
-              list: [res.data, ...oldData.data.list]
+              ...(oldData?.data ?? {}),
+              list: [res.data, ...newList]
             }
           }
         })
@@ -223,13 +268,17 @@ const sendMessage = () => {
         queryClient.setQueryData(['conversations', page.value, limit.value], (oldData: any) => {
           if (!oldData) return oldData
           const newList = oldData.data.list.map((c: ConversationResp) => {
-            if (c.id === selectedConversationId.value) {
+            if (c.id === convId) {
               return { ...c, last_message: res.data }
             }
             return c
           })
           return { ...oldData, data: { ...oldData.data, list: newList } }
         })
+      },
+      onError: () => {
+        // Remove pending on failure too
+        pendingMessages.value = pendingMessages.value.filter(m => m.id !== tempId)
       }
     }
   )
@@ -268,6 +317,21 @@ const formatTime = (isoString: string) => {
   const d = new Date(isoString)
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 }
+
+const formatDateDivider = (isoString: string) => {
+  const d = new Date(isoString)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  
+  if (d.toDateString() === today.toDateString()) return 'Today'
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday'
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+const isChatAvailable = computed(() => {
+  return !!activeConversation.value
+})
 
 const formatMessage = (content: string) => {
   if (!content) return ''
@@ -334,8 +398,12 @@ const isUnread = (c: ConversationResp) => {
               @click="selectConversation(conv.id)"
             >
               <div class="flex items-start gap-3">
-                <n-avatar round :size="48" :src="getThumbUrl(conv.candidate_user_profile_picture) || undefined">
-                  <template #fallback><n-icon><User /></n-icon></template>
+                <n-avatar round :size="48" :src="getThumbUrl(conv.candidate_user_profile_picture) || undefined"
+                  :style="!conv.candidate_user_profile_picture ? 'background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 700; font-size: 18px;' : ''"
+                >
+                  <template #fallback>
+                    {{ conv.candidate_user_name?.charAt(0)?.toUpperCase() || '?' }}
+                  </template>
                 </n-avatar>
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-baseline mb-1">
@@ -365,8 +433,12 @@ const isUnread = (c: ConversationResp) => {
           <!-- Chat Header -->
           <div class="h-16 border-b border-gray-200 px-6 flex justify-between items-center bg-white shrink-0">
             <div class="flex items-center gap-4">
-              <n-avatar round :size="40" :src="getThumbUrl(activeConversation.candidate_user_profile_picture) || undefined">
-                <template #fallback><n-icon><User /></n-icon></template>
+              <n-avatar round :size="40" :src="getThumbUrl(activeConversation.candidate_user_profile_picture) || undefined"
+                :style="!activeConversation.candidate_user_profile_picture ? 'background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 700; font-size: 16px;' : ''"
+              >
+                <template #fallback>
+                  {{ activeConversation.candidate_user_name?.charAt(0)?.toUpperCase() || '?' }}
+                </template>
               </n-avatar>
               <div>
                 <h3 class="font-semibold text-gray-900">{{ activeConversation.candidate_user_name }}</h3>
@@ -384,7 +456,14 @@ const isUnread = (c: ConversationResp) => {
               <n-spin size="medium" />
             </div>
             <div v-else class="space-y-6">
-              <template v-for="msg in messages" :key="msg.id">
+              <template v-for="(msg, index) in messages" :key="msg.id">
+                <!-- Date Divider -->
+                <div v-if="index === 0 || new Date(msg.created_at).toDateString() !== new Date(messages[index-1]?.created_at || '').toDateString()" class="flex items-center gap-4 my-8">
+                  <div class="flex-1 h-px bg-gray-200"></div>
+                  <span class="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm">{{ formatDateDivider(msg.created_at) }}</span>
+                  <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
+
                 <!-- New Messages Separator -->
                 <div v-if="msg.id === firstUnreadId" class="flex items-center gap-4 my-8">
                   <div class="flex-1 h-px bg-gray-200"></div>
@@ -419,7 +498,12 @@ const isUnread = (c: ConversationResp) => {
                       
                       <!-- Inline Timestamp -->
                       <div class="absolute bottom-1 right-2 flex items-center gap-1">
-                        <span class="text-[10px] opacity-50 font-medium">{{ formatTime(msg.created_at) }}</span>
+                        <template v-if="(msg as any)._pending">
+                          <n-icon size="11" class="opacity-40"><Clock /></n-icon>
+                        </template>
+                        <template v-else>
+                          <span class="text-[10px] opacity-50 font-medium">{{ formatTime(msg.created_at) }}</span>
+                        </template>
                       </div>
                     </div>
                   </div>
@@ -465,30 +549,31 @@ const isUnread = (c: ConversationResp) => {
                 <span class="text-[11px] text-gray-400 font-medium italic">Typing...</span>
               </template>
             </div>
-            <div class="p-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors shrink-0">
-                  <n-icon size="20"><FilePlus /></n-icon>
+            <div class="p-6">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors shrink-0" :class="{ 'opacity-50 pointer-events-none': !isChatAvailable }">
+                  <n-icon size="24"><FilePlus /></n-icon>
                 </div>
                 <n-input 
                   v-model:value="messageInput" 
                   type="textarea" 
                   :autosize="{ minRows: 1, maxRows: 5 }"
-                  placeholder="Type here..." 
+                  :placeholder="'Type here...'" 
+                  :disabled="!isChatAvailable"
                   size="large"
-                  class="flex-1 bg-gray-50 !rounded-xl"
+                  class="flex-1 bg-gray-50 text-base !rounded-xl"
                   @input="handleTyping"
                   @keydown.enter="handleEnter"
                 />
               <div 
-                class="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-colors shrink-0"
-                :class="messageInput.trim() ? 'bg-[#0A1A5C] text-white hover:bg-blue-800' : 'bg-gray-200 text-gray-400 pointer-events-none'"
+                class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-sm shrink-0"
+                :class="messageInput.trim() && isChatAvailable ? 'bg-primary text-white hover:opacity-90' : 'bg-gray-200 text-gray-400 pointer-events-none'"
                 @click="sendMessage"
               >
-                <n-icon size="18"><Send /></n-icon>
+                <n-icon size="20"><Send /></n-icon>
+              </div>
               </div>
             </div>
-          </div>
           </div>
         </template>
         

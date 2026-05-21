@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios'
 import type {
+  ActiveSubrequestResponse,
   UsersResponse,
   UsersQueryParams,
   UserResponse,
@@ -33,6 +34,18 @@ export const getAllUsersApi = async (params: UsersQueryParams = {}): Promise<Use
 export const getUserByIdApi = async (id: string): Promise<UserResponse> => {
   try {
     const response = await axios.get<UserResponse>(`/users/${id}`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const getActiveSubrequestApi = async (id: string): Promise<ActiveSubrequestResponse> => {
+  try {
+    const response = await axios.get<ActiveSubrequestResponse>(`/users/${id}/active-subrequest`)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {

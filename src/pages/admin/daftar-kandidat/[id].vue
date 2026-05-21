@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
+import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
 import { useAdminMyRequests, useAssignCandidateToSubrequest } from '@/composables/useRequest'
 import { useStartChat } from '@/composables/useChat'
 import AdminLayout from '@/layouts/AdminLayout.vue'
@@ -18,6 +19,7 @@ import {
   NModal,
   NSelect,
   NSpace,
+  NIcon,
   useMessage,
   type SelectOption,
 } from 'naive-ui'
@@ -25,6 +27,7 @@ import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
 import type { UserRecruitmentStatusPayload } from '@/models/User'
 import type { RequestQueryParams } from '@/models/Request'
 import { useCandidateNotesStore } from '@/stores/notes.store'
+import { Alarm, Checkbox } from '@vicons/tabler'
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
@@ -53,7 +56,7 @@ const levelOptions: SelectOption[] = [
   },
   {
     label: 'In-Eligible',
-    value: 'In-Eligible',
+    value: 'Ineligible',
   },
 ]
 
@@ -79,6 +82,11 @@ const {
   cancelRecruitment,
   isCancellingRecruitment,
 } = useUser(userId)
+const {
+  activeSubrequest,
+  isLoading: isActiveSubrequestLoading,
+  refetch: refetchActiveSubrequest,
+} = useActiveSubrequest(userId)
 
 const recruitModalVisible = ref(false)
 const chatModalVisible = ref(false)
@@ -269,7 +277,7 @@ const closeRecruitModal = (): void => {
 
 const closeChatModal = (): void => {
   chatModalVisible.value = false
-  void Promise.all([refetchUser(), refetchMyRequests()])
+  void Promise.all([refetchUser(), refetchMyRequests(), refetchActiveSubrequest()])
 }
 
 const closeCancelRecruitmentModal = (): void => {
@@ -283,7 +291,7 @@ const handleConfirmCancelRecruitment = async (): Promise<void> => {
     await cancelRecruitment()
     message.success('Rekrutmen kandidat berhasil dibatalkan.', { duration: 2000 })
     cancelRecruitmentModalVisible.value = false
-    await Promise.all([refetchUser(), refetchMyRequests()])
+    await Promise.all([refetchUser(), refetchMyRequests(), refetchActiveSubrequest()])
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal membatalkan rekrutmen.'
     message.error(messageText, { duration: 3000 })
@@ -291,14 +299,25 @@ const handleConfirmCancelRecruitment = async (): Promise<void> => {
 }
 
 const handleStartChatConfirm = async (): Promise<void> => {
-  if (!user.value?.id || !selectedSubrequestId.value) {
+  if (!user.value?.id) {
+    return
+  }
+
+  const latestActiveSubrequest = await refetchActiveSubrequest()
+  const activeSubrequestId =
+    latestActiveSubrequest.data?.data?.subrequest_id ?? activeSubrequest.value?.subrequest_id
+
+  if (!activeSubrequestId) {
+    message.error('Subrequest aktif belum tersedia. Pastikan kandidat sudah di-assign.', {
+      duration: 3000,
+    })
     return
   }
 
   try {
     const result = await startChat({
       candidate_user_id: user.value.id,
-      subrequest_id: selectedSubrequestId.value,
+      subrequest_id: activeSubrequestId,
     })
 
     chatModalVisible.value = false
@@ -340,6 +359,7 @@ const handleAssignCandidate = async (): Promise<void> => {
     // Close recruit modal and show chat modal
     recruitModalVisible.value = false
     message.success('Kandidat berhasil di-assign ke permintaan.')
+    await Promise.all([refetchUser(), refetchMyRequests(), refetchActiveSubrequest()])
     chatModalVisible.value = true
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal meng-assign kandidat.'
@@ -367,14 +387,34 @@ const handleAssignCandidate = async (): Promise<void> => {
       </div>
 
       <!-- Content -->
-      <div v-else-if="user" class="space-y-6">
+      <div v-else-if="user" class="space-y-2">
         <CandidateProfileCard
           :user="user"
           @recruit="handleRecruit"
           @start-chat="handleStartChat"
           @cancel-recruitment="handleCancelRecruitmentClick"
         />
-
+        <div
+          v-if="activeSubrequest"
+          class="flex text-primary border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
+        >
+          <n-icon size="14" :component="Checkbox" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            Dalam Proses Rekrutmen
+            <span class="font-semibold"
+              >{{ activeSubrequest?.project_name }} - {{ activeSubrequest?.job_role }}</span
+            >
+          </h2>
+        </div>
+        <div
+          v-else-if="!activeSubrequest"
+          class="flex text-slate-500 border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
+        >
+          <n-icon size="14" :component="Alarm" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            Belum direkrut untuk posisi atau proyek apa pun.
+          </h2>
+        </div>
         <n-grid :x-gap="8" :cols="2" item-responsive>
           <n-gi>
             <CandidateInfoCard :user="user" />
@@ -481,10 +521,23 @@ const handleAssignCandidate = async (): Promise<void> => {
           kandidat?
         </p>
 
+        <div class="mb-6 rounded-md bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <p v-if="isActiveSubrequestLoading">Memuat subrequest aktif...</p>
+          <p v-else-if="activeSubrequest">
+            Subrequest aktif: {{ activeSubrequest.project_name }} - {{ activeSubrequest.job_role }}
+          </p>
+          <p v-else class="text-amber-600">Subrequest aktif belum ditemukan untuk kandidat ini.</p>
+        </div>
+
         <div class="-mx-6 -mb-6 bg-slate-100 px-6 py-5">
           <div class="flex justify-center gap-3">
             <n-button secondary @click="closeChatModal">Batal</n-button>
-            <n-button type="primary" :loading="isStartingChat" @click="handleStartChatConfirm">
+            <n-button
+              type="primary"
+              :loading="isStartingChat || isActiveSubrequestLoading"
+              :disabled="!activeSubrequest && !isActiveSubrequestLoading"
+              @click="handleStartChatConfirm"
+            >
               Mulai Chat
             </n-button>
           </div>

@@ -67,6 +67,20 @@ export interface UserResponse {
   data: User
 }
 
+export interface ActiveSubrequest {
+  subrequest_id: string
+  request_id: string
+  project_name: string
+  job_role: string
+}
+
+export interface ActiveSubrequestResponse {
+  status: number
+  message: string
+  validation: null | unknown
+  data: ActiveSubrequest | null
+}
+
 export interface UsersQueryParams {
   page?: number
   limit?: number

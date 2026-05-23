@@ -86,6 +86,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/landing-page/faq/': RouteRecordInfo<
+      '/admin/landing-page/faq/',
+      '/admin/landing-page/faq',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/landing-page/informasi-perusahaan/': RouteRecordInfo<
+      '/admin/landing-page/informasi-perusahaan/',
+      '/admin/landing-page/informasi-perusahaan',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/lowongan/': RouteRecordInfo<
       '/admin/lowongan/',
       '/admin/lowongan',
@@ -437,6 +451,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/landing-page/index.vue': {
       routes:
         | '/admin/landing-page/'
+      views:
+        | never
+    }
+    'src/pages/admin/landing-page/faq/index.vue': {
+      routes:
+        | '/admin/landing-page/faq/'
+      views:
+        | never
+    }
+    'src/pages/admin/landing-page/informasi-perusahaan/index.vue': {
+      routes:
+        | '/admin/landing-page/informasi-perusahaan/'
       views:
         | never
     }

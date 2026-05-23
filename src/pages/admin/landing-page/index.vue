@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import { useRouter } from 'vue-router'
+
+// Redirect to the FAQ tab as default
+const router = useRouter()
+router.replace('/admin/landing-page/faq')
 </script>
 
 <template>
-  <AdminLayout>
-    <h1 class="text-2xl font-bold mb-4">Konten Landing Page</h1>
-    <p class="text-gray-600">Halaman ini masih dalam pengembangan. Mohon bersabar!</p>
-  </AdminLayout>
+  <!-- Redirecting... -->
 </template>

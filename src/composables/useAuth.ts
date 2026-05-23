@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { forgotPasswordApi, loginApi, meApi, registerApi, resetPasswordApi, verifyAccountApi } from '@/services/auth.service'
+import { forgotPasswordApi, loginApi, logoutApi, meApi, registerApi, resetPasswordApi, verifyAccountApi } from '@/services/auth.service'
 import type { LoginPayload, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload } from '@/models/Auth'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRouter } from 'vue-router'
@@ -48,10 +48,16 @@ export function useLogout() {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const logout = () => {
-    authStore.logout()
-    queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY })
-    router.push('/login')
+  const logout = async () => {
+    try {
+      await logoutApi()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    } finally {
+      authStore.logout()
+      queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY })
+      router.push('/login')
+    }
   }
 
   return logout

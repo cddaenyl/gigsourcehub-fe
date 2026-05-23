@@ -68,3 +68,42 @@ export const deleteFAQApi = async (id: string): Promise<{ status: number; messag
     throw error
   }
 }
+
+export const getFAQApprovalsApi = async (params: Record<string, unknown> = {}): Promise<any> => {
+  try {
+    const response = await axios.get('/faqs/approvals', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const approveFAQApi = async (id: string): Promise<any> => {
+  try {
+    const response = await axios.post(`/faqs/approvals/${id}/approve`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const rejectFAQApi = async (id: string, reason: string): Promise<any> => {
+  try {
+    const response = await axios.post(`/faqs/approvals/${id}/reject`, {
+      rejected_reason: reason,
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+

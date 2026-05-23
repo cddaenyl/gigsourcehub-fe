@@ -254,6 +254,27 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/superadmin/approval/': RouteRecordInfo<
+      '/superadmin/approval/',
+      '/superadmin/approval',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/approval/faq/': RouteRecordInfo<
+      '/superadmin/approval/faq/',
+      '/superadmin/approval/faq',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/approval/informasi-perusahaan/': RouteRecordInfo<
+      '/superadmin/approval/informasi-perusahaan/',
+      '/superadmin/approval/informasi-perusahaan',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/superadmin/audit-log/': RouteRecordInfo<
       '/superadmin/audit-log/',
       '/superadmin/audit-log',
@@ -616,6 +637,24 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/index.vue': {
       routes:
         | '/superadmin/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/approval/index.vue': {
+      routes:
+        | '/superadmin/approval/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/approval/faq/index.vue': {
+      routes:
+        | '/superadmin/approval/faq/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/approval/informasi-perusahaan/index.vue': {
+      routes:
+        | '/superadmin/approval/informasi-perusahaan/'
       views:
         | never
     }

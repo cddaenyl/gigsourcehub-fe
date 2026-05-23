@@ -72,3 +72,15 @@ export const verifyAccountApi = async (token: string) => {
     throw error
   }
 }
+
+export const logoutApi = async () => {
+  try {
+    const response = await axios.post('/auth/logout')
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

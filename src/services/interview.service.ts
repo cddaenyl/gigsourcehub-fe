@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios'
 import type {
+  CreateInterviewPayload,
   InterviewSchedulePatchPayload,
   InterviewScheduleQueryParams,
   InterviewScheduleResponse,
@@ -54,6 +55,20 @@ export const patchInterviewStatusApi = async (
 ): Promise<InterviewScheduleResponse> => {
   try {
     const response = await axios.patch<InterviewScheduleResponse>('/interview/status', payload)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const createInterviewApi = async (
+  payload: CreateInterviewPayload,
+): Promise<InterviewScheduleResponse> => {
+  try {
+    const response = await axios.post<InterviewScheduleResponse>('/interview', payload)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {

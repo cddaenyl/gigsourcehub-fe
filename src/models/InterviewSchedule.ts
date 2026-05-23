@@ -71,3 +71,15 @@ export interface InterviewSchedulePatchPayload {
   stage_id: string
   status: string
 }
+
+export interface CreateInterviewPayload {
+  candidate_user_id: string
+  description: string
+  meeting_link: string
+  meeting_location: string
+  method: string
+  scheduled_at: string
+  stage_id: string
+  subrequest_id: string
+  title: string
+}

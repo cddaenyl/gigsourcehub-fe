@@ -1,7 +1,15 @@
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery } from '@tanstack/vue-query'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
-import { getInterviewsApi, getScheduledInterviewsApi } from '@/services/interview.service'
-import type { InterviewScheduleQueryParams, InterviewScheduleTab } from '@/models/InterviewSchedule'
+import {
+  createInterviewApi,
+  getInterviewsApi,
+  getScheduledInterviewsApi,
+} from '@/services/interview.service'
+import type {
+  CreateInterviewPayload,
+  InterviewScheduleQueryParams,
+  InterviewScheduleTab,
+} from '@/models/InterviewSchedule'
 
 export function useInterviewsByTab(
   params: MaybeRefOrGetter<InterviewScheduleQueryParams> = {},
@@ -35,4 +43,12 @@ export function useInterviewsByTab(
     pagination,
     pageCount,
   }
+}
+
+export function useCreateInterview() {
+  return useMutation({
+    mutationFn: async (payload: CreateInterviewPayload) => {
+      return createInterviewApi(payload)
+    },
+  })
 }

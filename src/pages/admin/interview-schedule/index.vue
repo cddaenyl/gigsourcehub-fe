@@ -27,7 +27,6 @@ const themeOverride = {
     thColor: '#F1F5F9',
     thTextColor: '#64748B',
     thFontWeight: '600',
-    fontSizeMedium: '12px',
     tdColor: '#FFFFFF',
     tdColorHover: '#F1F5F9',
     tdColorStriped: '#F8FAFC',

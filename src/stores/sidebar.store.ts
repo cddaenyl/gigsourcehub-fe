@@ -71,6 +71,11 @@ export const useSidebarStore = defineStore('sidebar', {
         if (!this.expandedKeys.includes('master-data')) {
           this.expandedKeys.push('master-data')
         }
+      } else if (cleanPath.startsWith('approval')) {
+        this.activeKey = 'approval'
+        if (!this.expandedKeys.includes('cms')) {
+          this.expandedKeys.push('cms')
+        }
       } else {
         // For top-level routes
         const firstSegment = cleanPath.split('/')[0]

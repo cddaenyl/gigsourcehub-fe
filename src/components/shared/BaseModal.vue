@@ -65,6 +65,12 @@ const handleClose = () => {
   max-height: 90vh;
 }
 
+.modal-content {
+  max-height: calc(90vh - 160px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 :deep(.n-card-header) {
   border-bottom: 1px solid #f3f4f6;
   padding-bottom: 1rem;

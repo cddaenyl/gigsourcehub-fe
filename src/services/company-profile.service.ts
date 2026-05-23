@@ -41,3 +41,42 @@ export const cancelCompanyProfileApprovalApi = async (id: string): Promise<{ sta
     throw error
   }
 }
+
+export const getCompanyProfileApprovalsApi = async (params: Record<string, unknown> = {}): Promise<any> => {
+  try {
+    const response = await axios.get('/company-profile/approvals', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const approveCompanyProfileApi = async (id: string): Promise<any> => {
+  try {
+    const response = await axios.post(`/company-profile/approvals/${id}/approve`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const rejectCompanyProfileApi = async (id: string, reason: string): Promise<any> => {
+  try {
+    const response = await axios.post(`/company-profile/approvals/${id}/reject`, {
+      rejected_reason: reason,
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+

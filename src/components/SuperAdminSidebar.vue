@@ -56,6 +56,12 @@ const menuOptions: MenuOption[] = [
     label: 'CMS',
     key: 'cms',
     icon: renderIcon(LayoutBoard),
+    children: [
+      {
+        label: `Approval`,
+        key: `approval`,
+      }
+    ]
   },
   {
     label: 'System Settings',

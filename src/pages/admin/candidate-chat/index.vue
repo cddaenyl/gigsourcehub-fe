@@ -597,11 +597,6 @@ const interviewRules: FormRules = {
     message: 'Judul interview wajib diisi',
     trigger: ['input', 'blur'],
   },
-  scheduled_at: {
-    required: true,
-    message: 'Waktu interview wajib dipilih',
-    trigger: ['change', 'blur'],
-  },
   meeting_link: {
     validator: () => {
       if (interviewForm.method !== 'Online') {

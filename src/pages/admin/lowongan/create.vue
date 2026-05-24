@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   NForm,
@@ -18,6 +18,8 @@ import { ChevronLeft } from '@vicons/tabler'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { createJobVacancyApi } from '@/services/job-vacancy.service'
 import type { JobVacancySchema } from '@/models/JobVacancy'
+import { getAdminRequestsApi } from '@/services/request.service'
+import type { RequestItem } from '@/models/Request'
 
 const router = useRouter()
 const message = useMessage()
@@ -45,6 +47,81 @@ const rules: FormRules = {
     trigger: 'blur',
   },
 }
+
+const selectedRequestId = ref<string | null>(null)
+const requests = ref<RequestItem[]>([])
+
+onMounted(async () => {
+  try {
+    const res = await getAdminRequestsApi({ limit: 1000 })
+    requests.value = res.data.list
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Gagal mengambil data request'
+    message.error(msg)
+  }
+})
+
+const activeRequests = computed(() => {
+  const todayStr = new Date().toISOString().substring(0, 10)
+  return requests.value.filter((req) => {
+    const dateOnly = req.due_date ? req.due_date.substring(0, 10) : ''
+    return dateOnly >= todayStr
+  })
+})
+
+const requestOptions = computed(() => {
+  return activeRequests.value.map((req) => ({
+    label: `${req.project_name} (Due: ${new Date(req.due_date).toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })})`,
+    value: req.id,
+  }))
+})
+
+const selectedRequest = computed(() => {
+  return requests.value.find((req) => req.id === selectedRequestId.value)
+})
+
+const subrequestOptions = computed(() => {
+  if (!selectedRequest.value) return []
+  return selectedRequest.value.subrequests.map((sub) => {
+    const roleAndLevel = sub.level ? `${sub.job_role} - ${sub.level}` : sub.job_role
+    const label = sub.is_filled ? `${roleAndLevel} (Filled)` : roleAndLevel
+    return {
+      label,
+      value: sub.id,
+      disabled: sub.is_filled === true,
+    }
+  })
+})
+
+watch(selectedRequestId, () => {
+  formData.subrequest_id = ''
+})
+
+watch(
+  () => formData.subrequest_id,
+  (newVal) => {
+    if (!newVal) {
+      formData.name = ''
+      formData.overview = ''
+      formData.description = ''
+      formData.takedown_date = null
+      return
+    }
+    const sub = selectedRequest.value?.subrequests.find((s) => s.id === newVal)
+    if (sub) {
+      formData.name = [sub.job_role, sub.level].filter(Boolean).join(' ')
+      formData.overview = sub.overview || ''
+      formData.description = sub.notes || ''
+      if (selectedRequest.value?.due_date) {
+        formData.takedown_date = new Date(selectedRequest.value.due_date).getTime()
+      }
+    }
+  },
+)
 
 const isFormReady = computed(
   () => formData.subrequest_id.trim() !== '' && formData.name.trim() !== '',
@@ -127,11 +204,25 @@ const themeOverride = {
             :bordered="false"
             class="rounded-xl shadow-sm mb-4"
           >
-            <div class="space-y-4">
-              <n-form-item label="Subrequest ID" path="subrequest_id">
-                <n-input
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <n-form-item label="Pilih Request" required>
+                <n-select
+                  v-model:value="selectedRequestId"
+                  :options="requestOptions"
+                  placeholder="Pilih Request Proyek"
+                  filterable
+                  clearable
+                />
+              </n-form-item>
+
+              <n-form-item label="Pilih Subrequest" path="subrequest_id">
+                <n-select
                   v-model:value="formData.subrequest_id"
-                  placeholder="Masukkan UUID subrequest (akan diganti dropdown nanti)"
+                  :options="subrequestOptions"
+                  placeholder="Pilih Subrequest (Kebutuhan Posisi)"
+                  :disabled="!selectedRequestId"
+                  filterable
+                  clearable
                 />
               </n-form-item>
             </div>

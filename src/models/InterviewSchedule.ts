@@ -60,6 +60,13 @@ export interface InterviewScheduleResponse {
   data: InterviewScheduleListData
 }
 
+export interface InterviewScheduleDetailResponse {
+  status: number
+  message: string
+  validation: string | null
+  data: InterviewScheduleItem
+}
+
 export interface InterviewScheduleQueryParams {
   page?: number
   limit?: number

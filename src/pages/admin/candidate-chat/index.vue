@@ -38,11 +38,16 @@ import {
   Clock,
   DeviceLaptop,
   MapPin,
+  Video,
+  CalendarTime,
+  ExternalLink,
+  Home,
+  CalendarEvent,
 } from '@vicons/tabler'
 import type { ConversationResp, MessageResp } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useInterviewStages } from '@/composables/useInterviewStages'
-import { useCreateInterview } from '@/composables/useInterviews'
+import { useCreateInterview, useInterviewById } from '@/composables/useInterviews'
 import type { CreateInterviewPayload } from '@/models/InterviewSchedule'
 
 type MessageQueryCache = {
@@ -62,6 +67,18 @@ type PendingMessage = MessageResp & {
   file_url: null
 }
 
+interface InterviewChatMessagePayload {
+  interview_id: string
+  title: string
+  scheduled_at: string
+  method: string
+  meeting_link: string
+  meeting_location: string
+  stage_name?: string
+}
+
+const INTERVIEW_MESSAGE_PREFIX = '__interview_chat__:'
+
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
 const router = useRouter()
@@ -80,6 +97,8 @@ const replyingTo = ref<MessageResp | null>(null)
 const firstUnreadId = ref<string | null>(null)
 const pendingMessages = ref<Array<MessageResp & { _pending: true }>>([])
 const showInterviewModal = ref(false)
+const showInterviewDetailModal = ref(false)
+const selectedInterviewId = ref<string | null>(null)
 const interviewFormRef = ref<FormInst | null>(null)
 const isInterviewSubmitting = ref(false)
 const interviewForm = reactive({
@@ -107,6 +126,11 @@ const { mutateAsync: createInterview } = useCreateInterview()
 const interviewStageQueryParams = computed(() => ({ page: 1, limit: 1000 }))
 const { interviewStages, isLoading: isLoadingInterviewStages } =
   useInterviewStages(interviewStageQueryParams)
+const {
+  interview: selectedInterview,
+  isLoading: isLoadingInterviewDetail,
+  refetch: refetchInterviewDetail,
+} = useInterviewById(selectedInterviewId)
 
 // Computed data
 const conversations = computed(() => conversationsData.value?.data.list || [])
@@ -443,6 +467,67 @@ const interviewStageOptions = computed<SelectOption[]>(() =>
   })),
 )
 
+const buildInterviewMessageContent = (payload: InterviewChatMessagePayload) =>
+  `${INTERVIEW_MESSAGE_PREFIX}${JSON.stringify(payload)}`
+
+const parseInterviewMessageContent = (content: string) => {
+  if (!content.startsWith(INTERVIEW_MESSAGE_PREFIX)) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(
+      content.slice(INTERVIEW_MESSAGE_PREFIX.length),
+    ) as InterviewChatMessagePayload
+    if (!parsed?.interview_id || !parsed?.title || !parsed?.scheduled_at) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const formatInterviewDate = (value: string) => {
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return '-'
+  }
+
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
+const formatInterviewTime = (value: string) => {
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return '-'
+  }
+
+  return new Intl.DateTimeFormat('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+const getMessagePreviewText = (content: string) => {
+  const interviewMessage = parseInterviewMessageContent(content)
+
+  return interviewMessage?.title || content
+}
+
+const openInterviewDetail = async (interviewId: string) => {
+  selectedInterviewId.value = interviewId
+  showInterviewDetailModal.value = true
+  await refetchInterviewDetail()
+}
+
 const interviewActions = [
   {
     label: 'Jadwalkan Interview',
@@ -477,10 +562,38 @@ const interviewRules: FormRules = {
     message: 'Judul interview wajib diisi',
     trigger: ['input', 'blur'],
   },
-  description: {
+  scheduled_at: {
     required: true,
-    message: 'Deskripsi interview wajib diisi',
-    trigger: ['input', 'blur'],
+    message: 'Waktu interview wajib dipilih',
+    trigger: ['change', 'blur'],
+  },
+  meeting_link: {
+    validator: () => {
+      if (interviewForm.method !== 'Online') {
+        return true
+      }
+
+      if (!interviewForm.meeting_link.trim()) {
+        return new Error('Link Meeting wajib diisi untuk metode Online')
+      }
+
+      return true
+    },
+    trigger: ['input', 'blur', 'change'],
+  },
+  meeting_location: {
+    validator: () => {
+      if (interviewForm.method !== 'Offline') {
+        return true
+      }
+
+      if (!interviewForm.meeting_location.trim()) {
+        return new Error('Lokasi wajib diisi untuk metode Offline')
+      }
+
+      return true
+    },
+    trigger: ['input', 'blur', 'change'],
   },
   method: {
     required: true,
@@ -515,6 +628,12 @@ watch(showInterviewModal, (visible) => {
   }
 })
 
+watch(showInterviewDetailModal, (visible) => {
+  if (!visible) {
+    selectedInterviewId.value = null
+  }
+})
+
 const toIsoDatetime = (value: number | null) => {
   if (!value) return ''
   return new Date(value).toISOString()
@@ -542,7 +661,7 @@ const handleSubmitInterview = () => {
         description: interviewForm.description.trim(),
         meeting_link: interviewForm.method === 'Online' ? interviewForm.meeting_link.trim() : '',
         meeting_location:
-          interviewForm.method === 'Online' ? interviewForm.meeting_location.trim() : '',
+          interviewForm.method === 'Offline' ? interviewForm.meeting_location.trim() : '',
         method: interviewForm.method,
         scheduled_at: toIsoDatetime(interviewForm.scheduled_at),
         stage_id: interviewForm.stage_id,
@@ -550,7 +669,28 @@ const handleSubmitInterview = () => {
         title: interviewForm.title.trim(),
       }
 
-      await createInterview(payload)
+      const createdInterview = await createInterview(payload)
+
+      const selectedStage = interviewStages.value.find(
+        (stage) => stage.id === interviewForm.stage_id,
+      )
+      const interviewMessageContent = buildInterviewMessageContent({
+        interview_id: createdInterview.data.id,
+        title: createdInterview.data.title || interviewForm.title.trim(),
+        scheduled_at:
+          createdInterview.data.scheduled_at || toIsoDatetime(interviewForm.scheduled_at),
+        method: createdInterview.data.method || interviewForm.method,
+        meeting_link: createdInterview.data.meeting_link || interviewForm.meeting_link.trim(),
+        meeting_location:
+          createdInterview.data.meeting_location || interviewForm.meeting_location.trim(),
+        stage_name: selectedStage?.name,
+      })
+
+      const previousDraft = messageInput.value
+      messageInput.value = interviewMessageContent
+      sendMessage()
+      messageInput.value = previousDraft
+
       naiveMessage.success('Jadwal interview berhasil dibuat.')
       showInterviewModal.value = false
       resetInterviewForm()
@@ -690,7 +830,20 @@ const isUnread = (c: ConversationResp) => {
                           class="text-gray-400"
                           >You:
                         </span>
-                        {{ conv.last_message?.content || 'No messages yet' }}
+                        <template
+                          v-if="
+                            conv.last_message?.content &&
+                            parseInterviewMessageContent(conv.last_message.content)
+                          "
+                        >
+                          <span class="inline-flex items-center gap-1 text-blue-600 font-medium">
+                            <n-icon size="14"><CalendarEvent /></n-icon>
+                            {{ getMessagePreviewText(conv.last_message.content) }}
+                          </span>
+                        </template>
+                        <template v-else>
+                          {{ conv.last_message?.content || 'No messages yet' }}
+                        </template>
                       </template>
                     </p>
                     <n-badge v-if="isUnread(conv)" dot type="error" />
@@ -798,12 +951,15 @@ const isUnread = (c: ConversationResp) => {
                     </div>
 
                     <div
-                      class="rounded-md px-4 py-2.5 shadow-sm relative overflow-hidden"
-                      :class="
-                        msg.sender_user_id === authStore.user?.id
-                          ? 'bg-gray-200 text-gray-900 order-2'
-                          : 'bg-gray-100 text-gray-800 border border-gray-100 order-1'
-                      "
+                      class="relative"
+                      :class="[
+                        msg.sender_user_id === authStore.user?.id ? 'order-2' : 'order-1',
+                        parseInterviewMessageContent(msg.content)
+                          ? ''
+                          : msg.sender_user_id === authStore.user?.id
+                            ? 'rounded-md px-4 py-2.5 shadow-sm overflow-hidden bg-gray-200 text-gray-900'
+                            : 'rounded-md px-4 py-2.5 shadow-sm overflow-hidden bg-gray-100 text-gray-800 border border-gray-100',
+                      ]"
                     >
                       <!-- Reply Context -->
                       <div
@@ -817,23 +973,116 @@ const isUnread = (c: ConversationResp) => {
                         <div class="line-clamp-2 opacity-60">{{ msg.reply_to.content }}</div>
                       </div>
 
-                      <div class="flex flex-col">
+                      <!-- Interview Message Content -->
+                      <template v-if="parseInterviewMessageContent(msg.content)">
+                        <div
+                          class="w-85 max-w-full rounded-2xl border border-blue-100 bg-white p-4 pb-6 shadow-xs"
+                        >
+                          <div class="space-y-3">
+                            <div>
+                              <h4 class="text-[15px] font-semibold text-slate-800">
+                                {{ parseInterviewMessageContent(msg.content)?.title }}
+                              </h4>
+                            </div>
+
+                            <div class="space-y-2 text-sm text-slate-600">
+                              <div class="flex items-center gap-2">
+                                <n-icon size="16" class="text-slate-400"><Clock /></n-icon>
+                                <span
+                                  >{{
+                                    formatInterviewTime(
+                                      parseInterviewMessageContent(msg.content)?.scheduled_at || '',
+                                    )
+                                  }}
+                                  WIB</span
+                                >
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <n-icon size="16" class="text-slate-400"><CalendarTime /></n-icon>
+                                <span>{{
+                                  formatInterviewDate(
+                                    parseInterviewMessageContent(msg.content)?.scheduled_at || '',
+                                  )
+                                }}</span>
+                              </div>
+
+                              <!-- <div class="flex items-center gap-2">
+                                <n-icon size="16" class="text-slate-400"><DeviceLaptop /></n-icon>
+                                <span>{{
+                                  parseInterviewMessageContent(msg.content)?.method === 'Online'
+                                    ? 'Online Meeting'
+                                    : 'Offline Meeting'
+                                }}</span>
+                              </div> -->
+
+                              <div class="flex items-start gap-2">
+                                <template
+                                  v-if="
+                                    parseInterviewMessageContent(msg.content)?.method === 'Online'
+                                  "
+                                >
+                                  <n-icon size="16" class="mt-0.5 text-slate-400"><Video /></n-icon>
+                                  <a
+                                    :href="
+                                      parseInterviewMessageContent(msg.content)?.meeting_link || '#'
+                                    "
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="wrap-break-word text-blue-600 underline flex items-center"
+                                  >
+                                    Online Meeting<span class="ml-1">
+                                      <n-icon size="16" class="text-blue-500"
+                                        ><ExternalLink
+                                      /></n-icon>
+                                    </span>
+                                  </a>
+                                </template>
+                                <template v-else>
+                                  <n-icon size="16" class="mt-0.5 text-slate-400"
+                                    ><MapPin
+                                  /></n-icon>
+                                  <span class="wrap-break-word">{{
+                                    parseInterviewMessageContent(msg.content)?.meeting_location ||
+                                    '-'
+                                  }}</span>
+                                </template>
+                              </div>
+                            </div>
+
+                            <div class="pt-1">
+                              <n-button
+                                type="primary"
+                                block
+                                @click="
+                                  openInterviewDetail(
+                                    parseInterviewMessageContent(msg.content)?.interview_id || '',
+                                  )
+                                "
+                              >
+                                Lihat Detail
+                              </n-button>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+
+                      <div v-else class="flex flex-col">
                         <p
                           class="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed pb-3"
                           v-html="formatMessage(msg.content)"
                         ></p>
+                      </div>
 
-                        <!-- Inline Timestamp -->
-                        <div class="absolute bottom-1 right-2 flex items-center gap-1">
-                          <template v-if="(msg as any)._pending">
-                            <n-icon size="11" class="opacity-40"><Clock /></n-icon>
-                          </template>
-                          <template v-else>
-                            <span class="text-[10px] opacity-50 font-medium">{{
-                              formatTime(msg.created_at)
-                            }}</span>
-                          </template>
-                        </div>
+                      <!-- Inline Timestamp -->
+                      <div class="absolute bottom-1 right-2 flex items-center gap-1">
+                        <template v-if="(msg as PendingMessage)._pending">
+                          <n-icon size="11" class="opacity-40"><Clock /></n-icon>
+                        </template>
+                        <template v-else>
+                          <span class="text-[10px] opacity-50 font-medium">
+                            {{ formatTime(msg.created_at) }}
+                          </span>
+                        </template>
                       </div>
                     </div>
 
@@ -871,7 +1120,17 @@ const isUnread = (c: ConversationResp) => {
                 <div class="text-xs font-bold text-primary">
                   Replying to {{ replyingTo.sender_name }}
                 </div>
-                <div class="text-xs text-gray-500 truncate">{{ replyingTo.content }}</div>
+                <div class="text-xs text-gray-500 truncate">
+                  <template v-if="parseInterviewMessageContent(replyingTo.content)">
+                    <span class="inline-flex items-center gap-1 text-blue-600 font-medium">
+                      <n-icon size="12"><CalendarEvent /></n-icon>
+                      {{ getMessagePreviewText(replyingTo.content) }}
+                    </span>
+                  </template>
+                  <template v-else>
+                    {{ replyingTo.content }}
+                  </template>
+                </div>
               </div>
               <div
                 class="p-1 hover:bg-gray-200 rounded-full cursor-pointer text-gray-400"
@@ -972,7 +1231,7 @@ const isUnread = (c: ConversationResp) => {
                 v-model:value="interviewForm.description"
                 type="textarea"
                 :autosize="{ minRows: 3, maxRows: 6 }"
-                placeholder="Tambahkan catatan atau detail tambahan"
+                placeholder="Tambahkan catatan atau detail tambahan (opsional)"
               />
             </n-form-item>
 
@@ -983,6 +1242,7 @@ const isUnread = (c: ConversationResp) => {
                 clearable
                 placeholder="Pilih tanggal dan waktu"
                 class="w-full"
+                :default-time="'09:00:00'"
               />
             </n-form-item>
 
@@ -1020,7 +1280,7 @@ const isUnread = (c: ConversationResp) => {
               <n-form-item label="Lokasi" path="meeting_location">
                 <n-input
                   v-model:value="interviewForm.meeting_location"
-                  placeholder="Opsional: lokasi pertemuan"
+                  placeholder="Lokasi interview (misal: Kantor Pusat, Ruang Meeting 2)"
                 />
               </n-form-item>
             </template>
@@ -1036,6 +1296,83 @@ const isUnread = (c: ConversationResp) => {
               Simpan Jadwal
             </n-button>
           </div>
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="showInterviewDetailModal"
+      preset="card"
+      :bordered="false"
+      style="width: 40rem"
+    >
+      <div class="-mt-8">
+        <div v-if="isLoadingInterviewDetail" class="flex justify-center py-10">
+          <n-spin size="medium" />
+        </div>
+
+        <div v-else-if="selectedInterview" class="space-y-4">
+          <h4 class="mt-1 text-lg font-semibold text-slate-800">{{ selectedInterview.title }}</h4>
+          <div class="rounded-2xl py-1 space-y-3">
+            <div class="grid gap-3 text-sm text-slate-600">
+              <div v-if="selectedInterview.description" class="bg-white text-sm text-slate-600">
+                {{ selectedInterview.description }}
+              </div>
+              <div class="space-y-3 p-3">
+                <div class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-500"><Clock /></n-icon>
+                  <span class="text-gray-800"
+                    >{{ formatInterviewTime(selectedInterview.scheduled_at) }} WIB</span
+                  >
+                </div>
+                <div class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-500"><CalendarTime /></n-icon>
+                  <span class="text-gray-800">{{
+                    formatInterviewDate(selectedInterview.scheduled_at)
+                  }}</span>
+                </div>
+                <!-- <div class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-400"><Message /></n-icon>
+                  <span>{{ selectedInterview.stage?.name || '-' }}</span>
+                </div> -->
+                <div class="flex items-start gap-2">
+                  <n-icon
+                    v-if="selectedInterview.method === 'Online'"
+                    size="16"
+                    class="mt-0.5 text-slate-500"
+                    ><DeviceLaptop
+                  /></n-icon>
+                  <n-icon v-else size="16" class="mt-0.5 text-slate-500"><Home /></n-icon>
+                  <span class="text-gray-800">{{
+                    selectedInterview.method === 'Online' ? 'Interview Online' : 'Interview Offline'
+                  }}</span>
+                </div>
+                <div v-if="selectedInterview.method === 'Online'" class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-500"><Video /></n-icon>
+                  <a
+                    :href="selectedInterview.meeting_link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-blue-500 hover:text-blue-600 underline break-all"
+                  >
+                    {{ selectedInterview.meeting_link }}
+                  </a>
+                </div>
+                <div v-else class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-500"><MapPin /></n-icon>
+                  <p class="text-gray-800">{{ selectedInterview.meeting_location || '-' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="py-10 text-center text-gray-500">Detail interview tidak ditemukan.</div>
+
+        <div class="flex justify-center gap-3 pt-4 w-full">
+          <n-button type="error" @click="showInterviewDetailModal = false" style="width: 25%"
+            >Batalkan Jadwal</n-button
+          >
         </div>
       </div>
     </n-modal>

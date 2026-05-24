@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/vue-query'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import {
   createInterviewApi,
+  getInterviewByIdApi,
   getInterviewsApi,
   getScheduledInterviewsApi,
 } from '@/services/interview.service'
@@ -51,4 +52,19 @@ export function useCreateInterview() {
       return createInterviewApi(payload)
     },
   })
+}
+
+export function useInterviewById(id: MaybeRefOrGetter<string | null>) {
+  const query = useQuery({
+    queryKey: computed(() => ['interview', toValue(id)]),
+    queryFn: () => getInterviewByIdApi(toValue(id) as string),
+    enabled: computed(() => Boolean(toValue(id))),
+  })
+
+  const interview = computed(() => query.data.value?.data || null)
+
+  return {
+    ...query,
+    interview,
+  }
 }

@@ -80,3 +80,15 @@ export const rejectCompanyProfileApi = async (id: string, reason: string): Promi
   }
 }
 
+export const getPublicCompanyProfileApi = async (): Promise<CompanyProfileResponse> => {
+  try {
+    const response = await axios.get<CompanyProfileResponse>('/public/company-profile')
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+

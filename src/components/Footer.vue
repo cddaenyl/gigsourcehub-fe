@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, type Component } from 'vue'
+import { computed, ref, onMounted, type Component } from 'vue'
 import {
   BrandFacebook,
   BrandInstagram,
@@ -11,6 +11,7 @@ import {
 } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
 import logoSrc from '@/assets/LogoGigSource.svg'
+import { getPublicCompanyProfileApi } from '@/services/company-profile.service'
 
 defineOptions({
   name: 'LandingFooter',
@@ -52,33 +53,52 @@ const handleQuickLinkClick = (event: MouseEvent, href: string) => {
   window.history.replaceState(null, '', href)
 }
 
-const contactItems: ContactItem[] = [
-  {
-    label: 'Location',
-    value: '42 Hangang-daero, Yongsan-gu, Seoul, 04389, South Korea',
-    href: 'https://www.google.com/maps',
-    icon: MapPin,
-  },
-  {
-    label: 'Email',
-    value: 'careers@gigsourcehub.com',
-    href: 'mailto:careers@gigsourcehub.com',
-    icon: Mail,
-  },
-  {
-    label: 'Phone',
-    value: '+62 21 1234 5678',
-    href: 'tel:+622112345678',
-    icon: Phone,
-  },
-]
+const profile = ref<any>(null)
 
-const socialItems: SocialItem[] = [
-  { label: 'Facebook', href: 'https://facebook.com', icon: BrandFacebook },
-  { label: 'Instagram', href: 'https://instagram.com', icon: BrandInstagram },
-  { label: 'LinkedIn', href: 'https://linkedin.com', icon: BrandLinkedin },
-  { label: 'X', href: 'https://x.com', icon: BrandTwitter },
-]
+onMounted(async () => {
+  try {
+    const res = await getPublicCompanyProfileApi()
+    profile.value = res.data
+  } catch (error) {
+    // Keep using static fallbacks
+  }
+})
+
+const contactItems = computed<ContactItem[]>(() => {
+  return [
+    {
+      label: 'Location',
+      value: profile.value?.address || '42 Hangang-daero, Yongsan-gu, Seoul, 04389, South Korea',
+      href: profile.value?.address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.value.address)}`
+        : 'https://www.google.com/maps',
+      icon: MapPin,
+    },
+    {
+      label: 'Email',
+      value: profile.value?.email || 'careers@gigsourcehub.com',
+      href: profile.value?.email ? `mailto:${profile.value.email}` : 'mailto:careers@gigsourcehub.com',
+      icon: Mail,
+    },
+    {
+      label: 'Phone',
+      value: profile.value?.phone || '+62 21 1234 5678',
+      href: profile.value?.phone
+        ? `tel:${profile.value.phone.replace(/[^+\d]/g, '')}`
+        : 'tel:+622112345678',
+      icon: Phone,
+    },
+  ]
+})
+
+const socialItems = computed<SocialItem[]>(() => {
+  return [
+    { label: 'Facebook', href: profile.value?.facebook_url || 'https://facebook.com', icon: BrandFacebook },
+    { label: 'Instagram', href: profile.value?.instagram_url || 'https://instagram.com', icon: BrandInstagram },
+    { label: 'LinkedIn', href: profile.value?.linkedin_url || 'https://linkedin.com', icon: BrandLinkedin },
+    { label: 'X', href: profile.value?.twitter_url || 'https://x.com', icon: BrandTwitter },
+  ]
+})
 
 const currentYear = computed(() => new Date().getFullYear())
 </script>

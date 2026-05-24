@@ -107,3 +107,15 @@ export const rejectFAQApi = async (id: string, reason: string): Promise<any> => 
   }
 }
 
+export const getPublicFAQsApi = async (params: Record<string, unknown> = {}): Promise<FAQListResponse> => {
+  try {
+    const response = await axios.get<FAQListResponse>('/public/faqs', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+

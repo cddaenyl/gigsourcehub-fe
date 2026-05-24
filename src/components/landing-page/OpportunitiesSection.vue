@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed, ref, onMounted } from 'vue'
 import { ArrowRight, Bolt, Clock, MapPin } from '@vicons/tabler'
 import { NButton, NIcon } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import { getPublicJobVacanciesApi } from '@/services/job-vacancy.service'
 
 const router = useRouter()
 
@@ -19,7 +21,9 @@ type OpportunityCard = {
   tags: string[]
 }
 
-const opportunityCards: OpportunityCard[] = [
+const vacancies = ref<any[]>([])
+
+const staticOpportunities: OpportunityCard[] = [
   {
     label: 'Senior Front Developer',
     category: 'Technology Information',
@@ -51,6 +55,69 @@ const opportunityCards: OpportunityCard[] = [
     tags: ['Roadmap', 'Analysis', 'Discovery', 'Stakeholders', 'Metrics'],
   },
 ]
+
+const formatPostedAt = (dateStr: string) => {
+  const date = new Date(dateStr)
+  const diffTime = Math.abs(new Date().getTime() - date.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  if (diffDays <= 1) return 'Today'
+  if (diffDays === 2) return 'Yesterday'
+  if (diffDays <= 7) return `${diffDays} days ago`
+  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+const parseTags = (techStack: string | null | undefined): string[] => {
+  if (!techStack) return []
+  let cleaned = techStack.trim()
+  
+  if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(cleaned)
+      if (Array.isArray(parsed)) {
+        return parsed.map((s) => String(s).trim()).filter(Boolean)
+      }
+    } catch (e) {
+      // Fallback if parsing fails
+    }
+  }
+
+  cleaned = cleaned.replace(/[\[\]"']/g, '')
+
+  if (cleaned.includes(',')) {
+    return cleaned.split(',').map((s) => s.trim()).filter(Boolean)
+  }
+  return cleaned.split(' ').map((s) => s.trim()).filter(Boolean)
+}
+
+onMounted(async () => {
+  try {
+    const res = await getPublicJobVacanciesApi({ limit: 3 })
+    vacancies.value = res.data.list
+  } catch (error) {
+    // Fallback to static
+  }
+})
+
+const opportunityCards = computed<OpportunityCard[]>(() => {
+  if (vacancies.value.length === 0) {
+    return staticOpportunities
+  }
+  return vacancies.value.map((v) => {
+    const category = v.subrequest?.job_role || 'Technology Information'
+    const location = v.schema ? v.schema.charAt(0) + v.schema.slice(1).toLowerCase() : 'Remote'
+    const postedAt = formatPostedAt(v.created_at)
+    const tags = parseTags(v.subrequest?.tech_stack)
+    return {
+      label: v.name,
+      category,
+      postedAt,
+      location,
+      duration: 'Project-based',
+      description: v.overview || v.description || '',
+      tags,
+    }
+  })
+})
 
 defineOptions({
   name: 'OpportunitiesSection',
@@ -98,7 +165,12 @@ defineOptions({
           </div>
 
           <div class="relative flex items-center justify-between gap-4">
-            <div class="inline-flex items-center rounded-3xl px-2 py-0.5">
+            <div v-if="card.category === 'Technology Information'" class="bg-[#e2e8f0] flex gap-1 items-center justify-center px-2 py-0.5 rounded-[22px]">
+              <span class="text-[#1e293b] text-sm font-medium leading-5">
+                {{ card.category }}
+              </span>
+            </div>
+            <div v-else class="inline-flex items-center rounded-3xl px-2 py-0.5">
               <span class="text-sm font-normal leading-5 text-slate-800">
                 {{ card.category }}
               </span>
@@ -126,14 +198,14 @@ defineOptions({
               </div>
             </div>
 
-            <p class="text-base font-normal leading-5 text-slate-600">
+            <p class="text-base font-normal leading-5 text-slate-600 line-clamp-3 h-20">
               {{ card.description }}
             </p>
           </div>
 
           <div class="relative mt-5 flex flex-wrap items-start gap-2">
             <span v-for="tag in card.tags" :key="tag"
-              class="inline-flex items-center rounded-3xl bg-indigo-200 px-2 py-0.5 text-sm font-normal leading-5 text-blue-900">
+              class="inline-flex items-center rounded-3xl bg-[#c7d0f3] px-2 py-0.5 text-sm font-medium leading-5 text-[#07229e]">
               {{ tag }}
             </span>
           </div>

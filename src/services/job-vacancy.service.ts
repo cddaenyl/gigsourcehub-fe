@@ -68,3 +68,15 @@ export const deleteJobVacancyApi = async (id: string): Promise<{ status: number;
     throw error
   }
 }
+
+export const getPublicJobVacanciesApi = async (params: Record<string, unknown> = {}): Promise<JobVacancyListResponse> => {
+  try {
+    const response = await axios.get<JobVacancyListResponse>('/public/job-vacancies', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

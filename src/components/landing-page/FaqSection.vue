@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { Bolt, ChevronsDown, ChevronsUp, ChevronUp, ChevronDown } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
+import { getPublicFAQsApi } from '@/services/faq.service'
 
 defineOptions({
   name: 'FaqSection',
@@ -12,7 +13,9 @@ type FaqItem = {
   answer: string
 }
 
-const faqItems: FaqItem[] = [
+const faqs = ref<any[]>([])
+
+const staticFaqItems: FaqItem[] = [
   {
     question: 'What is the Freelance Talent Pool?',
     answer:
@@ -40,10 +43,29 @@ const faqItems: FaqItem[] = [
   },
 ]
 
+onMounted(async () => {
+  try {
+    const res = await getPublicFAQsApi({ limit: 100 })
+    faqs.value = res.data.list
+  } catch (error) {
+    // Keep using static fallbacks
+  }
+})
+
+const faqItems = computed<FaqItem[]>(() => {
+  if (faqs.value.length === 0) {
+    return staticFaqItems
+  }
+  return faqs.value.map((item) => ({
+    question: item.question,
+    answer: item.answer,
+  }))
+})
+
 const openIndex = ref()
 const showAll = ref(false)
 
-const visibleFaqItems = computed(() => (showAll.value ? faqItems : faqItems.slice(0, 3)))
+const visibleFaqItems = computed(() => (showAll.value ? faqItems.value : faqItems.value.slice(0, 3)))
 
 const toggleFaq = (index: number) => {
   openIndex.value = openIndex.value === index ? -1 : index

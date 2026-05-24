@@ -1,21 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useMessage, NSelect, NIcon, NSpin, NButton } from 'naive-ui'
+import { useMessage, NSelect, NIcon, NSpin } from 'naive-ui'
 import { SmartHome, Briefcase, MapPin, Clock, Calendar, Checkbox, Checks } from '@vicons/tabler'
 import LandingLayout from '@/layouts/UserLayout.vue'
 import OpportunitiesHero from '@/components/landing-page/OpportunitiesHero.vue'
 import CTASection from '@/components/landing-page/CTASection.vue'
 import { getPublicJobVacanciesApi } from '@/services/job-vacancy.service'
-import { useAuthStore } from '@/stores/auth.store'
 
 defineOptions({
   name: 'OpportunitiesList',
 })
 
-const router = useRouter()
 const message = useMessage()
-const authStore = useAuthStore()
 
 type OpportunityCard = {
   id: string
@@ -144,7 +140,7 @@ const departmentOptions = computed(() => {
     }
   })
   return [
-    { label: 'All Departments', value: null },
+    { label: 'All Departments', value: null as any },
     ...Array.from(depts).map((d) => ({ label: d, value: d })),
   ]
 })
@@ -159,18 +155,6 @@ const filteredVacancies = computed(() => {
 const openVacancyDetail = (vacancy: OpportunityCard) => {
   selectedVacancy.value = vacancy
   window.scrollTo({ top: 250, behavior: 'smooth' })
-}
-
-const handleApply = () => {
-  if (authStore.isAuthenticated) {
-    message.success(
-      'You are already in our Talent Pool! Recruiters will match you automatically if your profile fits.',
-      { duration: 6000 }
-    )
-  } else {
-    message.info('Please register to upload your CV and join the Talent Pool.', { duration: 4000 })
-    router.push('/register')
-  }
 }
 
 const getListItems = (text: string | null | undefined): string[] => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, reactive } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { useAuthStore } from '@/stores/auth.store'
@@ -13,7 +13,6 @@ import {
   NEmpty,
   NIcon,
   NTag,
-  NDropdown,
   NModal,
   NForm,
   NFormItem,
@@ -43,6 +42,7 @@ import {
   ExternalLink,
   Home,
   CalendarEvent,
+  FileText,
 } from '@vicons/tabler'
 import type { ConversationResp, MessageResp } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -99,6 +99,8 @@ const pendingMessages = ref<Array<MessageResp & { _pending: true }>>([])
 const showInterviewModal = ref(false)
 const showInterviewDetailModal = ref(false)
 const selectedInterviewId = ref<string | null>(null)
+const showActionMenu = ref(false)
+const actionMenuRef = ref<HTMLElement | null>(null)
 const interviewFormRef = ref<FormInst | null>(null)
 const isInterviewSubmitting = ref(false)
 const interviewForm = reactive({
@@ -309,6 +311,12 @@ onMounted(() => {
   if (typeof qId === 'string' && qId) {
     selectedConversationId.value = qId
   }
+
+  document.addEventListener('click', handleMenuOutsideClick)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleMenuOutsideClick)
 })
 
 // Also react if the query changes externally (e.g. browser back/forward)
@@ -320,6 +328,10 @@ watch(
     }
   },
 )
+
+watch(selectedConversationId, () => {
+  showActionMenu.value = false
+})
 
 const copyName = async () => {
   if (activeConversation.value?.candidate_user_name) {
@@ -334,7 +346,6 @@ const copyName = async () => {
 
 const goToProfile = () => {
   if (activeConversation.value?.candidate_user_id) {
-    // Navigate to candidate detail profile, using standard route structure if available
     router.push(`/admin/daftar-kandidat/${activeConversation.value.candidate_user_id}`)
   }
 }
@@ -349,7 +360,6 @@ const sendMessage = () => {
   messageInput.value = ''
   replyingTo.value = null
 
-  // Add optimistic pending message immediately
   const tempId = `pending-${++_tempIdCounter}`
   const optimisticMsg = {
     id: tempId,
@@ -372,10 +382,8 @@ const sendMessage = () => {
     { id: convId, payload: { content, reply_to_message_id: replyToId } },
     {
       onSuccess: (res) => {
-        // Remove pending
         pendingMessages.value = pendingMessages.value.filter((m) => m.id !== tempId)
 
-        // Add confirmed message to cache
         queryClient.setQueryData<MessageQueryCache>(['messages', convId, 1, 100], (oldData) => {
           const newList = oldData?.data?.list ?? []
           return {
@@ -387,7 +395,6 @@ const sendMessage = () => {
           }
         })
 
-        // Update conversation list
         queryClient.setQueryData<ConversationQueryCache>(
           ['conversations', page.value, limit.value],
           (oldData) => {
@@ -404,7 +411,6 @@ const sendMessage = () => {
         )
       },
       onError: () => {
-        // Remove pending on failure too
         pendingMessages.value = pendingMessages.value.filter((m) => m.id !== tempId)
       },
     },
@@ -422,7 +428,6 @@ const scrollToMessage = (id: string) => {
   const el = document.getElementById(`msg-${id}`)
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    // Brief highlight effect
     const bubble = el.querySelector('.rounded-2xl')
     if (bubble) {
       bubble.classList.add('ring-4', 'ring-primary/30')
@@ -431,6 +436,32 @@ const scrollToMessage = (id: string) => {
       }, 2000)
     }
   }
+}
+
+const toggleActionMenu = () => {
+  if (!isChatAvailable.value) return
+  showActionMenu.value = !showActionMenu.value
+}
+
+const closeActionMenu = () => {
+  showActionMenu.value = false
+}
+
+const handleMenuOutsideClick = (event: MouseEvent) => {
+  if (!showActionMenu.value) return
+
+  const target = event.target as Node
+  if (actionMenuRef.value && !actionMenuRef.value.contains(target)) {
+    closeActionMenu()
+  }
+}
+
+const handleInterviewActionClick = (actionKey: string) => {
+  const selectedAction = interviewActions.find((action) => action.key === actionKey)
+  if (!selectedAction) return
+
+  selectedAction.onClick()
+  closeActionMenu()
 }
 
 const handleEnter = (e: KeyboardEvent) => {
@@ -530,23 +561,27 @@ const openInterviewDetail = async (interviewId: string) => {
 
 const interviewActions = [
   {
-    label: 'Jadwalkan Interview',
+    title: 'Jadwalkan Interview',
+    subtitle: 'Jadwalkan interview dengan kandidat',
     key: 'schedule-interview',
-    props: {
-      onClick: () => {
-        if (!isChatAvailable.value) return
-        showInterviewModal.value = true
-      },
+    icon: CalendarTime,
+    iconBackgroundColor: '#DBEAFE',
+    iconColor: '#2563EB',
+    onClick: () => {
+      if (!isChatAvailable.value) return
+      showInterviewModal.value = true
     },
   },
   {
-    label: 'Kirim Dokumen',
+    title: 'Kirim Dokumen',
+    subtitle: 'Kirim dokumen',
     key: 'send-document',
-    props: {
-      onClick: () => {
-        if (!isChatAvailable.value) return
-        naiveMessage.info('Fitur Kirim Dokumen belum tersedia.')
-      },
+    icon: FileText,
+    iconBackgroundColor: '#FEE2E2',
+    iconColor: '#EF4444',
+    onClick: () => {
+      if (!isChatAvailable.value) return
+      naiveMessage.info('Fitur Kirim Dokumen belum tersedia.')
     },
   },
 ]
@@ -1152,14 +1187,45 @@ const isUnread = (c: ConversationResp) => {
             </div>
             <div class="p-6">
               <div class="flex items-center gap-4">
-                <n-dropdown trigger="click" placement="top-start" :options="interviewActions">
+                <div class="relative shrink-0" ref="actionMenuRef">
                   <div
-                    class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors shrink-0"
+                    class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer hover:bg-blue-800 transition-colors shrink-0"
                     :class="{ 'opacity-50 pointer-events-none': !isChatAvailable }"
+                    @click.stop="toggleActionMenu"
                   >
                     <n-icon size="24"><Plus /></n-icon>
                   </div>
-                </n-dropdown>
+
+                  <div
+                    v-if="showActionMenu && isChatAvailable"
+                    class="absolute bottom-14 left-0 z-30 w-[20rem] rounded-xl border border-slate-200 bg-white py-2 shadow-lg"
+                  >
+                    <div
+                      v-for="action in interviewActions"
+                      :key="action.key"
+                      class="flex cursor-pointer items-center gap-3 px-3 py-1.5 transition-colors hover:bg-slate-50"
+                      @click="handleInterviewActionClick(action.key)"
+                    >
+                      <div
+                        class="flex h-10 w-10 items-center justify-center rounded-full"
+                        :style="{ backgroundColor: action.iconBackgroundColor }"
+                      >
+                        <n-icon :size="24" :color="action.iconColor">
+                          <component :is="action.icon" />
+                        </n-icon>
+                      </div>
+
+                      <div class="flex flex-col gap-0.5">
+                        <span class="text-sm font-semibold leading-tight text-slate-700">
+                          {{ action.title }}
+                        </span>
+                        <span class="text-xs leading-tight text-slate-400">
+                          {{ action.subtitle }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <n-input
                   v-model:value="messageInput"
                   type="textarea"

@@ -169,6 +169,47 @@ watch(chatHistory, (newHistory) => {
   })
 }, { deep: true, immediate: true })
 
+const startAiSearch = async (promptText: string, autoSend: boolean = true) => {
+  active.value = true
+  queryInput.value = promptText
+  if (autoSend) {
+    await nextTick()
+    await handleSendMessage()
+  }
+}
+
+// Auto-load the last active or most recent conversation when drawer is opened
+watch([active, () => myChats.value?.data], async ([isOpen, chats]) => {
+  if (isOpen && chatHistory.value.length === 0) {
+    if (currentChatId.value) {
+      chatHistory.value = await loadChatMessages(currentChatId.value)
+    } else if (chats && chats.length > 0) {
+      const mostRecentChat = chats[0]
+      if (mostRecentChat && mostRecentChat.id) {
+        currentChatId.value = mostRecentChat.id
+        chatHistory.value = await loadChatMessages(mostRecentChat.id)
+      }
+    }
+  }
+}, { immediate: true })
+
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+const adjustTextareaHeight = () => {
+  if (!textareaRef.value) return
+  textareaRef.value.style.height = 'auto'
+  const scrollHeight = textareaRef.value.scrollHeight
+  textareaRef.value.style.height = `${Math.min(scrollHeight, 88)}px`
+}
+
+watch(queryInput, () => {
+  nextTick(adjustTextareaHeight)
+})
+
+defineExpose({
+  startAiSearch,
+  activate,
+})
 </script>
 
 <template>
@@ -182,7 +223,13 @@ watch(chatHistory, (newHistory) => {
 
     <n-button type="primary" @click="activate('right')" :disabled="!props.isAiEnabled">
       <template #icon>
-        <n-icon :component="ApiApp" />
+        <n-icon>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="currentColor"/>
+            <path d="M5 4L5.6 5.4L7 6L5.6 6.6L5 8L4.4 6.6L3 6L4.4 5.4L5 4Z" fill="currentColor"/>
+            <path d="M19 19L19.6 20.4L21 21L19.6 21.6L19 23L18.4 21.6L17 21L18.4 20.4L19 19Z" fill="currentColor"/>
+          </svg>
+        </n-icon>
       </template>
       AI Assistant
     </n-button>
@@ -309,7 +356,7 @@ watch(chatHistory, (newHistory) => {
                    </div>
                  </div>
                  
-                 <div class="bg-[#F8FAFC] text-slate-600 px-6 py-4 rounded-[20px] rounded-tr-sm text-[15px] shadow-sm leading-relaxed max-w-[90%] border border-slate-100">
+                 <div class="bg-[#F8FAFC] text-slate-600 px-6 py-4 rounded-[20px] rounded-tr-sm text-[15px] shadow-sm leading-relaxed max-w-[90%] border border-slate-100 whitespace-pre-wrap">
                    {{ msg.text }}
                  </div>
               </div>
@@ -325,7 +372,7 @@ watch(chatHistory, (newHistory) => {
                 
                 <div class="flex flex-col w-full max-w-[90%]">
                   <!-- Summary Text -->
-                  <div class="bg-white border border-slate-100 px-6 py-5 rounded-[20px] rounded-tl-sm text-[15px] text-slate-600 leading-relaxed shadow-sm relative group">
+                  <div class="bg-white border border-slate-100 px-6 py-5 rounded-[20px] rounded-tl-sm text-[15px] text-slate-600 leading-relaxed shadow-sm relative group whitespace-pre-wrap">
                     {{ msg.text }}
                     <div v-if="msg.isTyping" class="inline-flex items-center ml-2 space-x-1">
                       <span class="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></span>
@@ -417,19 +464,20 @@ watch(chatHistory, (newHistory) => {
         <div class="bg-white p-5 border-t border-slate-100 shrink-0 z-20 w-full flex items-center justify-center shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.02)]">
           
           <!-- Text Input (Full width rounded pill) -->
-          <div class="relative flex items-center w-full">
-            <input
+          <div class="flex items-end gap-2 w-full bg-white border border-slate-300 hover:border-slate-400 focus-within:border-[#0014B2] focus-within:ring-4 focus-within:ring-blue-600/10 rounded-[24px] pl-5 pr-2 py-2 shadow-sm transition-all">
+            <textarea
+              ref="textareaRef"
               v-model="queryInput"
-              type="text"
-              placeholder="Masukkan pertanyaan atau perintah anda"
-              class="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-[#0014B2] rounded-full pl-6 pr-14 py-3.5 text-[14px] font-medium text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-600/10 shadow-sm transition-all"
-              @keydown.enter.prevent="handleSendMessage"
+              rows="1"
+              placeholder="Masukkan kriteria pencarian kandidat..."
+              class="flex-1 bg-transparent border-0 resize-none max-h-[88px] overflow-y-auto text-[14px] font-medium text-slate-700 focus:outline-none py-2"
+              @keydown.enter.exact.prevent="handleSendMessage"
             />
             
             <button 
               @click="handleSendMessage"
               :disabled="isLoading || !queryInput.trim()"
-              class="absolute right-[6px] w-[38px] h-[38px] flex items-center justify-center rounded-full bg-[#0014B2] hover:bg-blue-800 text-white disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-50 transition-colors shadow-sm"
+              class="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-[#0014B2] hover:bg-blue-800 text-white disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-50 transition-colors shadow-sm shrink-0 mb-[1px]"
             >
                <n-icon :component="Send" size="18" />
             </button>

@@ -9,9 +9,11 @@ import {
 } from '@/services/ai-chat.service'
 import type { ChatMessage, AISearchParsedContent } from '@/models/CandidateSearch'
 
+// Global shared state to persist the current active chat session across page transitions
+const currentChatId = ref<string | null>(null)
+
 export function useAIChatHistory(enabled: boolean | Ref<boolean> = true) {
   const queryClient = useQueryClient()
-  const currentChatId = ref<string | null>(null)
 
   const isEnabled = computed(() => (isRef(enabled) ? enabled.value : enabled))
 

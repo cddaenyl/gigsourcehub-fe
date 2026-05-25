@@ -351,6 +351,21 @@ const currentStep = computed(() => {
   return 'VIEW'
 })
 
+const parsingProgress = computed(() => {
+  return cvQuery.data.value?.data?.progress || 20
+})
+
+const parsingStatusMessage = computed(() => {
+  const progress = parsingProgress.value
+  if (progress <= 35) {
+    return "CV uploaded. Extracting text from document..."
+  } else if (progress <= 65) {
+    return "Text extracted. Initializing AI analyzer..."
+  } else {
+    return "AI is structuring candidate profile..."
+  }
+})
+
 const downloadCV = () => {
     if (cvLinkData.value?.data?.url) {
         window.open(cvLinkData.value.data.url, '_blank')
@@ -636,7 +651,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
               :default-upload="false"
               v-model:file-list="fileList"
               @change="handleUploadChange"
-              accept=".pdf,.doc,.docx"
+              accept=".pdf"
               :max="1"
               directory-dnd
             >
@@ -646,7 +661,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                     <n-icon size="56" class="text-gray-300" :component="CloudUpload" />
                   </div>
                   <h3 class="text-xl font-bold text-gray-700">Drop your file here</h3>
-                  <p class="text-gray-500 mt-1">PDF, DOC, or DOCX files are supported</p>
+                  <p class="text-gray-500 mt-1">Only PDF is supported</p>
                 </n-upload-dragger>
               </div>
             </n-upload>
@@ -670,20 +685,29 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
 
         <!-- 2. Parsing Phase -->
         <div v-if="currentStep === 'PARSING'">
-            <div class="p-16 text-center">
-            <div class="flex flex-col items-center">
-                <n-spin size="large" class="mb-8" />
-                <h2 class="text-3xl font-extrabold text-gray-900">AI Analyzer is at work</h2>
-                <p class="text-gray-500 mt-3 text-lg max-w-md">
-                    We are currently extracting structured data from your document. Please wait a moment...
-                </p>
-                <div class="mt-8 flex gap-2">
-                    <div class="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                    <div class="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                    <div class="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div class="p-16 text-center max-w-xl mx-auto">
+                <div class="flex flex-col items-center">
+                    <n-spin size="large" class="mb-8" />
+                    <h2 class="text-3xl font-extrabold text-gray-900 mb-2">AI Analyzer is at work</h2>
+                    
+                    <!-- Progress Bar Container -->
+                    <div class="w-full bg-gray-100 rounded-full h-3.5 dark:bg-gray-700 overflow-hidden relative shadow-inner mt-6 mb-3">
+                        <div class="bg-[#0014B2] h-full rounded-full transition-all duration-500 ease-out" :style="{ width: parsingProgress + '%' }"></div>
+                    </div>
+                    
+                    <!-- Progress Details -->
+                    <div class="flex justify-between items-center w-full px-1 text-sm font-bold text-gray-500 mb-4">
+                        <span class="text-primary">{{ parsingStatusMessage }}</span>
+                        <span class="text-[#0014B2] font-extrabold">{{ parsingProgress }}%</span>
+                    </div>
+
+                    <div class="mt-8 flex gap-2">
+                        <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce"></div>
+                        <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                        <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                    </div>
                 </div>
             </div>
-           </div>
         </div>
 
         <!-- 3. Review/Confirm Phase (Unified with Direct Edit) -->

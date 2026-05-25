@@ -17,10 +17,10 @@ export function useParsedCV() {
         queryFn: () => getParsedCV(),
         retry: false,
         refetchInterval: (query) => {
-            // Refetch every 3s if CV exists but parsed_data is not yet available
+            // Refetch every 2s if CV exists but parsed_data is not yet available
             const data = query.state.data as any;
-            if (data?.data && data.data.parsed_data === null) {
-                return 3000;
+            if (data?.data && (data.data.status === 'UPLOADED' || data.data.status === 'PARSING') && data.data.parsed_data === null) {
+                return 2000;
             }
             return false;
         }

@@ -1,18 +1,50 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { NButton, NCard, NIcon, NInput, NModal, NTag, NSpin, NSpace, useMessage } from 'naive-ui'
 import { ChevronLeft, Check, CircleX, CalendarEvent } from '@vicons/tabler'
 import AdminLayout from '@/layouts/AdminLayout.vue'
+import CandidateSearch from '@/components/CandidateSearch.vue'
 import {
   useAdminRequest,
   useRejectAdminRequest,
   useValidateAdminRequest,
 } from '@/composables/useRequest'
+import { fetchAiModeStatus } from '@/services/system-setting'
 
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
+
+const isAiEnabled = ref(true)
+const aiSearchRef = ref<any>(null)
+const searchedSubrequests = ref<Set<string>>(new Set())
+
+onMounted(async () => {
+  try {
+    const data = await fetchAiModeStatus()
+    isAiEnabled.value = data.is_ai_mode_enabled
+  } catch (err) {
+    console.error('Failed to fetch AI mode status', err)
+  }
+})
+
+const triggerAiSearch = (subrequest: any) => {
+  const techStack = getTechStackTags(subrequest.tech_stack).join(', ') || '-'
+  const promptText = `Cari kandidat dengan kriteria berikut:
+- Posisi: ${subrequest.job_role || '-'}
+- Level: ${subrequest.level || '-'}
+- Deskripsi: ${subrequest.overview || '-'}
+- Tech Stack: ${techStack}`
+
+  const hasSearched = searchedSubrequests.value.has(subrequest.id)
+  if (!hasSearched) {
+    searchedSubrequests.value.add(subrequest.id)
+    aiSearchRef.value?.startAiSearch(promptText, true)
+  } else {
+    aiSearchRef.value?.startAiSearch(promptText, false)
+  }
+}
 
 const requestId = computed(() => {
   const params = route.params as Record<string, string | string[]>
@@ -343,7 +375,26 @@ const handleReject = async () => {
               :bordered="false"
             >
               <div class="flex flex-col space-y-5">
-                <h2 class="text-md font-bold">#{{ index + 1 }}</h2>
+                <div class="flex justify-between items-center">
+                  <h2 class="text-md font-bold">#{{ index + 1 }}</h2>
+                  <n-button
+                    v-if="isAiEnabled"
+                    type="primary"
+                    size="small"
+                    @click="triggerAiSearch(subrequest)"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="currentColor"/>
+                          <path d="M5 4L5.6 5.4L7 6L5.6 6.6L5 8L4.4 6.6L3 6L4.4 5.4L5 4Z" fill="currentColor"/>
+                          <path d="M19 19L19.6 20.4L21 21L19.6 21.6L19 23L18.4 21.6L17 21L18.4 20.4L19 19Z" fill="currentColor"/>
+                        </svg>
+                      </n-icon>
+                    </template>
+                    Cari AI
+                  </n-button>
+                </div>
                 <n-space vertical :size="4">
                   <h3 class="text-xs font-semibold text-gray-500">Nama Posisi</h3>
                   <p class="text-gray-700 text-sm font-normal leading-5 px-2 py-2">
@@ -462,6 +513,11 @@ const handleReject = async () => {
         </div>
       </div>
     </n-modal>
+
+    <!-- Hidden CandidateSearch instance to host the AI Assistant drawer -->
+    <div class="hidden">
+      <CandidateSearch ref="aiSearchRef" :is-ai-enabled="isAiEnabled" />
+    </div>
   </AdminLayout>
 </template>
 

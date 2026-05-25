@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { getProfileApi, uploadProfilePictureApi, updateProfileApi } from '@/services/user.service'
+import { getProfileApi, uploadProfilePictureApi, updateProfileApi, changePasswordApi } from '@/services/user.service'
 import { computed } from 'vue'
 
 export function useProfile() {
@@ -15,8 +15,8 @@ export function useProfile() {
         mutationFn: (file: File) => uploadProfilePictureApi(file),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['profile'] })
-            // Also invalidate auth me to update header
             queryClient.invalidateQueries({ queryKey: ['authMe'] })
+            queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
         }
     })
 
@@ -25,7 +25,12 @@ export function useProfile() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['profile'] })
             queryClient.invalidateQueries({ queryKey: ['authMe'] })
+            queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
         }
+    })
+
+    const changePasswordMutation = useMutation({
+        mutationFn: (data: any) => changePasswordApi(data),
     })
 
     const profile = computed(() => query.data.value?.data)
@@ -34,8 +39,13 @@ export function useProfile() {
         ...query,
         profile,
         uploadPicture: uploadPictureMutation.mutate,
+        uploadPictureAsync: uploadPictureMutation.mutateAsync,
         isUploadingPicture: uploadPictureMutation.isPending,
         updateProfile: updateProfileMutation.mutate,
-        isUpdatingProfile: updateProfileMutation.isPending
+        updateProfileAsync: updateProfileMutation.mutateAsync,
+        isUpdatingProfile: updateProfileMutation.isPending,
+        changePassword: changePasswordMutation.mutate,
+        changePasswordAsync: changePasswordMutation.mutateAsync,
+        isChangingPassword: changePasswordMutation.isPending
     }
 }

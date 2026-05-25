@@ -121,6 +121,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/admin/profile/': RouteRecordInfo<
+      '/admin/profile/',
+      '/admin/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/talent-needs/': RouteRecordInfo<
       '/admin/talent-needs/',
       '/admin/talent-needs',
@@ -194,6 +201,13 @@ declare module 'vue-router/auto-routes' {
     '/employee/my-team/': RouteRecordInfo<
       '/employee/my-team/',
       '/employee/my-team',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/profile/': RouteRecordInfo<
+      '/employee/profile/',
+      '/employee/profile',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -366,6 +380,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/superadmin/profile/': RouteRecordInfo<
+      '/superadmin/profile/',
+      '/superadmin/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/superadmin/status-rekrutmen/': RouteRecordInfo<
       '/superadmin/status-rekrutmen/',
       '/superadmin/status-rekrutmen',
@@ -526,6 +547,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/profile/index.vue': {
+      routes:
+        | '/admin/profile/'
+      views:
+        | never
+    }
     'src/pages/admin/talent-needs/index.vue': {
       routes:
         | '/admin/talent-needs/'
@@ -589,6 +616,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/employee/my-team/index.vue': {
       routes:
         | '/employee/my-team/'
+      views:
+        | never
+    }
+    'src/pages/employee/profile/index.vue': {
+      routes:
+        | '/employee/profile/'
       views:
         | never
     }
@@ -733,6 +766,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/posisi/edit/[id].vue': {
       routes:
         | '/superadmin/posisi/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/profile/index.vue': {
+      routes:
+        | '/superadmin/profile/'
       views:
         | never
     }

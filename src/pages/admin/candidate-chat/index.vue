@@ -78,6 +78,9 @@ interface InterviewChatMessagePayload {
 }
 
 const INTERVIEW_MESSAGE_PREFIX = '__interview_chat__:'
+const getInitialsAvatar = (name?: string) => {
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || '?')}`
+}
 
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
@@ -826,17 +829,8 @@ const isUnread = (c: ConversationResp) => {
                 <n-avatar
                   round
                   :size="48"
-                  :src="getThumbUrl(conv.candidate_user_profile_picture) || undefined"
-                  :style="
-                    !conv.candidate_user_profile_picture
-                      ? 'background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 700; font-size: 18px;'
-                      : ''
-                  "
-                >
-                  <template #fallback>
-                    {{ conv.candidate_user_name?.charAt(0)?.toUpperCase() || '?' }}
-                  </template>
-                </n-avatar>
+                  :src="getThumbUrl(conv.candidate_user_profile_picture) || getInitialsAvatar(conv.candidate_user_name)"
+                />
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-baseline mb-1">
                     <h4 class="font-semibold text-gray-900 truncate pr-2">
@@ -896,17 +890,8 @@ const isUnread = (c: ConversationResp) => {
               <n-avatar
                 round
                 :size="40"
-                :src="getThumbUrl(activeConversation.candidate_user_profile_picture) || undefined"
-                :style="
-                  !activeConversation.candidate_user_profile_picture
-                    ? 'background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 700; font-size: 16px;'
-                    : ''
-                "
-              >
-                <template #fallback>
-                  {{ activeConversation.candidate_user_name?.charAt(0)?.toUpperCase() || '?' }}
-                </template>
-              </n-avatar>
+                :src="getThumbUrl(activeConversation.candidate_user_profile_picture) || getInitialsAvatar(activeConversation.candidate_user_name)"
+              />
               <div>
                 <h3 class="font-semibold text-gray-900">
                   {{ activeConversation.candidate_user_name }}
@@ -1000,7 +985,17 @@ const isUnread = (c: ConversationResp) => {
                         <div class="font-bold opacity-70 mb-0.5">
                           {{ msg.reply_to.sender_name }}
                         </div>
-                        <div class="line-clamp-2 opacity-60">{{ msg.reply_to.content }}</div>
+                        <div class="line-clamp-2 opacity-60">
+                          <template v-if="parseInterviewMessageContent(msg.reply_to.content)">
+                            <span class="inline-flex items-center gap-1 text-blue-600 font-medium">
+                              <n-icon size="12"><CalendarEvent /></n-icon>
+                              {{ getMessagePreviewText(msg.reply_to.content) }}
+                            </span>
+                          </template>
+                          <template v-else>
+                            {{ msg.reply_to.content }}
+                          </template>
+                        </div>
                       </div>
 
                       <!-- Interview Message Content -->

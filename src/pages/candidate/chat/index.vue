@@ -5,7 +5,19 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
 import { NInput, NSpin, NEmpty, NIcon } from 'naive-ui'
-import { Send, FilePlus, Eye, ArrowBackUp, X } from '@vicons/tabler'
+import {
+  Send,
+  FilePlus,
+  Eye,
+  ArrowBackUp,
+  X,
+  Clock,
+  CalendarTime,
+  Video,
+  MapPin,
+  ExternalLink,
+  CalendarEvent,
+} from '@vicons/tabler'
 import type { ConversationResp, MessageResp } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 
@@ -239,6 +251,65 @@ const formatMessage = (content: string) => {
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline break-all">${url}</a>`
   })
 }
+
+const INTERVIEW_MESSAGE_PREFIX = '__interview_chat__:'
+
+interface InterviewChatMessagePayload {
+  interview_id: string
+  title: string
+  scheduled_at: string
+  method: string
+  meeting_link: string
+  meeting_location: string
+  stage_name?: string
+}
+
+const parseInterviewMessageContent = (content: string) => {
+  if (!content.startsWith(INTERVIEW_MESSAGE_PREFIX)) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(
+      content.slice(INTERVIEW_MESSAGE_PREFIX.length),
+    ) as InterviewChatMessagePayload
+    if (!parsed?.interview_id || !parsed?.title || !parsed?.scheduled_at) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const getMessagePreviewText = (content: string) => {
+  const interviewMessage = parseInterviewMessageContent(content)
+  return interviewMessage?.title || content
+}
+
+const formatInterviewDate = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return '-'
+  }
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
+const formatInterviewTime = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return '-'
+  }
+  return new Intl.DateTimeFormat('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
 </script>
 
 <template>
@@ -294,24 +365,111 @@ const formatMessage = (content: string) => {
                   <n-icon size="16"><ArrowBackUp /></n-icon>
                 </div>
 
-                <div class="rounded-md px-5 py-3 shadow-sm relative overflow-hidden"
-                      :class="msg.sender_user_id === authStore.user?.id ? 'bg-gray-200 text-gray-900 order-2' : 'bg-gray-100 border border-gray-100 text-gray-800 order-1'">
+                <div class="relative overflow-hidden"
+                      :class="[
+                        msg.sender_user_id === authStore.user?.id ? 'order-2' : 'order-1',
+                        parseInterviewMessageContent(msg.content)
+                          ? ''
+                          : msg.sender_user_id === authStore.user?.id
+                            ? 'rounded-md px-5 py-3 shadow-sm bg-gray-200 text-gray-900'
+                            : 'rounded-md px-5 py-3 shadow-sm bg-gray-100 border border-gray-100 text-gray-800'
+                      ]">
                   
                   <!-- Reply Context -->
                   <div v-if="msg.reply_to" 
                         class="mb-2 p-2 rounded bg-black/5 border-l-4 border-primary text-xs cursor-pointer hover:bg-black/10 transition-colors"
                         @click="scrollToMessage(msg.reply_to.id)">
                     <div class="font-bold opacity-70 mb-0.5">{{ msg.reply_to.sender_name }}</div>
-                    <div class="line-clamp-2 opacity-60">{{ msg.reply_to.content }}</div>
+                    <div class="line-clamp-2 opacity-60">
+                      <template v-if="parseInterviewMessageContent(msg.reply_to.content)">
+                        <span class="inline-flex items-center gap-1 text-blue-600 font-medium">
+                          <n-icon size="12"><CalendarEvent /></n-icon>
+                          {{ getMessagePreviewText(msg.reply_to.content) }}
+                        </span>
+                      </template>
+                      <template v-else>
+                        {{ msg.reply_to.content }}
+                      </template>
+                    </div>
                   </div>
 
-                  <div class="flex flex-col">
-                    <p class="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed pb-3" v-html="formatMessage(msg.content)"></p>
-                    
-                    <!-- Inline Timestamp -->
-                    <div class="absolute bottom-1 right-2 flex items-center gap-1">
-                      <span class="text-[10px] opacity-50 font-medium">{{ formatTime(msg.created_at) }}</span>
+                  <!-- Interview Message Content -->
+                  <template v-if="parseInterviewMessageContent(msg.content)">
+                    <div
+                      class="w-85 max-w-full rounded-2xl border border-blue-100 bg-white p-4 pb-6 shadow-xs"
+                    >
+                      <div class="space-y-3">
+                        <div>
+                          <h4 class="text-[15px] font-semibold text-slate-800">
+                            {{ parseInterviewMessageContent(msg.content)?.title }}
+                          </h4>
+                        </div>
+
+                        <div class="space-y-2 text-sm text-slate-600">
+                          <div class="flex items-center gap-2">
+                            <n-icon size="16" class="text-slate-400"><Clock /></n-icon>
+                            <span
+                              >{{
+                                formatInterviewTime(
+                                  parseInterviewMessageContent(msg.content)?.scheduled_at || '',
+                                )
+                              }}
+                              WIB</span
+                            >
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <n-icon size="16" class="text-slate-400"><CalendarTime /></n-icon>
+                            <span>{{
+                              formatInterviewDate(
+                                parseInterviewMessageContent(msg.content)?.scheduled_at || '',
+                              )
+                            }}</span>
+                          </div>
+
+                          <div class="flex items-start gap-2">
+                            <template
+                              v-if="
+                                parseInterviewMessageContent(msg.content)?.method === 'Online'
+                              "
+                            >
+                              <n-icon size="16" class="mt-0.5 text-slate-400"><Video /></n-icon>
+                              <a
+                                :href="
+                                  parseInterviewMessageContent(msg.content)?.meeting_link || '#'
+                                "
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="wrap-break-word text-blue-600 underline flex items-center"
+                              >
+                                Online Meeting<span class="ml-1">
+                                  <n-icon size="16" class="text-blue-500"
+                                    ><ExternalLink
+                                  /></n-icon>
+                                </span>
+                              </a>
+                            </template>
+                            <template v-else>
+                              <n-icon size="16" class="mt-0.5 text-slate-400"
+                                ><MapPin
+                              /></n-icon>
+                              <span class="wrap-break-word">{{
+                                parseInterviewMessageContent(msg.content)?.meeting_location ||
+                                '-'
+                              }}</span>
+                            </template>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                  </template>
+
+                  <div v-else class="flex flex-col">
+                    <p class="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed pb-3" v-html="formatMessage(msg.content)"></p>
+                  </div>
+                  
+                  <!-- Inline Timestamp -->
+                  <div class="absolute bottom-1 right-2 flex items-center gap-1">
+                    <span class="text-[10px] opacity-50 font-medium">{{ formatTime(msg.created_at) }}</span>
                   </div>
                 </div>
 
@@ -339,7 +497,17 @@ const formatMessage = (content: string) => {
             <div class="w-1 h-8 bg-primary rounded-full"></div>
             <div class="flex-1 min-w-0">
               <div class="text-xs font-bold text-primary">Replying to {{ replyingTo.sender_name }}</div>
-              <div class="text-xs text-gray-500 truncate">{{ replyingTo.content }}</div>
+              <div class="text-xs text-gray-500 truncate">
+                <template v-if="parseInterviewMessageContent(replyingTo.content)">
+                  <span class="inline-flex items-center gap-1 text-blue-600 font-medium">
+                    <n-icon size="12"><CalendarEvent /></n-icon>
+                    {{ getMessagePreviewText(replyingTo.content) }}
+                  </span>
+                </template>
+                <template v-else>
+                  {{ replyingTo.content }}
+                </template>
+              </div>
             </div>
             <div class="p-1 hover:bg-gray-200 rounded-full cursor-pointer text-gray-400" @click="replyingTo = null">
               <n-icon size="16"><X /></n-icon>

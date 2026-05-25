@@ -75,7 +75,7 @@ const passwordForm = ref({
 // Initialize/Reset forms
 const initProfileForm = () => {
   isLoading.value = true
-  const user = profile.value || me.value || authStore.user
+  const user = (profile.value || me.value || authStore.user) as any
   profileForm.value.name = user?.name || ''
   profileForm.value.birthdate = user?.birthdate ? new Date(user.birthdate).getTime() : null
   previewAvatarUrl.value = null

@@ -9,6 +9,8 @@ import { Bell, Logout } from '@vicons/tabler'
 import { useLogout, useMeQuery } from '@/composables/useAuth'
 import { useAuthStore } from '@/stores/auth.store'
 
+import { useProfile } from '@/composables/useProfile'
+
 interface Props {
   menuOptions: MenuOption[]
   basePath: string
@@ -22,16 +24,26 @@ const sidebarStore = useSidebarStore()
 const authStore = useAuthStore()
 const logout = useLogout()
 const { data: me } = useMeQuery()
+const { profile } = useProfile()
 
 const defaultAvatarSeed = 'HumanResource'
 
+const getThumbUrl = (url: string | null | undefined): string | undefined => {
+  if (!url) return undefined
+  const lastDotIndex = url.lastIndexOf('.')
+  if (lastDotIndex === -1) return url
+  const filename = url.substring(0, lastDotIndex)
+  const extension = url.substring(lastDotIndex)
+  return `${filename}_thumb${extension}`
+}
+
 const userInfo = computed(() => {
-  const user = me.value ?? authStore.user
+  const user = profile.value || me.value || authStore.user
   const role = user?.system_role_name
   const name = user?.name || 'Human Resource'
   const email = user?.email || 'human.resource@gigsource.com'
   const avatar =
-    user?.profile_picture ||
+    getThumbUrl(user?.profile_picture) ||
     `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || defaultAvatarSeed)}`
 
   return {
@@ -67,10 +79,13 @@ const handleMenuSelect = (key: string) => {
 const handleBottomMenuSelect = (key: string) => {
   if (key === 'notifications') {
     console.log('Open notifications')
-    // Add notification logic here
   } else if (key === 'logout') {
     logout()
   }
+}
+
+const handleProfileClick = () => {
+  router.push(`${props.basePath}/profile`)
 }
 
 // Update sidebar state when route changes
@@ -111,20 +126,28 @@ watch(
         :root-indent="20"
       />
 
-      <!-- Account Info -->
-      <div class="px-4 pb-4 border-gray-200">
-        <n-space align="center">
-          <n-avatar round :size="40" :src="userInfo.avatar" />
-          <div class="flex-1 min-w-0 pb-1">
-            <div class="text-sm font-medium text-gray-900 truncate">{{ userInfo.name }}</div>
-            <div class="text-xs text-gray-500 truncate">{{ userInfo.email }}</div>
-          </div>
-        </n-space>
+      <!-- Account Info (Clickable Profile Trigger) -->
+      <div
+        @click="handleProfileClick"
+        class="px-4 pb-4 border-gray-200 cursor-pointer group transition-all duration-200"
+      >
+        <div class="p-2 rounded-xl group-hover:bg-[#F0F2FD] border border-transparent group-hover:border-[#C7D0F3] transition-all">
+          <n-space align="center" :wrap="false">
+            <n-avatar round :size="40" :src="userInfo.avatar" class="shadow-sm border border-gray-100" />
+            <div class="flex-1 min-w-0 pb-1">
+              <div class="text-sm font-semibold text-gray-800 truncate group-hover:text-primary transition-colors">
+                {{ userInfo.name }}
+              </div>
+              <div class="text-xs text-gray-500 truncate">{{ userInfo.email }}</div>
+            </div>
+          </n-space>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Additional custom styles if needed */
+/* Scoped styles */
 </style>
+

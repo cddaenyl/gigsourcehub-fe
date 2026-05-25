@@ -145,6 +145,17 @@ export const updateProfileApi = async (data: any): Promise<void> => {
   }
 }
 
+export const changePasswordApi = async (data: any): Promise<void> => {
+  try {
+    await axios.put('/profile/change-password', data)
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
 export const blockUserApi = async (id: string): Promise<void> => {
   try {
     await axios.patch(`/users/${id}/block`)

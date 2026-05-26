@@ -6,6 +6,7 @@ import {
   getConversationApi,
   fetchMessagesApi,
   sendMessageApi,
+  uploadOfferingApi,
   markAsReadApi,
   createConversationApi,
   startChatApi,
@@ -51,6 +52,12 @@ export const useSendMessage = () => {
     mutationFn: ({ id, payload }: { id: string; payload: SendMessageRequest }) =>
       sendMessageApi(id, payload),
     // onSuccess cache invalidation handled by component/websocket
+  })
+}
+
+export const useUploadOffering = () => {
+  return useMutation({
+    mutationFn: (payload: { conversation_id: string; file: File }) => uploadOfferingApi(payload),
   })
 }
 

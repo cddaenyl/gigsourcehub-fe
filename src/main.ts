@@ -4,9 +4,10 @@ import { VueQueryPlugin } from '@tanstack/vue-query'
 import App from './App.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useAuthStore } from './stores/auth.store'
 import { canAccessPath, getDefaultRouteForUser, getUserRole, isAuthPage } from './utils/auth'
+import { refreshTokenApi } from './services/auth.service'
 
 // Configure axios baseURL
 axios.defaults.baseURL = import.meta.env.VITE_BASE_API_URL
@@ -48,15 +49,83 @@ axios.interceptors.request.use((config) => {
   return config
 })
 
-// Handle global error responses (401, 403)
+// Flag to track refresh status and queue for failed requests
+let isRefreshing = false
+let failedQueue: Array<{ resolve: (token: string) => void; reject: (error: any) => void }> = []
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (token) {
+      prom.resolve(token)
+    } else {
+      prom.reject(error)
+    }
+  })
+  failedQueue = []
+}
+
+// Handle global error responses (401, 403) with silent refresh
 axios.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const authStore = useAuthStore()
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    const originalRequest = error.config
+
+    if (error instanceof AxiosError) {
+      const isAuthPath = originalRequest?.url?.includes('/auth/refresh') || originalRequest?.url?.includes('/auth/login')
+
+      if (error.response?.status === 401 && !originalRequest._retry && !isAuthPath) {
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({
+              resolve: (token: string) => {
+                originalRequest.headers.Authorization = `Bearer ${token}`
+                resolve(axios(originalRequest))
+              },
+              reject: (err: any) => {
+                reject(err)
+              }
+            })
+          })
+        }
+
+        originalRequest._retry = true
+        isRefreshing = true
+
+        const currentRefreshToken = authStore.refreshToken
+        if (currentRefreshToken) {
+          try {
+            const refreshRes = await refreshTokenApi({ refresh_token: currentRefreshToken })
+            const newToken = refreshRes.data.token
+            const newRefreshToken = refreshRes.data.refresh_token
+
+            authStore.setAuth(newToken, undefined, newRefreshToken)
+
+            processQueue(null, newToken)
+
+            originalRequest.headers.Authorization = `Bearer ${newToken}`
+            return axios(originalRequest)
+          } catch (refreshError) {
+            processQueue(refreshError, null)
+            authStore.logout()
+            router.push('/login')
+            return Promise.reject(refreshError)
+          } finally {
+            isRefreshing = false
+          }
+        } else {
+          authStore.logout()
+          router.push('/login')
+        }
+      } else if ((error.response?.status === 401 || error.response?.status === 403) && isAuthPath) {
+        authStore.logout()
+        router.push('/login')
+      }
+    } else if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       authStore.logout()
       router.push('/login')
     }
+
     return Promise.reject(error)
   }
 )

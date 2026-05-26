@@ -92,14 +92,14 @@ const parseTags = (techStack: string | null | undefined): string[] => {
 onMounted(async () => {
   try {
     const res = await getPublicJobVacanciesApi({ limit: 3 })
-    vacancies.value = res.data.list
+    vacancies.value = res?.data?.list || []
   } catch (error) {
-    // Fallback to static
+    vacancies.value = []
   }
 })
 
 const opportunityCards = computed<OpportunityCard[]>(() => {
-  if (vacancies.value.length === 0) {
+  if (!vacancies.value || vacancies.value.length === 0) {
     return staticOpportunities
   }
   return vacancies.value.map((v) => {

@@ -12,6 +12,14 @@ export interface ReplyTo {
   sender_name: string
 }
 
+export interface OfferingMessageContent {
+  key: string
+  content_type: string
+  url: string
+  filename?: string
+  file_size?: number
+}
+
 export interface MessageResp {
   id: string
   conversation_id: string

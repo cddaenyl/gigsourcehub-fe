@@ -36,6 +36,18 @@ export const sendMessageApi = async (id: string, payload: SendMessageRequest) =>
   return response.data
 }
 
+export const uploadOfferingApi = async (payload: { conversation_id: string; file: File }) => {
+  const formData = new FormData()
+  formData.append('conversation_id', payload.conversation_id)
+  formData.append('file', payload.file)
+  const response = await axios.post<BaseMessageResponse>('/chats/upload-offering', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  return response.data
+}
+
 export const markAsReadApi = async (id: string) => {
   const response = await axios.put<BaseResponse<null>>(`/chats/${id}/read`)
   return response.data

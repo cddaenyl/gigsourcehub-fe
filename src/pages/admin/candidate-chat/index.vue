@@ -3,7 +3,13 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, reactive } 
 import { useRouter, useRoute } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { useAuthStore } from '@/stores/auth.store'
-import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '@/composables/useChat'
+import {
+  useConversations,
+  useMessages,
+  useSendMessage,
+  useMarkAsRead,
+  useUploadOffering,
+} from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
 import {
   NInput,
@@ -43,8 +49,9 @@ import {
   Home,
   CalendarEvent,
   FileText,
+  Download,
 } from '@vicons/tabler'
-import type { ConversationResp, MessageResp } from '@/models/Chat'
+import type { ConversationResp, MessageResp, OfferingMessageContent } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useInterviewStages } from '@/composables/useInterviewStages'
 import { useCreateInterview, useInterviewById } from '@/composables/useInterviews'
@@ -78,6 +85,7 @@ interface InterviewChatMessagePayload {
 }
 
 const INTERVIEW_MESSAGE_PREFIX = '__interview_chat__:'
+const OFFERING_MESSAGE_PREFIX = '__offering_chat__:'
 const getInitialsAvatar = (name?: string) => {
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || '?')}`
 }
@@ -104,8 +112,13 @@ const showInterviewDetailModal = ref(false)
 const selectedInterviewId = ref<string | null>(null)
 const showActionMenu = ref(false)
 const actionMenuRef = ref<HTMLElement | null>(null)
+const offeringInputRef = ref<HTMLInputElement | null>(null)
 const interviewFormRef = ref<FormInst | null>(null)
 const isInterviewSubmitting = ref(false)
+const isOfferingUploading = ref(false)
+const showOfferingPreviewModal = ref(false)
+const offeringPreviewUrl = ref<string | null>(null)
+const offeringPreviewName = ref<string | null>(null)
 const interviewForm = reactive({
   stage_id: '',
   title: '',
@@ -125,6 +138,7 @@ const {
   refetch: refetchMessages,
 } = useMessages(selectedConversationId, ref(1), ref(100))
 const sendMessageMutation = useSendMessage()
+const { mutateAsync: uploadOffering } = useUploadOffering()
 const markAsReadMutation = useMarkAsRead()
 const { incomingMessage, readReceipt, typingStatus, sendTyping } = useChatWebSocket()
 const { mutateAsync: createInterview } = useCreateInterview()
@@ -476,7 +490,19 @@ const handleEnter = (e: KeyboardEvent) => {
 
 const formatTime = (isoString: string) => {
   const d = new Date(isoString)
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+  if (Number.isNaN(d.getTime())) return ''
+
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+
+  if (d.toDateString() === today.toDateString()) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+  }
+  if (d.toDateString() === yesterday.toDateString()) {
+    return 'Yesterday'
+  }
+  return d.toLocaleDateString('en-GB')
 }
 
 const formatDateDivider = (isoString: string) => {
@@ -522,6 +548,60 @@ const parseInterviewMessageContent = (content: string) => {
   }
 }
 
+const buildOfferingMessageContent = (payload: OfferingMessageContent) =>
+  `${OFFERING_MESSAGE_PREFIX}${JSON.stringify(payload)}`
+
+const parseOfferingMessageContent = (content: string) => {
+  const trimmed = content.trim()
+  const raw = trimmed.startsWith(OFFERING_MESSAGE_PREFIX)
+    ? trimmed.slice(OFFERING_MESSAGE_PREFIX.length)
+    : trimmed.startsWith('{')
+      ? trimmed
+      : null
+
+  if (!raw) return null
+
+  try {
+    const parsed = JSON.parse(raw) as OfferingMessageContent
+    if (!parsed?.url || !parsed?.content_type) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const getOfferingFileName = (payload: OfferingMessageContent | null) => {
+  if (!payload) return 'Dokumen'
+  if (payload.filename?.trim()) return payload.filename
+  const source = payload.key || payload.url
+  const fileName = source?.split('/').pop()
+  if (!fileName) return 'Dokumen'
+  try {
+    return decodeURIComponent(fileName)
+  } catch {
+    return fileName
+  }
+}
+
+const formatFileSize = (value?: number) => {
+  if (!value || Number.isNaN(value)) return null
+  if (value < 1024) return `${value} B`
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(0)} KB`
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`
+}
+
+const formatOfferingDate = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
 const formatInterviewDate = (value: string) => {
   const date = new Date(value)
 
@@ -552,14 +632,129 @@ const formatInterviewTime = (value: string) => {
 
 const getMessagePreviewText = (content: string) => {
   const interviewMessage = parseInterviewMessageContent(content)
+  if (interviewMessage?.title) return interviewMessage.title
 
-  return interviewMessage?.title || content
+  const offeringMessage = parseOfferingMessageContent(content)
+  if (offeringMessage) {
+    return `${getOfferingFileName(offeringMessage)} `
+  }
+
+  return content
 }
 
 const openInterviewDetail = async (interviewId: string) => {
   selectedInterviewId.value = interviewId
   showInterviewDetailModal.value = true
   await refetchInterviewDetail()
+}
+
+const openOfferingPreview = (payload: OfferingMessageContent | null) => {
+  if (!payload?.url) return
+  offeringPreviewUrl.value = payload.url
+  offeringPreviewName.value = getOfferingFileName(payload)
+  showOfferingPreviewModal.value = true
+}
+
+const downloadOffering = (payload: OfferingMessageContent | null) => {
+  if (!payload?.url) return
+  const link = document.createElement('a')
+  link.href = payload.url
+  link.download = getOfferingFileName(payload)
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+const triggerOfferingUpload = () => {
+  if (!isChatAvailable.value || isOfferingUploading.value) return
+  offeringInputRef.value?.click()
+}
+
+const handleOfferingFileChange = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  target.value = ''
+
+  if (!file || !selectedConversationId.value) return
+
+  if (file.type !== 'application/pdf') {
+    naiveMessage.error('Hanya file PDF yang didukung.')
+    return
+  }
+
+  const tempId = `pending-offering-${++_tempIdCounter}`
+  const optimisticPayload: OfferingMessageContent = {
+    key: '',
+    content_type: file.type,
+    url: '',
+    filename: file.name,
+    file_size: file.size,
+  }
+  const optimisticMsg = {
+    id: tempId,
+    conversation_id: selectedConversationId.value,
+    sender_user_id: authStore.user?.id ?? '',
+    sender_name: authStore.user?.name ?? '',
+    content: buildOfferingMessageContent(optimisticPayload),
+    reply_to_message_id: null,
+    reply_to: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    read_at: null,
+    file_url: null,
+    _pending: true as const,
+  } as PendingMessage
+
+  pendingMessages.value.push(optimisticMsg)
+  scrollToBottom()
+
+  isOfferingUploading.value = true
+  try {
+    const response = await uploadOffering({
+      conversation_id: selectedConversationId.value,
+      file,
+    })
+
+    pendingMessages.value = pendingMessages.value.filter((m) => m.id !== tempId)
+
+    queryClient.setQueryData<MessageQueryCache>(
+      ['messages', selectedConversationId.value, 1, 100],
+      (oldData) => {
+        const newList = oldData?.data?.list ?? []
+        return {
+          ...(oldData ?? {}),
+          data: {
+            ...(oldData?.data ?? {}),
+            list: [response.data, ...newList],
+          },
+        }
+      },
+    )
+
+    queryClient.setQueryData<ConversationQueryCache>(
+      ['conversations', page.value, limit.value],
+      (oldData) => {
+        if (!oldData) return oldData
+        const newList =
+          oldData.data?.list?.map((c) => {
+            if (c.id === selectedConversationId.value) {
+              return { ...c, last_message: response.data }
+            }
+            return c
+          }) ?? []
+        return { ...oldData, data: { ...oldData.data, list: newList } }
+      },
+    )
+  } catch (error) {
+    pendingMessages.value = pendingMessages.value.filter((m) => m.id !== tempId)
+    naiveMessage.error(
+      error instanceof Error ? error.message : 'Gagal mengunggah dokumen offering.',
+    )
+  } finally {
+    isOfferingUploading.value = false
+  }
 }
 
 const interviewActions = [
@@ -584,7 +779,7 @@ const interviewActions = [
     iconColor: '#EF4444',
     onClick: () => {
       if (!isChatAvailable.value) return
-      naiveMessage.info('Fitur Kirim Dokumen belum tersedia.')
+      triggerOfferingUpload()
     },
   },
 ]
@@ -664,6 +859,13 @@ watch(showInterviewModal, (visible) => {
 watch(showInterviewDetailModal, (visible) => {
   if (!visible) {
     selectedInterviewId.value = null
+  }
+})
+
+watch(showOfferingPreviewModal, (visible) => {
+  if (!visible) {
+    offeringPreviewUrl.value = null
+    offeringPreviewName.value = null
   }
 })
 
@@ -829,7 +1031,11 @@ const isUnread = (c: ConversationResp) => {
                 <n-avatar
                   round
                   :size="48"
-                  :src="getThumbUrl(conv.candidate_user_profile_picture) || getInitialsAvatar(conv.candidate_user_name)"
+                  object-fit="cover"
+                  :src="
+                    getThumbUrl(conv.candidate_user_profile_picture) ||
+                    getInitialsAvatar(conv.candidate_user_name)
+                  "
                 />
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-baseline mb-1">
@@ -865,6 +1071,17 @@ const isUnread = (c: ConversationResp) => {
                             {{ getMessagePreviewText(conv.last_message.content) }}
                           </span>
                         </template>
+                        <template
+                          v-else-if="
+                            conv.last_message?.content &&
+                            parseOfferingMessageContent(conv.last_message.content)
+                          "
+                        >
+                          <span class="inline-flex items-center gap-1 text-rose-600 font-medium">
+                            <n-icon size="14"><FileText /></n-icon>
+                            {{ getMessagePreviewText(conv.last_message.content) }}
+                          </span>
+                        </template>
                         <template v-else>
                           {{ conv.last_message?.content || 'No messages yet' }}
                         </template>
@@ -890,7 +1107,10 @@ const isUnread = (c: ConversationResp) => {
               <n-avatar
                 round
                 :size="40"
-                :src="getThumbUrl(activeConversation.candidate_user_profile_picture) || getInitialsAvatar(activeConversation.candidate_user_name)"
+                :src="
+                  getThumbUrl(activeConversation.candidate_user_profile_picture) ||
+                  getInitialsAvatar(activeConversation.candidate_user_name)
+                "
               />
               <div>
                 <h3 class="font-semibold text-gray-900">
@@ -969,7 +1189,8 @@ const isUnread = (c: ConversationResp) => {
                       class="relative"
                       :class="[
                         msg.sender_user_id === authStore.user?.id ? 'order-2' : 'order-1',
-                        parseInterviewMessageContent(msg.content)
+                        parseInterviewMessageContent(msg.content) ||
+                        parseOfferingMessageContent(msg.content)
                           ? ''
                           : msg.sender_user_id === authStore.user?.id
                             ? 'rounded-md px-4 py-2.5 shadow-sm overflow-hidden bg-gray-200 text-gray-900'
@@ -992,14 +1213,93 @@ const isUnread = (c: ConversationResp) => {
                               {{ getMessagePreviewText(msg.reply_to.content) }}
                             </span>
                           </template>
+                          <template v-else-if="parseOfferingMessageContent(msg.reply_to.content)">
+                            <span class="inline-flex items-center gap-1 text-rose-600 font-medium">
+                              <n-icon size="12"><FileText /></n-icon>
+                              {{ getMessagePreviewText(msg.reply_to.content) }}
+                            </span>
+                          </template>
                           <template v-else>
                             {{ msg.reply_to.content }}
                           </template>
                         </div>
                       </div>
 
+                      <!-- Offering Message Content -->
+                      <template v-if="parseOfferingMessageContent(msg.content)">
+                        <div
+                          class="w-85 max-w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xs"
+                        >
+                          <div class="flex items-center gap-4">
+                            <div
+                              class="flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50"
+                            >
+                              <div
+                                class="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500 text-[10px] font-bold text-white"
+                              >
+                                PDF
+                              </div>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                              <div class="text-sm font-semibold text-slate-800 truncate">
+                                {{ getOfferingFileName(parseOfferingMessageContent(msg.content)) }}
+                              </div>
+                              <div class="text-xs text-slate-500">
+                                <span>{{ formatOfferingDate(msg.created_at) }}</span>
+                                <template
+                                  v-if="
+                                    formatFileSize(
+                                      parseOfferingMessageContent(msg.content)?.file_size,
+                                    )
+                                  "
+                                >
+                                  <span class="px-1">•</span>
+                                  {{
+                                    formatFileSize(
+                                      parseOfferingMessageContent(msg.content)?.file_size,
+                                    )
+                                  }}
+                                </template>
+                              </div>
+                              <div
+                                v-if="(msg as PendingMessage)._pending"
+                                class="pt-1 text-xs text-slate-400"
+                              >
+                                Mengunggah dokumen...
+                              </div>
+                            </div>
+                            <div class="flex gap-2">
+                              <button
+                                class="flex h-9 w-9 justify-center items-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700 cursor-pointer"
+                                :class="{
+                                  'pointer-events-none opacity-50': (msg as PendingMessage)
+                                    ._pending,
+                                }"
+                                @click="
+                                  openOfferingPreview(parseOfferingMessageContent(msg.content))
+                                "
+                                type="button"
+                              >
+                                <n-icon size="16"><Eye /></n-icon>
+                              </button>
+                              <button
+                                class="flex h-9 w-9 justify-center items-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700 cursor-pointer"
+                                :class="{
+                                  'pointer-events-none opacity-50': (msg as PendingMessage)
+                                    ._pending,
+                                }"
+                                @click="downloadOffering(parseOfferingMessageContent(msg.content))"
+                                type="button"
+                              >
+                                <n-icon size="16"><Download /></n-icon>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+
                       <!-- Interview Message Content -->
-                      <template v-if="parseInterviewMessageContent(msg.content)">
+                      <template v-else-if="parseInterviewMessageContent(msg.content)">
                         <div
                           class="w-85 max-w-full rounded-2xl border border-blue-100 bg-white p-4 pb-6 shadow-xs"
                         >
@@ -1152,6 +1452,12 @@ const isUnread = (c: ConversationResp) => {
                       {{ getMessagePreviewText(replyingTo.content) }}
                     </span>
                   </template>
+                  <template v-else-if="parseOfferingMessageContent(replyingTo.content)">
+                    <span class="inline-flex items-center gap-1 text-rose-600 font-medium">
+                      <n-icon size="12"><FileText /></n-icon>
+                      {{ getMessagePreviewText(replyingTo.content) }}
+                    </span>
+                  </template>
                   <template v-else>
                     {{ replyingTo.content }}
                   </template>
@@ -1185,6 +1491,14 @@ const isUnread = (c: ConversationResp) => {
                   >
                     <n-icon size="24"><Plus /></n-icon>
                   </div>
+
+                  <input
+                    ref="offeringInputRef"
+                    type="file"
+                    class="hidden"
+                    accept="application/pdf"
+                    @change="handleOfferingFileChange"
+                  />
 
                   <div
                     v-if="showActionMenu && isChatAvailable"
@@ -1429,6 +1743,36 @@ const isUnread = (c: ConversationResp) => {
           <n-button type="error" @click="showInterviewDetailModal = false" style="width: 25%"
             >Batalkan Jadwal</n-button
           >
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="showOfferingPreviewModal"
+      preset="card"
+      :bordered="false"
+      style="width: 52rem"
+    >
+      <div class="-mt-8">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold">Preview Dokumen</h3>
+            <p class="text-sm text-gray-500">
+              {{ offeringPreviewName || 'Dokumen' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <iframe
+            v-if="offeringPreviewUrl"
+            :src="offeringPreviewUrl"
+            title="Offering Preview"
+            class="h-[70vh] w-full"
+          ></iframe>
+          <div v-else class="flex items-center justify-center py-16 text-sm text-slate-400">
+            Preview tidak tersedia.
+          </div>
         </div>
       </div>
     </n-modal>

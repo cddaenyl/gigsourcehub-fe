@@ -73,9 +73,21 @@ export const verifyAccountApi = async (token: string) => {
   }
 }
 
-export const logoutApi = async () => {
+export const refreshTokenApi = async (payload: { refresh_token: string }) => {
   try {
-    const response = await axios.post('/auth/logout')
+    const response = await axios.post('/auth/refresh', payload)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const logoutApi = async (refreshToken?: string | null) => {
+  try {
+    const response = await axios.post('/auth/logout', { refresh_token: refreshToken })
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {

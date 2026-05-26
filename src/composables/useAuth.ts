@@ -18,7 +18,7 @@ export function useLogin() {
     },
 
     onSuccess: (response) => {
-      authStore.setAuth(response.data.token, response.data.user)
+      authStore.setAuth(response.data.token, response.data.user, response.data.refresh_token)
       queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY })
       router.push(getDefaultRouteForUser(response.data.user))
     },
@@ -50,7 +50,7 @@ export function useLogout() {
 
   const logout = async () => {
     try {
-      await logoutApi()
+      await logoutApi(authStore.refreshToken)
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {

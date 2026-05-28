@@ -90,6 +90,8 @@ const tableData = computed<AllCandidates[]>(() => {
     level: user.candidate_level || 'Un-Reviewed',
     status: user.recruitment_status_name || 'Un-Reviewed',
     statusHexCode: user.recruitment_status_hex_code || null,
+    recruitmentStatusId: user.recruitment_status_id,
+    unavailableUntil: user.unavailable_until,
   }))
 })
 

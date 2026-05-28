@@ -38,7 +38,7 @@ const statusInfo = computed(() => {
   <div>
     <div
       :class="[
-        'inline-flex items-center rounded-full px-2 py-1 text-xs leading-none text-white',
+        'inline-flex items-center rounded-full px-2 py-1.5 text-xs leading-none text-white',
         statusInfo.className,
       ]"
     >

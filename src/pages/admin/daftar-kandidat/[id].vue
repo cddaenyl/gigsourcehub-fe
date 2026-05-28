@@ -522,6 +522,7 @@ const handleAssignCandidate = async (): Promise<void> => {
               @save="handleSaveRecruitment"
               @send-note="handleSendNote"
               @finalize="openFinalizeModal"
+              @cancel-recruitment="handleCancelRecruitmentClick"
             />
           </n-gi>
         </n-grid>

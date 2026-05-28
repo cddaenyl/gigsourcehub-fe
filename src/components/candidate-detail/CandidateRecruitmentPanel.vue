@@ -26,6 +26,7 @@ const emit = defineEmits<{
   ): void
   (event: 'send-note', payload: { text: string }): void
   (event: 'finalize'): void
+  (event: 'cancel-recruitment'): void
 }>()
 
 const recruitmentStatusName = computed(() => props.user.recruitment_status_name || '')
@@ -111,6 +112,10 @@ const handleSendNote = (payload: { text: string }) => {
 const handleFinalize = () => {
   emit('finalize')
 }
+
+const handleCancelRecruitment = () => {
+  emit('cancel-recruitment')
+}
 </script>
 
 <template>
@@ -153,7 +158,14 @@ const handleFinalize = () => {
           <h4 class="font-semibold text-sm text-gray-500">Keputusan Akhir Kandidat</h4>
           <h4 class="text-xs text-gray-500">Menentukan hasil keputusan akhir kandidat</h4>
           <div class="flex gap-2 w-full mt-2">
-            <n-button type="error" :loading="isSaving" style="width: 49%"> Batalkan </n-button>
+            <n-button
+              type="error"
+              :loading="isSaving"
+              style="width: 49%"
+              @click="handleCancelRecruitment"
+            >
+              Batalkan
+            </n-button>
             <n-button
               type="primary"
               :loading="isFinalizing"

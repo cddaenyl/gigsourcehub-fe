@@ -11,6 +11,7 @@ const props = defineProps<{
   initialLevel: string | null
   initialStatus: string | null
   isSaving?: boolean
+  isFinalizing?: boolean
   notes: CandidateNote[]
   notesLoading?: boolean
   notesPosting?: boolean
@@ -24,6 +25,8 @@ const emit = defineEmits<{
     payload: { candidate_level: string | null; recruitment_status_id: string | null },
   ): void
   (event: 'send-note', payload: { text: string }): void
+  (event: 'finalize'): void
+  (event: 'cancel-recruitment'): void
 }>()
 
 const recruitmentStatusName = computed(() => props.user.recruitment_status_name || '')
@@ -105,6 +108,14 @@ const getInitials = (name: string) => {
 const handleSendNote = (payload: { text: string }) => {
   emit('send-note', payload)
 }
+
+const handleFinalize = () => {
+  emit('finalize')
+}
+
+const handleCancelRecruitment = () => {
+  emit('cancel-recruitment')
+}
 </script>
 
 <template>
@@ -141,6 +152,29 @@ const handleSendNote = (payload: { text: string }) => {
           >
             Simpan
           </n-button>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <h4 class="font-semibold text-sm text-gray-500">Keputusan Akhir Kandidat</h4>
+          <h4 class="text-xs text-gray-500">Menentukan hasil keputusan akhir kandidat</h4>
+          <div class="flex gap-2 w-full mt-2">
+            <n-button
+              type="error"
+              :loading="isSaving"
+              style="width: 49%"
+              @click="handleCancelRecruitment"
+            >
+              Batalkan
+            </n-button>
+            <n-button
+              type="primary"
+              :loading="isFinalizing"
+              style="width: 49%"
+              @click="handleFinalize"
+            >
+              Kontrak
+            </n-button>
+          </div>
         </div>
       </div>
     </n-card>

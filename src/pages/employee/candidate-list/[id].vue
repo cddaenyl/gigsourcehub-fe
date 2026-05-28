@@ -198,7 +198,7 @@ const formatNoteDate = (dateString: string): string => {
             </CandidateNotesCard>
           </n-gi>
         </n-grid>
-        <CandidateOnboardingHistory />
+        <CandidateOnboardingHistory :user-id="user.id" />
       </div>
     </div>
   </AdminLayout>

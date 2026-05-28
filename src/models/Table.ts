@@ -7,6 +7,8 @@ export interface AllCandidates {
   level: string
   status: string
   statusHexCode: string | null
+  recruitmentStatusId?: string | null
+  unavailableUntil?: string | null
 }
 
 export interface TalentNeed {

@@ -43,7 +43,7 @@ const chipConfig = computed(() => {
 
 <template>
   <div>
-    <n-tag
+    <div
       v-if="chipConfig.show"
       :class="[
         'inline-flex items-center rounded-full border px-2 py-1.5 text-xs leading-none',
@@ -51,7 +51,7 @@ const chipConfig = computed(() => {
       ]"
     >
       {{ level }}
-    </n-tag>
+    </div>
     <p v-else class="text-gray-500">
       {{ level }}
     </p>

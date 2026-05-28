@@ -5,7 +5,7 @@ import type { DataTableColumns } from 'naive-ui'
 import CandidateTableActions from './CandidateTableActions.vue'
 import CandidateBookmark from '../CandidateBookmark.vue'
 import CandidateLevelChip from '../CandidateLevelChip.vue'
-import CandidateStatusChip from '../CandidateStatusChip.vue'
+import UserStatusChip from '../chip/UserStatusChip.vue'
 import type { AllCandidates } from '@/models/Table'
 
 interface Props {
@@ -108,9 +108,10 @@ const columns: DataTableColumns<AllCandidates> = [
     title: 'Status',
     key: 'status',
     render: (row) => {
-      return h(CandidateStatusChip, {
-        status: row.status,
-        hexCode: row.statusHexCode,
+      return h(UserStatusChip, {
+        unavailableUntil: row.unavailableUntil,
+        recruitmentStatusId: row.recruitmentStatusId,
+        recruitmentStatusName: row.status,
       })
     },
   },

@@ -46,6 +46,13 @@ export interface UserRecruitmentStatusPayload {
   recruitment_status_id: string | null
 }
 
+export interface FinalizeRecruitmentPayload {
+  candidate_user_id: string
+  start_date: string
+  end_date: string
+  subrequest_id: string
+}
+
 export interface UsersListData {
   list: User[]
   limit: number

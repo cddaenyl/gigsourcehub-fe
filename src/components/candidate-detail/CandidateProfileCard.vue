@@ -5,7 +5,8 @@ import { useAuthStore } from '@/stores/auth.store'
 import { getUserRole } from '@/utils/auth'
 import type { User } from '@/models/User'
 import CandidateBookmark from '@/components/CandidateBookmark.vue'
-import { NCard, NButton, NIcon, NTag, NAvatar, useMessage } from 'naive-ui'
+import UserStatusChip from '@/components/chip/UserStatusChip.vue'
+import { NCard, NButton, NIcon, NAvatar, useMessage } from 'naive-ui'
 import { UserSearch, MessageCircle2, X, Bookmark, Checks } from '@vicons/tabler'
 import { useBookmarkStore } from '@/stores/bookmark.store'
 
@@ -113,7 +114,11 @@ const handleStartChat = (): void => {
 
       <div class="flex-1">
         <h2 class="text-lg font-bold text-gray-800">{{ user.name }}</h2>
-        <n-tag size="small" type="primary" round>{{ recruitmentStatusName }}</n-tag>
+        <UserStatusChip
+          :unavailable-until="user.unavailable_until"
+          :recruitment-status-id="user.recruitment_status_id"
+          :recruitment-status-name="user.recruitment_status_name"
+        />
       </div>
       <div class="flex items-center gap-2">
         <n-button v-if="showAdminBookmarkButton" style="width: 40px; height: 35px; padding: 0">

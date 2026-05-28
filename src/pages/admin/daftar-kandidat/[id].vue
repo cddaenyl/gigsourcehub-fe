@@ -18,6 +18,7 @@ import {
   NGi,
   NModal,
   NSelect,
+  NDatePicker,
   NSpace,
   NIcon,
   useMessage,
@@ -81,6 +82,8 @@ const {
   isUpdatingRecruitmentStatus,
   cancelRecruitment,
   isCancellingRecruitment,
+  finalizeRecruitment,
+  isFinalizingRecruitment,
 } = useUser(userId)
 const {
   activeSubrequest,
@@ -91,6 +94,12 @@ const {
 const recruitModalVisible = ref(false)
 const chatModalVisible = ref(false)
 const cancelRecruitmentModalVisible = ref(false)
+const finalizeModalVisible = ref(false)
+const finalizeStartDate = ref<string | null>(null)
+const finalizeEndDate = ref<string | null>(null)
+const finalizeFeedbackVisible = ref(false)
+const finalizeFeedbackType = ref<'success' | 'error'>('success')
+const finalizeFeedbackDetail = ref('')
 const selectedRequestId = ref<string | null>(null)
 const selectedSubrequestId = ref<string | null>(null)
 const assignedPairKeys = ref<string[]>([])
@@ -190,6 +199,28 @@ const canSubmitAssignment = computed(
     !isAssigningCandidate.value,
 )
 
+const startDateError = computed((): string => {
+  if (!finalizeStartDate.value) return 'Tanggal mulai wajib diisi.'
+  return ''
+})
+
+const endDateError = computed((): string => {
+  if (!finalizeEndDate.value) return 'Tanggal berakhir wajib diisi.'
+  if (finalizeStartDate.value && finalizeEndDate.value < finalizeStartDate.value) {
+    return 'Tanggal berakhir harus setelah tanggal mulai.'
+  }
+  return ''
+})
+
+const canSubmitFinalize = computed((): boolean => {
+  return (
+    Boolean(user.value?.id && activeSubrequest.value?.subrequest_id) &&
+    !startDateError.value &&
+    !endDateError.value &&
+    !isFinalizingRecruitment.value
+  )
+})
+
 watch(userId, (): void => {
   optimisticLevel.value = null
   optimisticStatus.value = null
@@ -242,6 +273,30 @@ const handleStartChat = (): void => {
 
 const handleCancelRecruitmentClick = (): void => {
   cancelRecruitmentModalVisible.value = true
+}
+
+const openFinalizeModal = (): void => {
+  if (!activeSubrequest.value?.subrequest_id) {
+    finalizeFeedbackType.value = 'error'
+    finalizeFeedbackDetail.value = 'Subrequest aktif belum tersedia untuk kandidat ini.'
+    finalizeFeedbackVisible.value = true
+    return
+  }
+  finalizeModalVisible.value = true
+}
+
+const closeFinalizeModal = (): void => {
+  finalizeModalVisible.value = false
+  resetFinalizeForm()
+}
+
+const closeFinalizeFeedback = (): void => {
+  finalizeFeedbackVisible.value = false
+}
+
+const resetFinalizeForm = (): void => {
+  finalizeStartDate.value = null
+  finalizeEndDate.value = null
 }
 
 const handleSaveRecruitment = async (payload: UserRecruitmentStatusPayload): Promise<void> => {
@@ -326,6 +381,37 @@ const handleStartChatConfirm = async (): Promise<void> => {
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal memulai chat dengan kandidat.'
     message.error(messageText, { duration: 3000 })
+  }
+}
+
+const handleFinalizeRecruitment = async (): Promise<void> => {
+  if (!user.value?.id || !activeSubrequest.value?.subrequest_id) {
+    return
+  }
+
+  if (!canSubmitFinalize.value) {
+    return
+  }
+
+  try {
+    await finalizeRecruitment({
+      candidate_user_id: user.value.id,
+      start_date: finalizeStartDate.value as string,
+      end_date: finalizeEndDate.value as string,
+      subrequest_id: activeSubrequest.value.subrequest_id,
+    })
+
+    finalizeFeedbackType.value = 'success'
+    finalizeFeedbackDetail.value = 'Kontrak kandidat berhasil difinalisasi.'
+    finalizeFeedbackVisible.value = true
+    finalizeModalVisible.value = false
+    resetFinalizeForm()
+    await Promise.all([refetchUser(), refetchActiveSubrequest()])
+  } catch (err) {
+    finalizeFeedbackType.value = 'error'
+    finalizeFeedbackDetail.value =
+      err instanceof Error ? err.message : 'Kontrak kandidat gagal difinalisasi.'
+    finalizeFeedbackVisible.value = true
   }
 }
 
@@ -427,6 +513,7 @@ const handleAssignCandidate = async (): Promise<void> => {
               :initial-level="displayedLevel"
               :initial-status="displayedStatus"
               :is-saving="isUpdatingRecruitmentStatus"
+              :is-finalizing="isFinalizingRecruitment"
               :notes="notes"
               :notes-loading="isNotesLoading"
               :notes-posting="isNotesPosting"
@@ -434,6 +521,7 @@ const handleAssignCandidate = async (): Promise<void> => {
               :user="user"
               @save="handleSaveRecruitment"
               @send-note="handleSendNote"
+              @finalize="openFinalizeModal"
             />
           </n-gi>
         </n-grid>
@@ -561,6 +649,91 @@ const handleAssignCandidate = async (): Promise<void> => {
         Apakah Anda yakin ingin membatalkan rekrutmen kandidat ini? Status akan kembali menjadi
         Available.
       </p>
+    </n-modal>
+
+    <n-modal
+      v-model:show="finalizeModalVisible"
+      preset="card"
+      :bordered="false"
+      style="width: 36rem"
+    >
+      <div class="flex flex-col">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 -mt-8">Finalisasi Kontrak</h2>
+        </div>
+
+        <div class="mt-3 text-sm text-slate-600">
+          <p>
+            Dengan melanjutkan, {{ user?.name }} akan resmi dikontrak sebagai
+            <span class="font-semibold text-primary">{{ activeSubrequest?.job_role }}</span>
+            untuk proyek <span class="font-semibold">{{ activeSubrequest?.project_name }}</span>
+            untuk periode:
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mt-5">
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-slate-500">Tanggal Mulai</label>
+            <n-date-picker
+              v-model:formatted-value="finalizeStartDate"
+              type="date"
+              format="dd/MM/yyyy"
+              value-format="yyyy-MM-dd"
+              placeholder="DD/MM/YYYY"
+              clearable
+            />
+            <p v-if="startDateError" class="text-xs text-red-500">{{ startDateError }}</p>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-slate-500">Tanggal Berakhir</label>
+            <n-date-picker
+              v-model:formatted-value="finalizeEndDate"
+              type="date"
+              format="dd/MM/yyyy"
+              value-format="yyyy-MM-dd"
+              placeholder="DD/MM/YYYY"
+              clearable
+            />
+            <p v-if="endDateError" class="text-xs text-red-500">{{ endDateError }}</p>
+          </div>
+        </div>
+
+        <p class="mt-3 text-xs text-slate-500">
+          Tindakan ini akan memulai proses onboarding kandidat.
+        </p>
+
+        <div class="-mx-6 -mb-6 bg-slate-100 px-6 py-5 mt-6">
+          <div class="flex justify-center gap-3">
+            <n-button secondary :disabled="isFinalizingRecruitment" @click="closeFinalizeModal">
+              Batal
+            </n-button>
+            <n-button
+              type="primary"
+              :loading="isFinalizingRecruitment"
+              :disabled="!canSubmitFinalize"
+              @click="handleFinalizeRecruitment"
+            >
+              Finalisasi Kontrak
+            </n-button>
+          </div>
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="finalizeFeedbackVisible"
+      preset="dialog"
+      :type="finalizeFeedbackType"
+      :title="
+        finalizeFeedbackType === 'success'
+          ? 'Kontrak Berhasil di finalisasi'
+          : 'Kontrak Gagal di finalisasi'
+      "
+      positive-text="Tutup"
+      @positive-click="closeFinalizeFeedback"
+    >
+      <p>{{ finalizeFeedbackDetail }}</p>
     </n-modal>
   </AdminLayout>
 </template>

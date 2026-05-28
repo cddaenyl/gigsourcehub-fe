@@ -5,6 +5,7 @@ import type {
   UsersQueryParams,
   UserResponse,
   UserRecruitmentStatusPayload,
+  FinalizeRecruitmentPayload,
 } from '@/models/User'
 
 export const getUsersApi = async (params: UsersQueryParams = {}): Promise<UsersResponse> => {
@@ -229,6 +230,20 @@ export const updateUserRecruitmentStatusApi = async (
 export const cancelRecruitmentApi = async (id: string): Promise<UserResponse> => {
   try {
     const response = await axios.patch<UserResponse>(`/users/${id}/cancel-recruitment`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const finalizeRecruitmentApi = async (
+  payload: FinalizeRecruitmentPayload,
+): Promise<UserResponse> => {
+  try {
+    const response = await axios.post<UserResponse>('/users/finalize-recruitment', payload)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {

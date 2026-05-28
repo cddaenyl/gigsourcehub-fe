@@ -102,15 +102,15 @@ const handleAction = (action: string, candidate: AllCandidates) => {
       router.push(`/admin/daftar-kandidat/${candidate.id}`)
       break
     case 'recruit':
-      console.log('Recruit candidate:', candidate)
+      // console.log('Recruit candidate:', candidate)
       // TODO: Implement recruit logic
       break
     case 'chat':
-      console.log('Chat with candidate:', candidate)
+      // console.log('Chat with candidate:', candidate)
       // TODO: Implement chat logic
       break
     default:
-      console.log(`Action: ${action}`, candidate)
+    // console.log(`Action: ${action}`, candidate)
   }
 }
 

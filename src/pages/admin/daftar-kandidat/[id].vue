@@ -28,7 +28,7 @@ import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
 import type { UserRecruitmentStatusPayload } from '@/models/User'
 import type { RequestQueryParams } from '@/models/Request'
 import { useCandidateNotesStore } from '@/stores/notes.store'
-import { Alarm, Checkbox } from '@vicons/tabler'
+import { Alarm, Checkbox, Plane } from '@vicons/tabler'
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
@@ -481,7 +481,19 @@ const handleAssignCandidate = async (): Promise<void> => {
           @cancel-recruitment="handleCancelRecruitmentClick"
         />
         <div
-          v-if="activeSubrequest"
+          v-if="activeSubrequest && user.recruitment_status_name === 'Accepted'"
+          class="flex text-emerald-700 border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
+        >
+          <n-icon size="14" :component="Plane" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            Onboarding sebagai
+            <span class="font-semibold"
+              >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
+            >
+          </h2>
+        </div>
+        <div
+          v-else-if="activeSubrequest"
           class="flex text-primary border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
         >
           <n-icon size="14" :component="Checkbox" style="font-weight: bold" />

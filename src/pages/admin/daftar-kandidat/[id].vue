@@ -538,7 +538,7 @@ const handleAssignCandidate = async (): Promise<void> => {
             />
           </n-gi>
         </n-grid>
-        <CandidateOnboardingHistory />
+        <CandidateOnboardingHistory :user-id="user.id" />
       </div>
     </div>
 

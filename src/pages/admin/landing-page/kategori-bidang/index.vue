@@ -15,7 +15,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import type { UploadFileInfo } from 'naive-ui'
-import { Plus, Calendar, Photo } from '@vicons/tabler'
+import { Plus, Calendar, Folder } from '@vicons/tabler'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import SearchInput from '@/components/shared/SearchInput.vue'
@@ -327,21 +327,23 @@ const themeOverride = {
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1.5">Gambar Bidang</label>
             <n-upload
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png"
               :max="1"
-              list-type="image-card"
               @change="handleFileChange"
               @remove="handleFileRemove"
             >
-              <n-upload-dragger>
-                <div class="flex flex-col items-center gap-2 py-4">
-                  <n-icon :component="Photo" size="32" class="text-slate-400" />
-                  <n-text class="text-sm text-slate-600">
+              <n-upload-dragger class="!border-dashed !border-slate-300 !rounded-xl !bg-white hover:!border-blue-900 transition-colors">
+                <div class="flex flex-col items-center gap-2 py-6">
+                  <n-icon :component="Folder" size="36" class="text-slate-400" />
+                  <n-text class="text-sm font-semibold text-slate-700">
                     Drop your files or click to upload
                   </n-text>
-                  <n-p class="text-xs text-slate-400 !mt-0">
-                    Supported file types: PNG, JPG, GIF
+                  <n-p class="text-xs text-slate-400 !mt-0 !mb-3">
+                    Supported file types: PNG, JPG
                   </n-p>
+                  <n-button size="small" class="!border-slate-200 !text-slate-600 px-4" ghost>
+                    Browse
+                  </n-button>
                 </div>
               </n-upload-dragger>
             </n-upload>
@@ -402,21 +404,23 @@ const themeOverride = {
             </div>
 
             <n-upload
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png"
               :max="1"
-              list-type="image-card"
               @change="handleFileChange"
               @remove="handleFileRemove"
             >
-              <n-upload-dragger>
-                <div class="flex flex-col items-center gap-2 py-4">
-                  <n-icon :component="Photo" size="32" class="text-slate-400" />
-                  <n-text class="text-sm text-slate-600">
-                    {{ formImagePreviewUrl ? 'Ganti gambar' : 'Drop your files or click to upload' }}
+              <n-upload-dragger class="!border-dashed !border-slate-300 !rounded-xl !bg-white hover:!border-blue-900 transition-colors">
+                <div class="flex flex-col items-center gap-2 py-6">
+                  <n-icon :component="Folder" size="36" class="text-slate-400" />
+                  <n-text class="text-sm font-semibold text-slate-700">
+                    Drop your files or click to upload
                   </n-text>
-                  <n-p class="text-xs text-slate-400 !mt-0">
-                    Supported file types: PNG, JPG, GIF
+                  <n-p class="text-xs text-slate-400 !mt-0 !mb-3">
+                    Supported file types: PNG, JPG
                   </n-p>
+                  <n-button size="small" class="!border-slate-200 !text-slate-600 px-4" ghost>
+                    Browse
+                  </n-button>
                 </div>
               </n-upload-dragger>
             </n-upload>

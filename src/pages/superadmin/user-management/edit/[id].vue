@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, watch, computed } from 'vue'
+import { buildMasterDataOptions } from '@/utils/masterDataOptions'
 import { useRouter, useRoute } from 'vue-router'
 import {
   NForm,
@@ -81,7 +82,7 @@ const filteredSectorsOptions = computed(() => {
   } else if (selectedRoleName.value === 'Employee') {
     list = list.filter((s) => s.name !== 'Human Resources')
   }
-  return list.map((s) => ({ label: s.name, value: s.id }))
+  return buildMasterDataOptions(list)
 })
 
 const filteredJobTitlesOptions = computed(() => {
@@ -89,7 +90,7 @@ const filteredJobTitlesOptions = computed(() => {
   if (selectedRoleName.value !== 'Admin') {
     list = list.filter((j) => j.name !== 'HR')
   }
-  return list.map((j) => ({ label: j.name, value: j.id }))
+  return buildMasterDataOptions(list)
 })
 
 const fetchInitialData = async () => {

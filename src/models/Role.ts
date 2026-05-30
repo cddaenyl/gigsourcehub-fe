@@ -2,6 +2,7 @@ export interface Role {
   id: string
   sector_id: string
   name: string
+  is_active: boolean
   created_at: string
   updated_at: string
 }

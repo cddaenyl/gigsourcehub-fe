@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { buildMasterDataOptions } from '@/utils/masterDataOptions'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import {
   NButton,
@@ -89,12 +90,7 @@ const urgencyOptions: SelectOption[] = [
   { label: 'High', value: 'HIGH' },
 ]
 
-const positionOptions = computed<SelectOption[]>(() => {
-  return roles.value.map((role) => ({
-    label: role.name,
-    value: role.id,
-  }))
-})
+const positionOptions = computed<SelectOption[]>(() => buildMasterDataOptions(roles.value))
 
 const getSubRequestList = () => subRequests.value || []
 

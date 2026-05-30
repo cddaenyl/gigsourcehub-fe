@@ -167,6 +167,7 @@ const themeOverride = {
             >
               <n-tab name="faq">FAQ</n-tab>
               <n-tab name="informasi-perusahaan">Informasi Perusahaan</n-tab>
+              <n-tab name="kategori-bidang">Kategori Bidang</n-tab>
             </n-tabs>
 
             <!-- Action bar (right side of tabs) -->

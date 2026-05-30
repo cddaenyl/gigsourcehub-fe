@@ -303,6 +303,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/superadmin/approval/kategori-bidang/': RouteRecordInfo<
+      '/superadmin/approval/kategori-bidang/',
+      '/superadmin/approval/kategori-bidang',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/superadmin/audit-log/': RouteRecordInfo<
       '/superadmin/audit-log/',
       '/superadmin/audit-log',
@@ -714,6 +721,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/approval/informasi-perusahaan/index.vue': {
       routes:
         | '/superadmin/approval/informasi-perusahaan/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/approval/kategori-bidang/index.vue': {
+      routes:
+        | '/superadmin/approval/kategori-bidang/'
       views:
         | never
     }

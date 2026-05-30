@@ -49,8 +49,10 @@ const handleAdd = () => {
   router.push('/admin/lowongan/create')
 }
 
-const handleAction = async (action: 'edit' | 'delete', vacancy: JobVacancy) => {
-  if (action === 'edit') {
+const handleAction = async (action: 'view' | 'edit' | 'delete', vacancy: JobVacancy) => {
+  if (action === 'view') {
+    router.push(`/admin/lowongan/view/${vacancy.id}`)
+  } else if (action === 'edit') {
     router.push(`/admin/lowongan/edit/${vacancy.id}`)
   } else if (action === 'delete') {
     if (confirm(`Yakin ingin menghapus lowongan "${vacancy.name}"?`)) {

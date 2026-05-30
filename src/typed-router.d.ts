@@ -128,6 +128,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/admin/lowongan/view/[id]': RouteRecordInfo<
+      '/admin/lowongan/view/[id]',
+      '/admin/lowongan/view/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/profile/': RouteRecordInfo<
       '/admin/profile/',
       '/admin/profile',
@@ -557,6 +564,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/lowongan/edit/[id].vue': {
       routes:
         | '/admin/lowongan/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/view/[id].vue': {
+      routes:
+        | '/admin/lowongan/view/[id]'
       views:
         | never
     }

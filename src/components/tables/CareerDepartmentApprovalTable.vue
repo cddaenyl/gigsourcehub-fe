@@ -53,7 +53,7 @@ function getActionTypeStyle(action: string): { color: string; textColor: string 
   }
 }
 
-function parseProposed(proposedStr?: string | null): { name: string; description: string; image_path?: string } {
+function parseProposed(proposedStr?: string | null): { name: string; description: string; image_path?: string; image_url?: string } {
   if (!proposedStr) return { name: '—', description: '—' }
   try {
     const data = JSON.parse(proposedStr)
@@ -61,16 +61,11 @@ function parseProposed(proposedStr?: string | null): { name: string; description
       name: data.name || '—',
       description: data.description || '—',
       image_path: data.image_path || undefined,
+      image_url: data.image_url || undefined,
     }
   } catch (e) {
     return { name: '—', description: '—' }
   }
-}
-
-function getFullImageUrl(path?: string | null) {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `https://cdn.magangslab.store/gigsourcehub-test/${path}`
 }
 
 const columns: DataTableColumns<ApprovalRequest> = [
@@ -104,9 +99,9 @@ const columns: DataTableColumns<ApprovalRequest> = [
     width: 80,
     render: (row) => {
       const parsed = parseProposed(row.proposed_data)
-      if (parsed.image_path) {
+      if (parsed.image_url) {
         return h('img', {
-          src: getFullImageUrl(parsed.image_path),
+          src: parsed.image_url,
           class: 'h-10 w-10 object-cover rounded-md border border-slate-200 shadow-sm',
           style: { display: 'block' },
         })

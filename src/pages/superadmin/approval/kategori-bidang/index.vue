@@ -62,12 +62,12 @@ const { approvals, pageCount, isLoading, refetch } = useCareerDepartmentApproval
 
 const parsedProposed = computed(() => {
   if (!selectedRequest.value?.proposed_data) {
-    return { name: '', description: '', image_path: '' }
+    return { name: '', description: '', image_path: '', image_url: '' }
   }
   try {
     return JSON.parse(selectedRequest.value.proposed_data)
   } catch (e) {
-    return { name: '', description: '', image_path: '' }
+    return { name: '', description: '', image_path: '', image_url: '' }
   }
 })
 
@@ -97,13 +97,6 @@ watch(
     }
   }
 )
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function getFullImageUrl(path?: string | null) {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `https://cdn.magangslab.store/gigsourcehub-test/${path}`
-}
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
 const handleTableAction = (action: 'review', req: ApprovalRequest) => {
@@ -301,9 +294,9 @@ const themeOverride = {
                   </div>
                   <div>
                     <h4 class="text-sm font-semibold text-slate-700 mb-1.5">Gambar yang Diajukan</h4>
-                    <div v-if="parsedProposed.image_path" class="border border-slate-200 rounded-xl overflow-hidden shadow-sm inline-block">
+                    <div v-if="parsedProposed.image_url" class="border border-slate-200 rounded-xl overflow-hidden shadow-sm inline-block">
                       <img
-                        :src="getFullImageUrl(parsedProposed.image_path)"
+                        :src="parsedProposed.image_url"
                         class="max-h-56 w-auto object-cover"
                         alt="Proposed image"
                       />
@@ -372,11 +365,11 @@ const themeOverride = {
                       </div>
                     </div>
                     <!-- Proposed Image preview if present -->
-                    <div v-if="parsedProposed.image_path">
+                    <div v-if="parsedProposed.image_url">
                       <h4 class="text-xs font-semibold text-slate-600 mb-1">Gambar Baru</h4>
                       <div class="p-1 bg-blue-50 border border-blue-200 rounded-md inline-block">
                         <img
-                          :src="getFullImageUrl(parsedProposed.image_path)"
+                          :src="parsedProposed.image_url"
                           class="h-24 w-auto rounded-md object-cover shadow-sm"
                           alt="Proposed image"
                         />

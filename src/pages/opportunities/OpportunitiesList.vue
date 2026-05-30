@@ -22,6 +22,9 @@ type OpportunityCard = {
   duration: string
   description: string
   tags: string[]
+  jobDesc?: string[]
+  qualifications?: string[]
+  benefits?: string[]
 }
 
 const vacancies = ref<any[]>([])
@@ -98,6 +101,20 @@ const parseTags = (techStack: string | null | undefined): string[] => {
   return cleaned.split(' ').map((s) => s.trim()).filter(Boolean)
 }
 
+const parseJobVacancyDescription = (descStr: string | null | undefined) => {
+  if (!descStr) return { job_desc: [], qualifications: [], benefits: [] }
+  try {
+    const parsed = JSON.parse(descStr)
+    return {
+      job_desc: Array.isArray(parsed.job_desc) ? parsed.job_desc : [],
+      qualifications: Array.isArray(parsed.qualifications) ? parsed.qualifications : [],
+      benefits: Array.isArray(parsed.benefits) ? parsed.benefits : [],
+    }
+  } catch {
+    return { job_desc: [], qualifications: [], benefits: [] }
+  }
+}
+
 onMounted(async () => {
   isLoading.value = true
   try {
@@ -115,19 +132,23 @@ const mappedVacancies = computed<OpportunityCard[]>(() => {
     return staticOpportunities
   }
   return vacancies.value.map((v) => {
-    const category = v.subrequest?.job_role || 'Technology Information'
+    const category = v.bidang || 'Technology Information'
     const location = v.schema ? v.schema.charAt(0) + v.schema.slice(1).toLowerCase() : 'Remote'
     const postedAt = formatPostedAt(v.created_at)
-    const tags = parseTags(v.subrequest?.tech_stack)
+    const tags = parseTags(v.tech_stack)
+    const desc = parseJobVacancyDescription(v.description)
     return {
       id: v.id,
       label: v.name,
       category,
       postedAt,
       location,
-      duration: '3-6 month',
-      description: v.overview || v.description || '',
+      duration: v.project_duration || '3-6 month',
+      description: v.overview || '',
       tags,
+      jobDesc: desc.job_desc,
+      qualifications: desc.qualifications,
+      benefits: desc.benefits,
     }
   })
 })
@@ -166,8 +187,13 @@ const getListItems = (text: string | null | undefined): string[] => {
 }
 
 const jobDescriptions = computed(() => {
-  const items = getListItems(selectedVacancy.value?.description)
-  if (items.length > 0) return items
+  if (selectedVacancy.value?.jobDesc && selectedVacancy.value.jobDesc.length > 0) {
+    return selectedVacancy.value.jobDesc
+  }
+  if (selectedVacancy.value?.description) {
+    const items = getListItems(selectedVacancy.value.description)
+    if (items.length > 0) return items
+  }
   return [
     `Mengembangkan dan memelihara aplikasi web menggunakan teknologi frontend modern untuk peran ${selectedVacancy.value?.label || 'Developer'}`,
     'Berkolaborasi dengan UI/UX Designer untuk mengimplementasikan desain menjadi interface interaktif',
@@ -179,6 +205,9 @@ const jobDescriptions = computed(() => {
 })
 
 const qualifications = computed(() => {
+  if (selectedVacancy.value?.qualifications && selectedVacancy.value.qualifications.length > 0) {
+    return selectedVacancy.value.qualifications
+  }
   const experienceText = selectedVacancy.value?.tags?.find((t) => t.includes('+'))
     ? `Pengalaman minimal ${selectedVacancy.value?.tags.find((t) => t.includes('+'))} sebagai ${selectedVacancy.value?.label || 'Developer'}`
     : `Pengalaman minimal 3+ tahun sebagai ${selectedVacancy.value?.label || 'Developer'}`
@@ -194,6 +223,9 @@ const qualifications = computed(() => {
 })
 
 const benefits = computed(() => {
+  if (selectedVacancy.value?.benefits && selectedVacancy.value.benefits.length > 0) {
+    return selectedVacancy.value.benefits
+  }
   return [
     'Sistem kerja fleksibel (remote working)',
     'Kesempatan bekerja dalam proyek skala nasional maupun internasional',

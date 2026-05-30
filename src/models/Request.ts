@@ -7,6 +7,7 @@ export interface RequestSubrequest {
   level: RequestLevel | null
   job_role_id: string
   job_role: string
+  bidang?: string | null
   tech_stack: string
   notes: string
   is_filled: boolean

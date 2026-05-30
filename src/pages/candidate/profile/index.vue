@@ -106,18 +106,23 @@ const jobRoleOptions = computed(() => {
 
   // 3. Add the industry-grouped categories once the API returns data
   if (sectors.value && allRoles.value) {
-    const mainGroups = sectors.value.map(sector => ({
-      type: 'group',
-      label: sector.name,
-      key: sector.id,
-      children: allRoles.value
-        .filter(role => role.sector_id === sector.id)
-        .map(role => {
-           // We don't strictly set roleNamesInGroups here to allow the normal structure 
-           // but normally selection will highlight the existing option if values match.
-           return { label: role.name, value: role.id }
-        })
-    }))
+    const mainGroups = sectors.value
+      .filter((sector: any) => sector.is_active)
+      .sort((a: any, b: any) => a.name.localeCompare(b.name))
+      .map((sector: any) => {
+        const rolesForSector = allRoles.value
+          .filter((role: any) => role.sector_id === sector.id)
+          .sort((a: any, b: any) => a.name.localeCompare(b.name))
+        const activeRoles = rolesForSector.filter((r: any) => r.is_active).map((role: any) => ({ label: role.name, value: role.id, disabled: false }))
+        const inactiveRoles = rolesForSector.filter((r: any) => !r.is_active).map((role: any) => ({ label: role.name, value: role.id, disabled: true }))
+        return {
+          type: 'group',
+          label: sector.name,
+          key: sector.id,
+          children: [...activeRoles, ...inactiveRoles]
+        }
+      })
+      .filter((g: any) => g.children.length > 0)
     options.push(...mainGroups)
   }
 

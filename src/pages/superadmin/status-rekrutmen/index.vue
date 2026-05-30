@@ -5,6 +5,7 @@ import { useMessage } from 'naive-ui'
 import MasterDataIndexLayout from '@/components/shared/MasterDataIndexLayout.vue'
 import RecruitmentStatusTable from '@/components/tables/RecruitmentStatusTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
+import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
 import { updateRecruitmentStatusApi } from '@/services/recruitment-status.service'
 import type { RecruitmentStatus } from '@/models/RecruitmentStatus'
@@ -24,6 +25,42 @@ const queryParams = computed(() => ({
 
 const { recruitmentStatuses, pageCount, isLoading, refetch } = useRecruitmentStatuses(queryParams)
 
+// Confirmation modal state
+const isConfirmShow = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmText = ref('')
+const confirmType = ref<'danger' | 'warning' | 'info' | 'success'>('danger')
+const confirmLoading = ref(false)
+const onConfirm = ref<(() => Promise<void>) | null>(null)
+
+const triggerConfirm = (
+  title: string,
+  messageText: string,
+  actionText: string,
+  type: 'danger' | 'warning' | 'info' | 'success',
+  callback: () => Promise<void>
+) => {
+  confirmTitle.value = title
+  confirmMessage.value = messageText
+  confirmText.value = actionText
+  confirmType.value = type
+  onConfirm.value = callback
+  isConfirmShow.value = true
+}
+
+const handleConfirm = async () => {
+  if (onConfirm.value) {
+    confirmLoading.value = true
+    try {
+      await onConfirm.value()
+      isConfirmShow.value = false
+    } finally {
+      confirmLoading.value = false
+    }
+  }
+}
+
 const handleSearch = (val: string) => {
   searchQuery.value = val
   currentPage.value = 1
@@ -38,23 +75,31 @@ const handleAction = async (action: string, status: RecruitmentStatus) => {
     router.push(`/superadmin/status-rekrutmen/edit/${status.id}`)
   } else if (action === 'toggle-status') {
     const newStatus = !status.is_active
-    const confirmMsg = newStatus 
+    const title = newStatus ? 'Aktifkan Status Rekrutmen' : 'Nonaktifkan Status Rekrutmen'
+    const actionText = newStatus ? 'Aktifkan' : 'Nonaktifkan'
+    const msg = newStatus 
       ? `Apakah Anda yakin ingin mengaktifkan status ${status.name}?`
-      : `Apakah Anda yakin ingin menonaktifkan status ${status.name}?`
+      : `Status rekrutmen yang dinonaktifkan tidak dapat dipilih dalam proses penambahan atau pengelolaan data baru. Data yang sudah terhubung tetap tersimpan di sistem.`
       
-    if (confirm(confirmMsg)) {
-      try {
-        await updateRecruitmentStatusApi(status.id, {
-          name: status.name,
-          hex_code: status.hex_code,
-          is_active: newStatus
-        })
-        message.success(`Status berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
-        refetch()
-      } catch (err: any) {
-        message.error(err.message || 'Gagal mengubah status')
+    triggerConfirm(
+      title,
+      msg,
+      actionText,
+      newStatus ? 'success' : 'danger',
+      async () => {
+        try {
+          await updateRecruitmentStatusApi(status.id, {
+            name: status.name,
+            hex_code: status.hex_code,
+            is_active: newStatus
+          })
+          message.success(`Status berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
+          refetch()
+        } catch (err: any) {
+          message.error(err.message || 'Gagal mengubah status')
+        }
       }
-    }
+    )
   }
 }
 </script>
@@ -87,4 +132,14 @@ const handleAction = async (action: string, status: RecruitmentStatus) => {
       />
     </template>
   </MasterDataIndexLayout>
+
+  <ConfirmationModal
+    v-model:show="isConfirmShow"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    :confirm-text="confirmText"
+    :type="confirmType"
+    :loading="confirmLoading"
+    @confirm="handleConfirm"
+  />
 </template>

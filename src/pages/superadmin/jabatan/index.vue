@@ -5,6 +5,7 @@ import { useMessage } from 'naive-ui'
 import MasterDataIndexLayout from '@/components/shared/MasterDataIndexLayout.vue'
 import JobTitleTable from '@/components/tables/JobTitleTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
+import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 import { useJobTitles } from '@/composables/useJobTitles'
 import { deleteJobTitleApi } from '@/services/job-title.service'
 import type { JobTitle } from '@/models/JobTitle'
@@ -24,6 +25,42 @@ const queryParams = computed(() => ({
 
 const { jobTitles, pageCount, isLoading, refetch } = useJobTitles(queryParams)
 
+// Confirmation modal state
+const isConfirmShow = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmText = ref('')
+const confirmType = ref<'danger' | 'warning' | 'info' | 'success'>('danger')
+const confirmLoading = ref(false)
+const onConfirm = ref<(() => Promise<void>) | null>(null)
+
+const triggerConfirm = (
+  title: string,
+  messageText: string,
+  actionText: string,
+  type: 'danger' | 'warning' | 'info' | 'success',
+  callback: () => Promise<void>
+) => {
+  confirmTitle.value = title
+  confirmMessage.value = messageText
+  confirmText.value = actionText
+  confirmType.value = type
+  onConfirm.value = callback
+  isConfirmShow.value = true
+}
+
+const handleConfirm = async () => {
+  if (onConfirm.value) {
+    confirmLoading.value = true
+    try {
+      await onConfirm.value()
+      isConfirmShow.value = false
+    } finally {
+      confirmLoading.value = false
+    }
+  }
+}
+
 const handleSearch = (val: string) => {
   searchQuery.value = val
   currentPage.value = 1
@@ -37,15 +74,21 @@ const handleAction = async (action: string, title: JobTitle) => {
   if (action === 'edit') {
     router.push(`/superadmin/jabatan/edit/${title.id}`)
   } else if (action === 'delete') {
-    if (confirm(`Apakah Anda yakin ingin menghapus jabatan ${title.name}?`)) {
-      try {
-        await deleteJobTitleApi(title.id)
-        message.success('Jabatan berhasil dihapus')
-        refetch()
-      } catch (err: any) {
-        message.error(err.message || 'Gagal menghapus jabatan')
+    triggerConfirm(
+      'Hapus Jabatan',
+      `Jabatan ${title.name} yang dihapus tidak dapat dipulihkan kembali. Data yang sudah terhubung tetap tersimpan di sistem.`,
+      'Hapus',
+      'danger',
+      async () => {
+        try {
+          await deleteJobTitleApi(title.id)
+          message.success('Jabatan berhasil dihapus')
+          refetch()
+        } catch (err: any) {
+          message.error(err.message || 'Gagal menghapus jabatan')
+        }
       }
-    }
+    )
   }
 }
 </script>
@@ -78,4 +121,14 @@ const handleAction = async (action: string, title: JobTitle) => {
       />
     </template>
   </MasterDataIndexLayout>
+
+  <ConfirmationModal
+    v-model:show="isConfirmShow"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    :confirm-text="confirmText"
+    :type="confirmType"
+    :loading="confirmLoading"
+    @confirm="handleConfirm"
+  />
 </template>

@@ -1,7 +1,6 @@
 export interface Sector {
   id: string
   name: string
-  hex_code: string
   is_active: boolean
   created_at: string
   updated_at: string

@@ -5,6 +5,7 @@ import { useMessage } from 'naive-ui'
 import MasterDataIndexLayout from '@/components/shared/MasterDataIndexLayout.vue'
 import JobRoleTable from '@/components/tables/JobRoleTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
+import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 import { useJobRoles } from '@/composables/useJobRoles'
 import { deleteJobRoleApi } from '@/services/job-role.service'
 import type { JobRole } from '@/models/JobRole'
@@ -24,6 +25,42 @@ const queryParams = computed(() => ({
 
 const { jobRoles, pageCount, isLoading, refetch } = useJobRoles(queryParams)
 
+// Confirmation modal state
+const isConfirmShow = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmText = ref('')
+const confirmType = ref<'danger' | 'warning' | 'info' | 'success'>('danger')
+const confirmLoading = ref(false)
+const onConfirm = ref<(() => Promise<void>) | null>(null)
+
+const triggerConfirm = (
+  title: string,
+  messageText: string,
+  actionText: string,
+  type: 'danger' | 'warning' | 'info' | 'success',
+  callback: () => Promise<void>
+) => {
+  confirmTitle.value = title
+  confirmMessage.value = messageText
+  confirmText.value = actionText
+  confirmType.value = type
+  onConfirm.value = callback
+  isConfirmShow.value = true
+}
+
+const handleConfirm = async () => {
+  if (onConfirm.value) {
+    confirmLoading.value = true
+    try {
+      await onConfirm.value()
+      isConfirmShow.value = false
+    } finally {
+      confirmLoading.value = false
+    }
+  }
+}
+
 const handleSearch = (val: string) => {
   searchQuery.value = val
   currentPage.value = 1
@@ -37,15 +74,21 @@ const handleAction = async (action: string, role: JobRole) => {
   if (action === 'edit') {
     router.push(`/superadmin/posisi/edit/${role.id}`)
   } else if (action === 'delete') {
-    if (confirm(`Apakah Anda yakin ingin menghapus posisi ${role.name}?`)) {
-      try {
-        await deleteJobRoleApi(role.id)
-        message.success('Posisi berhasil dihapus')
-        refetch()
-      } catch (err: any) {
-        message.error(err.message || 'Gagal menghapus posisi')
+    triggerConfirm(
+      'Hapus Posisi',
+      `Posisi ${role.name} yang dihapus tidak dapat dipulihkan kembali. Data yang sudah terhubung tetap tersimpan di sistem.`,
+      'Hapus',
+      'danger',
+      async () => {
+        try {
+          await deleteJobRoleApi(role.id)
+          message.success('Posisi berhasil dihapus')
+          refetch()
+        } catch (err: any) {
+          message.error(err.message || 'Gagal menghapus posisi')
+        }
       }
-    }
+    )
   }
 }
 </script>
@@ -78,4 +121,14 @@ const handleAction = async (action: string, role: JobRole) => {
       />
     </template>
   </MasterDataIndexLayout>
+
+  <ConfirmationModal
+    v-model:show="isConfirmShow"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    :confirm-text="confirmText"
+    :type="confirmType"
+    :loading="confirmLoading"
+    @confirm="handleConfirm"
+  />
 </template>

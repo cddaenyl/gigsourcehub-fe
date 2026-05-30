@@ -205,6 +205,20 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/employee/candidate-list/penilaian-kandidat/[id]': RouteRecordInfo<
+      '/employee/candidate-list/penilaian-kandidat/[id]',
+      '/employee/candidate-list/penilaian-kandidat/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/employee/candidate-list/penilaian-kandidat/tambah/[onboardHistoryId]': RouteRecordInfo<
+      '/employee/candidate-list/penilaian-kandidat/tambah/[onboardHistoryId]',
+      '/employee/candidate-list/penilaian-kandidat/tambah/:onboardHistoryId',
+      { onboardHistoryId: ParamValue<true> },
+      { onboardHistoryId: ParamValue<false> },
+      | never
+    >,
     '/employee/my-team/': RouteRecordInfo<
       '/employee/my-team/',
       '/employee/my-team',
@@ -623,6 +637,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/employee/candidate-list/[id].vue': {
       routes:
         | '/employee/candidate-list/[id]'
+      views:
+        | never
+    }
+    'src/pages/employee/candidate-list/penilaian-kandidat/[id].vue': {
+      routes:
+        | '/employee/candidate-list/penilaian-kandidat/[id]'
+      views:
+        | never
+    }
+    'src/pages/employee/candidate-list/penilaian-kandidat/tambah/[onboardHistoryId].vue': {
+      routes:
+        | '/employee/candidate-list/penilaian-kandidat/tambah/[onboardHistoryId]'
       views:
         | never
     }

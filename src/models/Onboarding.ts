@@ -18,6 +18,10 @@ export interface OnboardingItem {
   snapshot: string
   created_at: string
   updated_at: string
+  review_id?: string | null
+  review?: {
+    id: string
+  } | null
 }
 
 export interface OnboardingListData {

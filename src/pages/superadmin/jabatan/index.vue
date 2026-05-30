@@ -7,7 +7,7 @@ import JobTitleTable from '@/components/tables/JobTitleTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 import { useJobTitles } from '@/composables/useJobTitles'
-import { deleteJobTitleApi } from '@/services/job-title.service'
+import { deleteJobTitleApi, updateJobTitleApi } from '@/services/job-title.service'
 import type { JobTitle } from '@/models/JobTitle'
 
 const router = useRouter()
@@ -73,6 +73,33 @@ const handleAdd = () => {
 const handleAction = async (action: string, title: JobTitle) => {
   if (action === 'edit') {
     router.push(`/superadmin/jabatan/edit/${title.id}`)
+  } else if (action === 'toggle-status') {
+    const newStatus = !title.is_active
+    const confirmTitleText = newStatus ? 'Aktifkan Jabatan' : 'Nonaktifkan Jabatan'
+    const actionText = newStatus ? 'Aktifkan' : 'Nonaktifkan'
+    const msg = newStatus
+      ? `Apakah Anda yakin ingin mengaktifkan jabatan ${title.name}?`
+      : `Jabatan yang dinonaktifkan tidak dapat dipilih dalam proses penambahan atau pengelolaan data baru. Data yang sudah terhubung tetap tersimpan di sistem.`
+
+    triggerConfirm(
+      confirmTitleText,
+      msg,
+      actionText,
+      newStatus ? 'success' : 'danger',
+      async () => {
+        try {
+          await updateJobTitleApi(title.id, {
+            name: title.name,
+            sector_id: title.sector_id,
+            is_active: newStatus,
+          })
+          message.success(`Jabatan berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
+          refetch()
+        } catch (err: any) {
+          message.error(err.message || 'Gagal mengubah status jabatan')
+        }
+      }
+    )
   } else if (action === 'delete') {
     triggerConfirm(
       'Hapus Jabatan',

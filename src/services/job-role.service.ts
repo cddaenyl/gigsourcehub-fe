@@ -81,7 +81,7 @@ export const createJobRoleApi = async (data: { name: string, sector_id: string }
   }
 }
 
-export const updateJobRoleApi = async (id: string, data: { name: string, sector_id: string }) => {
+export const updateJobRoleApi = async (id: string, data: { name: string, sector_id: string, is_active?: boolean }) => {
   try {
     const response = await axios.put(`/roles/${id}`, data)
     return response.data

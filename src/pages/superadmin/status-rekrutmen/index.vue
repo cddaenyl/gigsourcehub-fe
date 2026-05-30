@@ -7,7 +7,7 @@ import RecruitmentStatusTable from '@/components/tables/RecruitmentStatusTable.v
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
-import { updateRecruitmentStatusApi } from '@/services/recruitment-status.service'
+import { updateRecruitmentStatusApi, deleteRecruitmentStatusApi } from '@/services/recruitment-status.service'
 import type { RecruitmentStatus } from '@/models/RecruitmentStatus'
 
 const router = useRouter()
@@ -97,6 +97,22 @@ const handleAction = async (action: string, status: RecruitmentStatus) => {
           refetch()
         } catch (err: any) {
           message.error(err.message || 'Gagal mengubah status')
+        }
+      }
+    )
+  } else if (action === 'delete') {
+    triggerConfirm(
+      'Hapus Status Rekrutmen',
+      `Status rekrutmen ${status.name} yang dihapus tidak dapat dipulihkan kembali. Data yang sudah terhubung tetap tersimpan di sistem.`,
+      'Hapus',
+      'danger',
+      async () => {
+        try {
+          await deleteRecruitmentStatusApi(status.id)
+          message.success('Status rekrutmen berhasil dihapus')
+          refetch()
+        } catch (err: any) {
+          message.error(err.message || 'Gagal menghapus status rekrutmen')
         }
       }
     )

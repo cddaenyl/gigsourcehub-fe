@@ -8,5 +8,6 @@ export interface JobRole {
   id: string
   name: string
   sector_id: string
+  is_active: boolean
   sector?: Sector
 }

@@ -3,6 +3,7 @@ export interface RecruitmentStatus {
   name: string
   hex_code: string
   is_active: boolean
+  can_be_deleted: boolean
   created_at?: string
   updated_at?: string
 }

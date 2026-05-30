@@ -7,7 +7,7 @@ import JobRoleTable from '@/components/tables/JobRoleTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 import { useJobRoles } from '@/composables/useJobRoles'
-import { deleteJobRoleApi } from '@/services/job-role.service'
+import { deleteJobRoleApi, updateJobRoleApi } from '@/services/job-role.service'
 import type { JobRole } from '@/models/JobRole'
 
 const router = useRouter()
@@ -73,6 +73,33 @@ const handleAdd = () => {
 const handleAction = async (action: string, role: JobRole) => {
   if (action === 'edit') {
     router.push(`/superadmin/posisi/edit/${role.id}`)
+  } else if (action === 'toggle-status') {
+    const newStatus = !role.is_active
+    const title = newStatus ? 'Aktifkan Posisi' : 'Nonaktifkan Posisi'
+    const actionText = newStatus ? 'Aktifkan' : 'Nonaktifkan'
+    const msg = newStatus
+      ? `Apakah Anda yakin ingin mengaktifkan posisi ${role.name}?`
+      : `Posisi yang dinonaktifkan tidak dapat dipilih dalam proses penambahan atau pengelolaan data baru. Data yang sudah terhubung tetap tersimpan di sistem.`
+
+    triggerConfirm(
+      title,
+      msg,
+      actionText,
+      newStatus ? 'success' : 'danger',
+      async () => {
+        try {
+          await updateJobRoleApi(role.id, {
+            name: role.name,
+            sector_id: role.sector_id,
+            is_active: newStatus,
+          })
+          message.success(`Posisi berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
+          refetch()
+        } catch (err: any) {
+          message.error(err.message || 'Gagal mengubah status posisi')
+        }
+      }
+    )
   } else if (action === 'delete') {
     triggerConfirm(
       'Hapus Posisi',

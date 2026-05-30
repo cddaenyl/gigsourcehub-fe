@@ -7,7 +7,7 @@ import CandidatePagination from '@/components/CandidatePagination.vue'
 import InterviewStageTable from '@/components/tables/InterviewStageTable.vue'
 import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 import { useInterviewStages } from '@/composables/useInterviewStages'
-import { updateInterviewStageApi } from '@/services/interview-stage.service'
+import { updateInterviewStageApi, deleteInterviewStageApi } from '@/services/interview-stage.service'
 import type { InterviewStage } from '@/models/InterviewStage'
 
 const router = useRouter()
@@ -97,6 +97,22 @@ const handleAction = async (action: string, stage: InterviewStage) => {
           refetch()
         } catch (err: any) {
           message.error(err.message || 'Gagal mengubah status tahap interview')
+        }
+      }
+    )
+  } else if (action === 'delete') {
+    triggerConfirm(
+      'Hapus Tahap Interview',
+      `Tahap interview ${stage.name} yang dihapus tidak dapat dipulihkan kembali. Data yang sudah terhubung tetap tersimpan di sistem.`,
+      'Hapus',
+      'danger',
+      async () => {
+        try {
+          await deleteInterviewStageApi(stage.id)
+          message.success('Tahap interview berhasil dihapus')
+          refetch()
+        } catch (err: any) {
+          message.error(err.message || 'Gagal menghapus tahap interview')
         }
       }
     )

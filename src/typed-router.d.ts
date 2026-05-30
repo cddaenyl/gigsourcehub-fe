@@ -254,9 +254,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/opportunities/OpportunitiesList': RouteRecordInfo<
-      '/opportunities/OpportunitiesList',
-      '/opportunities/OpportunitiesList',
+    '/opportunities/': RouteRecordInfo<
+      '/opportunities/',
+      '/opportunities',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -675,9 +675,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/opportunities/OpportunitiesList.vue': {
+    'src/pages/opportunities/index.vue': {
       routes:
-        | '/opportunities/OpportunitiesList'
+        | '/opportunities/'
       views:
         | never
     }

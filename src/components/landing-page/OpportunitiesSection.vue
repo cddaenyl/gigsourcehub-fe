@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { getPublicJobVacanciesApi } from '@/services/job-vacancy.service'
 import { ArrowRight, Bolt, Clock, MapPin } from '@vicons/tabler'
 import { NButton, NIcon } from 'naive-ui'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getPublicJobVacanciesApi } from '@/services/job-vacancy.service'
 
 const router = useRouter()
 
 const goToOpportunities = () => {
-  router.push('/opportunities/OpportunitiesList')
+  router.push('/opportunities/')
 }
 
 type OpportunityCard = {
@@ -69,7 +69,7 @@ const formatPostedAt = (dateStr: string) => {
 const parseTags = (techStack: string | null | undefined): string[] => {
   if (!techStack) return []
   let cleaned = techStack.trim()
-  
+
   if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
     try {
       const parsed = JSON.parse(cleaned)
@@ -165,7 +165,8 @@ defineOptions({
           </div>
 
           <div class="relative flex items-center justify-between gap-4">
-            <div v-if="card.category === 'Technology Information'" class="bg-[#e2e8f0] flex gap-1 items-center justify-center px-2 py-0.5 rounded-[22px]">
+            <div v-if="card.category === 'Technology Information'"
+              class="bg-[#e2e8f0] flex gap-1 items-center justify-center px-2 py-0.5 rounded-[22px]">
               <span class="text-[#1e293b] text-sm font-medium leading-5">
                 {{ card.category }}
               </span>

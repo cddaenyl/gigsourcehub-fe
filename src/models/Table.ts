@@ -9,6 +9,11 @@ export interface AllCandidates {
   statusHexCode: string | null
   recruitmentStatusId?: string | null
   unavailableUntil?: string | null
+  jobRoleName?: string | null
+  projectName?: string | null
+  contractStart?: string | null
+  contractEnd?: string | null
+  is_bookmark?: boolean
 }
 
 export interface TalentNeed {

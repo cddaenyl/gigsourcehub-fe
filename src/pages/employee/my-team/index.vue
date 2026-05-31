@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { NConfigProvider, NTabPane, NTabs } from 'naive-ui'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
@@ -35,6 +36,7 @@ const pageSize = ref(10)
 const activeTab = ref('aktif')
 const searchValue = ref('')
 const searchQuery = ref('')
+const router = useRouter()
 
 const queryParams = computed(() => ({
   page: currentPage.value,
@@ -103,7 +105,7 @@ const handleSearch = (value: string) => {
 
 const handleAction = (action: string, row: OnboardingTeamRow) => {
   if (action === 'view') {
-    console.log('View onboarding:', row)
+    router.push(`/employee/candidate-list/${row.candidateUserId}`)
   }
 }
 

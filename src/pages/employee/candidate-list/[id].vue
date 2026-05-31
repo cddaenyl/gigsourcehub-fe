@@ -2,7 +2,8 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
-import AdminLayout from '@/layouts/AdminLayout.vue'
+import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
+import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import CandidateDetailHeader from '@/components/candidate-detail/CandidateDetailHeader.vue'
 import CandidateProfileCard from '@/components/candidate-detail/CandidateProfileCard.vue'
 import CandidateInfoCard from '@/components/candidate-detail/CandidateInfoCard.vue'
@@ -10,6 +11,7 @@ import CandidateNotesCard from '@/components/candidate-detail/CandidateNotesCard
 import CandidateOnboardingHistory from '@/components/candidate-detail/CandidateOnboardingHistory.vue'
 import { NButton, NSpin, NGrid, NGi, useMessage } from 'naive-ui'
 import { useCandidateNotesStore } from '@/stores/notes.store'
+import { Alarm, Checkbox, Plane } from '@vicons/tabler'
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
@@ -26,6 +28,7 @@ const userId = computed((): string => {
 
 // Fetch user data
 const { user, isLoading, isError, error } = useUser(userId)
+const { activeSubrequest, isLoading: isActiveSubrequestLoading } = useActiveSubrequest(userId)
 
 const selectedRequestId = ref<string | null>(null)
 const selectedSubrequestId = ref<string | null>(null)
@@ -123,7 +126,7 @@ const formatNoteDate = (dateString: string): string => {
 </script>
 
 <template>
-  <AdminLayout>
+  <EmployeeLayout>
     <div class="mx-auto space-y-6">
       <CandidateDetailHeader @back="handleBack" />
 
@@ -143,6 +146,40 @@ const formatNoteDate = (dateString: string): string => {
       <!-- Content -->
       <div v-else-if="user" class="space-y-6">
         <CandidateProfileCard :user="user" />
+
+        <div
+          v-if="activeSubrequest && user.recruitment_status_name === 'Accepted'"
+          class="flex text-emerald-700 border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
+        >
+          <n-icon size="14" :component="Plane" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            Onboarding sebagai
+            <span class="font-semibold"
+              >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
+            >
+          </h2>
+        </div>
+        <div
+          v-else-if="activeSubrequest"
+          class="flex text-primary border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
+        >
+          <n-icon size="14" :component="Checkbox" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            Dalam Proses Rekrutmen
+            <span class="font-semibold"
+              >{{ activeSubrequest?.project_name }} - {{ activeSubrequest?.job_role }}</span
+            >
+          </h2>
+        </div>
+        <div
+          v-else-if="!isActiveSubrequestLoading && !activeSubrequest"
+          class="flex text-slate-500 border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
+        >
+          <n-icon size="14" :component="Alarm" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            Belum direkrut untuk posisi atau proyek apa pun.
+          </h2>
+        </div>
 
         <n-grid :x-gap="8" :cols="2" item-responsive>
           <n-gi>
@@ -201,7 +238,7 @@ const formatNoteDate = (dateString: string): string => {
         <CandidateOnboardingHistory :user-id="user.id" />
       </div>
     </div>
-  </AdminLayout>
+  </EmployeeLayout>
 </template>
 
 <style scoped>

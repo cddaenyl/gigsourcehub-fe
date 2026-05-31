@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { NButton, NCard, NIcon, NSpin, NSpace } from 'naive-ui'
-import { ArrowRight, Calendar, Eye } from '@vicons/tabler'
+import { ArrowRight, Calendar, Eye, Plus } from '@vicons/tabler'
 import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
-import type { OnboardingSnapshot } from '@/models/Onboarding'
+import type { OnboardingSnapshot, OnboardingItem } from '@/models/Onboarding'
 
 const props = defineProps<{
   userId: string
@@ -39,6 +40,24 @@ const historyItems = computed(() =>
     parsedSnapshot: parseSnapshot(item.snapshot),
   })),
 )
+
+const router = useRouter()
+
+const getReviewId = (item: OnboardingItem): string | null => {
+  return item.review_id || item.review?.id || null
+}
+
+const handleOnboardingAction = (item: OnboardingItem) => {
+  const reviewId = getReviewId(item)
+  if (reviewId) {
+    router.push(`/employee/candidate-list/penilaian-kandidat/${reviewId}`)
+  } else {
+    router.push({
+      path: `/employee/candidate-list/penilaian-kandidat/tambah/${item.id}`,
+      query: { candidate_id: props.userId },
+    })
+  }
+}
 </script>
 
 <template>
@@ -80,11 +99,16 @@ const historyItems = computed(() =>
             </div>
           </div>
           <div>
-            <n-button secondary size="small" class="onboarding-action">
+            <n-button
+              secondary
+              size="small"
+              class="onboarding-action"
+              @click="handleOnboardingAction(item)"
+            >
               <template #icon>
-                <n-icon :component="Eye" />
+                <n-icon :component="getReviewId(item) ? Eye : Plus" />
               </template>
-              Lihat Penilaian
+              {{ getReviewId(item) ? 'Lihat Penilaian' : 'Tambah Kandidat' }}
             </n-button>
           </div>
         </div>

@@ -30,6 +30,34 @@ export const getActiveTeamOnboardingApi = async (
   }
 }
 
+export const getActiveOnboardingApi = async (
+  params: OnboardingQueryParams = {},
+): Promise<OnboardingListResponse> => {
+  try {
+    const response = await axios.get<OnboardingListResponse>('/onboarding/active', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const getArchiveOnboardingApi = async (
+  params: OnboardingQueryParams = {},
+): Promise<OnboardingListResponse> => {
+  try {
+    const response = await axios.get<OnboardingListResponse>('/onboarding/archive', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
 export const getOnboardingHistoryApi = async (
   params: OnboardingQueryParams = {},
 ): Promise<OnboardingListResponse> => {

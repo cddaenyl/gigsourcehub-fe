@@ -41,6 +41,11 @@ export interface User {
   }
 }
 
+export interface CandidateDirectoryUser extends User {
+  job_role_name?: string | null
+  project_name?: string | null
+}
+
 export interface UserRecruitmentStatusPayload {
   candidate_level: string | null
   recruitment_status_id: string | null
@@ -94,4 +99,19 @@ export interface UsersQueryParams {
   search?: string
   tab?: string
   role?: string
+}
+
+export interface PaginatedListData<T> {
+  list: T[]
+  limit: number
+  page: number
+  total: number
+  cursor?: string
+}
+
+export interface PaginatedListResponse<T> {
+  status: number
+  message: string
+  validation: null | unknown
+  data: PaginatedListData<T>
 }

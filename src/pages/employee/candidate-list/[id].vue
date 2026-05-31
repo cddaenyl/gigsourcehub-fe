@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
-import AdminLayout from '@/layouts/AdminLayout.vue'
+import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import CandidateDetailHeader from '@/components/candidate-detail/CandidateDetailHeader.vue'
 import CandidateProfileCard from '@/components/candidate-detail/CandidateProfileCard.vue'
 import CandidateInfoCard from '@/components/candidate-detail/CandidateInfoCard.vue'
@@ -123,7 +123,7 @@ const formatNoteDate = (dateString: string): string => {
 </script>
 
 <template>
-  <AdminLayout>
+  <EmployeeLayout>
     <div class="mx-auto space-y-6">
       <CandidateDetailHeader @back="handleBack" />
 
@@ -201,7 +201,7 @@ const formatNoteDate = (dateString: string): string => {
         <CandidateOnboardingHistory :user-id="user.id" />
       </div>
     </div>
-  </AdminLayout>
+  </EmployeeLayout>
 </template>
 
 <style scoped>

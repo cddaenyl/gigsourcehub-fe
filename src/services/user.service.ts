@@ -275,6 +275,18 @@ export const cancelRecruitmentApi = async (id: string): Promise<UserResponse> =>
   }
 }
 
+export const confirmDeclineConfirmationApi = async (id: string): Promise<UserResponse> => {
+  try {
+    const response = await axios.patch<UserResponse>(`/users/${id}/decline-confirmation`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
 export const finalizeRecruitmentApi = async (
   payload: FinalizeRecruitmentPayload,
 ): Promise<UserResponse> => {

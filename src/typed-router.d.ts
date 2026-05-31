@@ -65,6 +65,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/admin/daftar-kandidat/penilaian-kandidat/[id]': RouteRecordInfo<
+      '/admin/daftar-kandidat/penilaian-kandidat/[id]',
+      '/admin/daftar-kandidat/penilaian-kandidat/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/dashboard/': RouteRecordInfo<
       '/admin/dashboard/',
       '/admin/dashboard',
@@ -517,6 +524,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/daftar-kandidat/[id].vue': {
       routes:
         | '/admin/daftar-kandidat/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/daftar-kandidat/penilaian-kandidat/[id].vue': {
+      routes:
+        | '/admin/daftar-kandidat/penilaian-kandidat/[id]'
       views:
         | never
     }

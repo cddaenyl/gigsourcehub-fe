@@ -160,6 +160,12 @@ const handleCancelRecruitment = () => {
           <div class="flex gap-2 w-full mt-2">
             <n-button
               type="error"
+              :disabled="
+                !status ||
+                isSaving ||
+                'Accepted' === recruitmentStatusName ||
+                'Decline' === recruitmentStatusName
+              "
               :loading="isSaving"
               style="width: 49%"
               @click="handleCancelRecruitment"
@@ -169,6 +175,12 @@ const handleCancelRecruitment = () => {
             <n-button
               type="primary"
               :loading="isFinalizing"
+              :disabled="
+                !status ||
+                isSaving ||
+                'Accepted' === recruitmentStatusName ||
+                'Decline' === recruitmentStatusName
+              "
               style="width: 49%"
               @click="handleFinalize"
             >

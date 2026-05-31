@@ -10,7 +10,7 @@ const props = defineProps<{
 const statusInfo = computed(() => {
   // Unavailable, if the unvailable_until value is not null. Color Red
   if (props.unavailableUntil) {
-    return { label: 'Unavailable', className: 'bg-red-100' as const }
+    return { label: 'Unavailable', className: 'bg-red-500' as const }
   }
 
   // OnBoarding, if the recruitment_status == Accepted, Color Green

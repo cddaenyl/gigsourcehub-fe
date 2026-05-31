@@ -7,6 +7,7 @@ export interface CareerDepartment {
   image_url?: string | null
   author?: string | null
   status: CareerDepartmentStatus | null
+  rejected_reason?: string | null
   created_at: string
   published_at?: string | null
   updated_at: string

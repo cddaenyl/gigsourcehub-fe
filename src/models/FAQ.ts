@@ -6,6 +6,7 @@ export interface FAQ {
   answer: string
   author?: string | null
   status: FAQStatus | null
+  rejected_reason?: string | null
   created_at: string
   published_at?: string | null
   updated_at: string

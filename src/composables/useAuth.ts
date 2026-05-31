@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { forgotPasswordApi, loginApi, logoutApi, meApi, registerApi, resetPasswordApi, verifyAccountApi } from '@/services/auth.service'
-import type { LoginPayload, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload } from '@/models/Auth'
+import { forgotPasswordApi, loginApi, logoutApi, meApi, registerApi, resetPasswordApi, verifyAccountApi, resendVerificationApi } from '@/services/auth.service'
+import type { LoginPayload, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload, ResendVerificationPayload } from '@/models/Auth'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRouter } from 'vue-router'
 import { getDefaultRouteForUser } from '@/utils/auth'
@@ -26,19 +26,23 @@ export function useLogin() {
 }
 
 export function useRegister() {
-  const authStore = useAuthStore()
   const router = useRouter()
-  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (payload: RegisterPayload) => {
       return registerApi(payload)
     },
 
-    onSuccess: (response) => {
-      authStore.setAuth(response.data.token, response.data.user)
-      queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY })
-      router.push(getDefaultRouteForUser(response.data.user))
+    onSuccess: (_, variables) => {
+      router.push({ path: '/register/success', query: { email: variables.email } })
+    },
+  })
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: async (payload: ResendVerificationPayload) => {
+      return resendVerificationApi(payload)
     },
   })
 }

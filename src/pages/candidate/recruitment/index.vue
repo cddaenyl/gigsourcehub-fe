@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import CandidateLayout from '@/layouts/CandidateLayout.vue'
-import { NEmpty, NIcon, NButton, NSpin, useDialog, useMessage } from 'naive-ui'
+import { NEmpty, NIcon, NButton, NSpin, useMessage } from 'naive-ui'
 import { Briefcase, Calendar } from '@vicons/tabler'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
 import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
 import { declineRecruitmentApi } from '@/services/user.service'
 import { useQueryClient } from '@tanstack/vue-query'
+import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 
 defineOptions({
   name: 'CandidateRecruitmentPage',
@@ -15,12 +16,12 @@ defineOptions({
 
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
-const dialog = useDialog()
 const message = useMessage()
 
 const userId = computed(() => authStore.user?.id || '')
 const activeTab = ref<'in-progress' | 'history'>('in-progress')
 const isDeclining = ref(false)
+const showDeclineModal = ref(false)
 
 const { activeSubrequest, isPending: isLoadingActiveSR } = useActiveSubrequest(userId)
 const { history, isPending: isLoadingHistory } = useCandidateOnboardingHistory(userId)
@@ -39,27 +40,24 @@ const formatDate = (date: string | Date | null | undefined) => {
 }
 
 const handleDecline = () => {
-  dialog.warning({
-    title: 'Decline Recruitment',
-    content: 'Are you sure you want to decline this recruitment process? This action cannot be undone.',
-    positiveText: 'Decline',
-    negativeText: 'Cancel',
-    onPositiveClick: async () => {
-      isDeclining.value = true
-      try {
-        await declineRecruitmentApi(userId.value)
-        message.success('Recruitment process declined successfully')
-        // Invalidate active-subrequest query to refresh status card
-        queryClient.invalidateQueries({ queryKey: ['active-subrequest', userId.value] })
-        // Invalidate profile query to update candidate header status
-        queryClient.invalidateQueries({ queryKey: ['profile'] })
-      } catch (err: any) {
-        message.error(err.message || 'Failed to decline recruitment')
-      } finally {
-        isDeclining.value = false
-      }
-    },
-  })
+  showDeclineModal.value = true
+}
+
+const confirmDecline = async () => {
+  isDeclining.value = true
+  try {
+    await declineRecruitmentApi(userId.value)
+    message.success('Recruitment process declined successfully')
+    // Invalidate active-subrequest query to refresh status card
+    queryClient.invalidateQueries({ queryKey: ['active-subrequest', userId.value] })
+    // Invalidate profile query to update candidate header status
+    queryClient.invalidateQueries({ queryKey: ['profile'] })
+    showDeclineModal.value = false
+  } catch (err: any) {
+    message.error(err.message || 'Failed to decline recruitment')
+  } finally {
+    isDeclining.value = false
+  }
 }
 </script>
 
@@ -162,5 +160,17 @@ const handleDecline = () => {
         </div>
       </div>
     </div>
+
+    <!-- Confirmation Modal -->
+    <ConfirmationModal
+      v-model:show="showDeclineModal"
+      title="Confirm Recruitment Decline"
+      message="Your status will be updated once confirmed by the admin. You can still access the chat feature while this process is ongoing."
+      confirm-text="Decline Recruitment"
+      cancel-text="Close"
+      type="danger"
+      :loading="isDeclining"
+      @confirm="confirmDecline"
+    />
   </CandidateLayout>
 </template>

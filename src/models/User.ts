@@ -84,6 +84,7 @@ export interface ActiveSubrequest {
   request_id: string
   project_name: string
   job_role: string
+  created_at?: string
 }
 
 export interface ActiveSubrequestResponse {

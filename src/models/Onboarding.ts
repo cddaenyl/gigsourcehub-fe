@@ -15,6 +15,8 @@ export interface OnboardingItem {
   candidate_user: User
   start_date: string
   end_date: string
+  project_name?: string | null
+  job_role_name?: string | null
   snapshot: string
   created_at: string
   updated_at: string

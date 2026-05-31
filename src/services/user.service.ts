@@ -6,6 +6,8 @@ import type {
   UserResponse,
   UserRecruitmentStatusPayload,
   FinalizeRecruitmentPayload,
+  CandidateDirectoryUser,
+  PaginatedListResponse,
 } from '@/models/User'
 
 export const getUsersApi = async (params: UsersQueryParams = {}): Promise<UsersResponse> => {
@@ -58,7 +60,41 @@ export const getActiveSubrequestApi = async (id: string): Promise<ActiveSubreque
 
 export const getBookmarkApi = async (params: UsersQueryParams = {}): Promise<UsersResponse> => {
   try {
-    const response = await axios.get<UsersResponse>('/users/candidates', { params })
+    const response = await axios.get<UsersResponse>('/users/candidate-bookmarked', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const getCandidateRecruitmentApi = async (
+  params: UsersQueryParams = {},
+): Promise<PaginatedListResponse<CandidateDirectoryUser>> => {
+  try {
+    const response = await axios.get<PaginatedListResponse<CandidateDirectoryUser>>(
+      '/users/candidate-recruitment',
+      { params },
+    )
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const getCandidateBookmarkedApi = async (
+  params: UsersQueryParams = {},
+): Promise<PaginatedListResponse<CandidateDirectoryUser>> => {
+  try {
+    const response = await axios.get<PaginatedListResponse<CandidateDirectoryUser>>(
+      '/users/candidate-bookmarked',
+      { params },
+    )
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {

@@ -4,13 +4,12 @@ import { useRouter } from 'vue-router'
 import CandidateTable from '@/components/tables/CandidateTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import { NConfigProvider } from 'naive-ui'
-import { useUsers } from '@/composables/useUsers'
 import { useBookmarkStore } from '@/stores/bookmark.store'
-import type { User } from '@/models/User'
 import type { AllCandidates } from '@/models/Table'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import EmployeeTabs from '@/components/EmployeeTabs.vue'
 import SearchInput from '@/components/shared/SearchInput.vue'
+import { useAdminCandidateDirectory } from '@/composables/useAdminCandidateDirectory'
 
 const router = useRouter()
 const searchValue = ref('')
@@ -41,7 +40,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 
 // Tabs
-const activeTab = ref('semua')
+const activeTab = ref<'semua' | 'disimpan'>('semua')
 
 // Search
 const searchQuery = ref('')
@@ -54,34 +53,27 @@ const queryParams = computed(() => ({
   tab: activeTab.value === 'semua' ? undefined : activeTab.value,
 }))
 
-const { users, pageCount, isLoading } = useUsers(queryParams)
+const { rows, pageCount, isLoading } = useAdminCandidateDirectory(queryParams, activeTab)
 const bookmarkStore = useBookmarkStore()
 
 // Initialize bookmarks when users data changes
 watch(
-  users,
-  (newUsers) => {
-    if (newUsers.length > 0) {
-      bookmarkStore.initializeBookmarks(newUsers)
+  rows,
+  (newRows) => {
+    if (newRows.length > 0) {
+      bookmarkStore.initializeBookmarks(newRows)
     }
   },
   { immediate: true },
 )
 
+watch(activeTab, () => {
+  currentPage.value = 1
+})
+
 // Transform API data to table data format
 const tableData = computed<AllCandidates[]>(() => {
-  return users.value.map((user: User, index: number) => ({
-    id: user.id,
-    no: (currentPage.value - 1) * pageSize.value + index + 1,
-    nama: user.name,
-    bidang: user.bidang || '-',
-    appliedRole: user.job_roles?.map((role) => role.name) || [],
-    level: user.candidate_level || 'Un-Reviewed',
-    status: user.recruitment_status_name || 'Un-Reviewed',
-    statusHexCode: user.recruitment_status_hex_code || null,
-    recruitmentStatusId: user.recruitment_status_id,
-    unavailableUntil: user.unavailable_until,
-  }))
+  return rows.value
 })
 
 // Handlers
@@ -129,7 +121,7 @@ const handleSearch = (value: string) => {
           <EmployeeTabs v-model="activeTab" />
 
           <!-- Data Table -->
-          <CandidateTable :data="tableData" @action="handleAction" />
+          <CandidateTable :data="tableData" :variant="'bookmarked'" @action="handleAction" />
 
           <!-- Loading State -->
           <div v-if="isLoading" class="text-center py-8">

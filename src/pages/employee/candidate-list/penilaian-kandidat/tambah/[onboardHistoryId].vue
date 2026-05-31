@@ -19,6 +19,7 @@ import { useUser } from '@/composables/useUser'
 import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
 import { useReviewQuestions, useCreateReview } from '@/composables/useReview'
 import type { OnboardingItem, OnboardingSnapshot } from '@/models/Onboarding'
+import type { ReviewFinalRecommendation } from '@/models/Review'
 
 const route = useRoute()
 const router = useRouter()
@@ -38,10 +39,16 @@ const candidateUserId = computed((): string => {
 })
 
 // Fetch Candidate details
-const { user: candidateUser, isLoading: isUserLoading, isError: isUserError, error: userError } = useUser(candidateUserId)
+const {
+  user: candidateUser,
+  isLoading: isUserLoading,
+  isError: isUserError,
+  error: userError,
+} = useUser(candidateUserId)
 
 // Fetch Candidate onboarding history list to find this specific history item
-const { history: onboardingHistory, isLoading: isOnboardingLoading } = useCandidateOnboardingHistory(candidateUserId)
+const { history: onboardingHistory, isLoading: isOnboardingLoading } =
+  useCandidateOnboardingHistory(candidateUserId)
 
 const onboardingItem = computed((): OnboardingItem | null => {
   if (!onboardingHistory.value) return null
@@ -58,7 +65,12 @@ const parsedSnapshot = computed((): OnboardingSnapshot | null => {
 })
 
 // Fetch Questions
-const { questions, isLoading: isQuestionsLoading, isError: isQuestionsError, error: questionsError } = useReviewQuestions()
+const {
+  questions,
+  isLoading: isQuestionsLoading,
+  isError: isQuestionsError,
+  error: questionsError,
+} = useReviewQuestions()
 
 // Submitting state
 const createReviewMutation = useCreateReview()
@@ -66,8 +78,15 @@ const isSubmitting = computed(() => createReviewMutation.isPending.value)
 
 // Form State
 const scores = ref<Record<string, number>>({})
-const finalRecommendation = ref<'RECOMMENDED' | 'NOT_RECOMMENDED'>('RECOMMENDED')
+const finalRecommendation = ref<ReviewFinalRecommendation>('RECOMMENDED')
 const notes = ref('')
+
+const finalRecommendationOptions: Array<{ value: ReviewFinalRecommendation; label: string }> = [
+  { value: 'HIGHLY_RECOMMENDED', label: 'Sangat Direkomendasikan' },
+  { value: 'RECOMMENDED', label: 'Direkomendasikan' },
+  { value: 'CONSIDERED', label: 'Dipertimbangkan' },
+  { value: 'NOT_RECOMMENDED', label: 'Tidak Direkomendasikan' },
+]
 
 const indicators = [
   {
@@ -118,7 +137,9 @@ const validateForm = (): boolean => {
     const list = getQuestionsByIndicator(indicator.key)
     for (const q of list) {
       if (!scores.value[q.id]) {
-        message.warning(`Mohon berikan nilai untuk semua pertanyaan pada bagian "${indicator.title}"`)
+        message.warning(
+          `Mohon berikan nilai untuk semua pertanyaan pada bagian "${indicator.title}"`,
+        )
         return false
       }
     }
@@ -139,8 +160,12 @@ const handleSubmit = async () => {
     notes: notes.value,
     work_quality: getQuestionsByIndicator('WORK_QUALITY').map((q) => scores.value[q.id]!),
     timeliness: getQuestionsByIndicator('TIMELINESS').map((q) => scores.value[q.id]!),
-    communication_collaboration: getQuestionsByIndicator('COMMUNICATION_COLLABORATION').map((q) => scores.value[q.id]!),
-    problem_solving_initiative: getQuestionsByIndicator('PROBLEM_SOLVING_INITIATIVE').map((q) => scores.value[q.id]!),
+    communication_collaboration: getQuestionsByIndicator('COMMUNICATION_COLLABORATION').map(
+      (q) => scores.value[q.id]!,
+    ),
+    problem_solving_initiative: getQuestionsByIndicator('PROBLEM_SOLVING_INITIATIVE').map(
+      (q) => scores.value[q.id]!,
+    ),
   }
 
   try {
@@ -160,12 +185,18 @@ const handleSubmit = async () => {
       <CandidateDetailHeader title="Penilaian Kandidat" @back="handleBack" />
 
       <!-- Loading State -->
-      <div v-if="isUserLoading || isOnboardingLoading || isQuestionsLoading" class="flex justify-center items-center py-20">
+      <div
+        v-if="isUserLoading || isOnboardingLoading || isQuestionsLoading"
+        class="flex justify-center items-center py-20"
+      >
         <n-spin size="large" />
       </div>
 
       <!-- Error State -->
-      <div v-else-if="isUserError || isQuestionsError" class="text-center py-20 bg-white rounded-lg border border-gray-200 p-6">
+      <div
+        v-else-if="isUserError || isQuestionsError"
+        class="text-center py-20 bg-white rounded-lg border border-gray-200 p-6"
+      >
         <p class="text-red-500">
           {{ userError?.message || questionsError?.message || 'Gagal memuat data' }}
         </p>
@@ -179,20 +210,18 @@ const handleSubmit = async () => {
         <!-- Candidate Profile Header Card -->
         <n-card class="shadow-sm border border-slate-200">
           <div class="flex items-center gap-4">
-            <n-avatar
-              round
-              :size="56"
-              :src="candidateUser?.profile_picture || undefined"
-            />
+            <n-avatar round :size="56" :src="candidateUser?.profile_picture || undefined" />
             <div class="flex-1">
               <h2 class="text-lg font-bold text-slate-800">{{ candidateUser?.name }}</h2>
               <p class="text-sm font-semibold text-primary">
-                {{ parsedSnapshot?.job_role_name || '-' }} – {{ parsedSnapshot?.project_name || '-' }}
+                {{ parsedSnapshot?.job_role_name || '-' }} –
+                {{ parsedSnapshot?.project_name || '-' }}
               </p>
               <div class="flex items-center gap-2 text-xs text-slate-400 mt-1">
                 <n-icon :component="Calendar" size="14" />
                 <span>
-                  {{ formatDate(onboardingItem?.start_date) }} &rarr; {{ formatDate(onboardingItem?.end_date) }}
+                  {{ formatDate(onboardingItem?.start_date) }} &rarr;
+                  {{ formatDate(onboardingItem?.end_date) }}
                 </span>
               </div>
             </div>
@@ -204,11 +233,15 @@ const handleSubmit = async () => {
           <div class="space-y-3">
             <h3 class="font-bold text-sm text-slate-700">Panduan Penilaian</h3>
             <p class="text-xs text-slate-500 leading-relaxed">
-              Berikan penilaian berdasarkan pengalaman Anda selama bekerja dengan kandidat pada proyek ini. Gunakan skala berikut untuk menilai setiap pernyataan.
+              Berikan penilaian berdasarkan pengalaman Anda selama bekerja dengan kandidat pada
+              proyek ini. Gunakan skala berikut untuk menilai setiap pernyataan.
             </p>
-            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col items-center justify-center text-center gap-3">
+            <div
+              class="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col items-center justify-center text-center gap-3"
+            >
               <p class="text-xs font-semibold text-slate-700">
-                Apakah hasil pekerjaan kandidat sudah sesuai dengan requirement dan spesifikasi yang diberikan?
+                Apakah hasil pekerjaan kandidat sudah sesuai dengan requirement dan spesifikasi yang
+                diberikan?
               </p>
               <div class="flex items-center gap-2">
                 <div
@@ -218,7 +251,7 @@ const handleSubmit = async () => {
                   :class="[
                     val === 3
                       ? 'bg-primary text-white border-primary'
-                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                      : 'bg-slate-100 text-slate-500 border-slate-200',
                   ]"
                 >
                   {{ val }}
@@ -260,7 +293,7 @@ const handleSubmit = async () => {
                     :class="[
                       scores[q.id] === val
                         ? 'bg-primary text-white border-primary shadow-sm'
-                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-300'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-300',
                     ]"
                   >
                     {{ val }}
@@ -275,16 +308,17 @@ const handleSubmit = async () => {
         <n-card class="shadow-sm border border-slate-200">
           <div class="space-y-4">
             <h3 class="font-bold text-sm text-slate-800">Rekomendasi Akhir & Catatan</h3>
-            
+
             <div class="space-y-2">
               <label class="text-xs font-bold text-slate-600 block">Rekomendasi Akhir</label>
               <n-radio-group v-model:value="finalRecommendation" name="finalRecommendation">
                 <div class="flex gap-4">
-                  <n-radio-button value="RECOMMENDED">
-                    Direkomendasikan
-                  </n-radio-button>
-                  <n-radio-button value="NOT_RECOMMENDED">
-                    Tidak Direkomendasikan
+                  <n-radio-button
+                    v-for="option in finalRecommendationOptions"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
                   </n-radio-button>
                 </div>
               </n-radio-group>
@@ -304,9 +338,7 @@ const handleSubmit = async () => {
 
         <!-- Action Buttons -->
         <div class="flex items-center justify-end gap-3 pt-4">
-          <n-button :disabled="isSubmitting" @click="handleBack">
-            Batal
-          </n-button>
+          <n-button :disabled="isSubmitting" @click="handleBack"> Batal </n-button>
           <n-button type="primary" :loading="isSubmitting" @click="handleSubmit">
             <template #icon>
               <n-icon :component="CirclePlus" />
@@ -321,6 +353,8 @@ const handleSubmit = async () => {
 
 <style scoped>
 .n-card {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+    0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
 </style>

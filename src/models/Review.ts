@@ -6,13 +6,22 @@ export interface ReviewAnswer {
   score: number
 }
 
+export const REVIEW_FINAL_RECOMMENDATIONS = [
+  'HIGHLY_RECOMMENDED',
+  'RECOMMENDED',
+  'CONSIDERED',
+  'NOT_RECOMMENDED',
+] as const
+
+export type ReviewFinalRecommendation = (typeof REVIEW_FINAL_RECOMMENDATIONS)[number]
+
 export interface Review {
   id: string
   subrequest_id: string
   candidate_user_id: string
   employee_user_id: string
   onboard_history_id: string
-  final_recommendation: string
+  final_recommendation: ReviewFinalRecommendation
   notes: string
   answers: ReviewAnswer[]
   created_at?: string
@@ -42,7 +51,7 @@ export interface ReviewDetailResponse {
 
 export interface ReviewCreatePayload {
   onboard_history_id: string
-  final_recommendation: string
+  final_recommendation: ReviewFinalRecommendation
   notes: string
   work_quality: number[]
   timeliness: number[]

@@ -282,6 +282,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/register/success': RouteRecordInfo<
+      '/register/success',
+      '/register/success',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/reset-password/': RouteRecordInfo<
       '/reset-password/',
       '/reset-password',
@@ -717,6 +724,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/register/index.vue': {
       routes:
         | '/register/'
+      views:
+        | never
+    }
+    'src/pages/register/success.vue': {
+      routes:
+        | '/register/success'
       views:
         | never
     }

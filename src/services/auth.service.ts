@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import type { LoginPayload, RegisterPayload, MeResponse, ForgotPasswordPayload, ResetPasswordPayload } from '@/models/Auth'
+import type { LoginPayload, RegisterPayload, MeResponse, ForgotPasswordPayload, ResetPasswordPayload, ResendVerificationPayload } from '@/models/Auth'
 
 export const loginApi = async (payload: LoginPayload) => {
   try {
@@ -88,6 +88,18 @@ export const refreshTokenApi = async (payload: { refresh_token: string }) => {
 export const logoutApi = async (refreshToken?: string | null) => {
   try {
     const response = await axios.post('/auth/logout', { refresh_token: refreshToken })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const resendVerificationApi = async (payload: ResendVerificationPayload) => {
+  try {
+    const response = await axios.post('/auth/resend-verification', payload)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {

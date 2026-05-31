@@ -44,6 +44,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/analytics': RouteRecordInfo<
+      '/admin/analytics',
+      '/admin/analytics',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/candidate-chat/': RouteRecordInfo<
       '/admin/candidate-chat/',
       '/admin/candidate-chat',
@@ -63,13 +70,6 @@ declare module 'vue-router/auto-routes' {
       '/admin/daftar-kandidat/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/admin/dashboard/': RouteRecordInfo<
-      '/admin/dashboard/',
-      '/admin/dashboard',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/admin/interview-schedule/': RouteRecordInfo<
@@ -502,6 +502,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/analytics.vue': {
+      routes:
+        | '/admin/analytics'
+      views:
+        | never
+    }
     'src/pages/admin/candidate-chat/index.vue': {
       routes:
         | '/admin/candidate-chat/'
@@ -517,12 +523,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/daftar-kandidat/[id].vue': {
       routes:
         | '/admin/daftar-kandidat/[id]'
-      views:
-        | never
-    }
-    'src/pages/admin/dashboard/index.vue': {
-      routes:
-        | '/admin/dashboard/'
       views:
         | never
     }

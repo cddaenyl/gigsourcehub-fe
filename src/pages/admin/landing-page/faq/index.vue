@@ -7,6 +7,7 @@ import {
   NTab,
   NConfigProvider,
   NInput,
+  NAlert,
   useDialog,
   useMessage,
 } from 'naive-ui'
@@ -287,6 +288,16 @@ const themeOverride = {
         @close="closeEditModal"
       >
         <div class="space-y-4">
+          <!-- Alert for Rejected Reason -->
+          <n-alert
+            v-if="editTarget?.status === 'REJECTED' && editTarget?.rejected_reason"
+            type="error"
+            title="Alasan Penolakan"
+            class="rounded-xl"
+          >
+            {{ editTarget.rejected_reason }}
+          </n-alert>
+
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1.5">Pertanyaan</label>
             <n-input

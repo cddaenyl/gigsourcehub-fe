@@ -195,6 +195,15 @@ const recruitmentColumns = (): DataTableColumns<AllCandidates> => [
         recruitmentStatusName: row.status,
       }),
   },
+  {
+    title: 'Action',
+    key: 'action',
+    render: (row) =>
+      h(CandidateTableActions, {
+        candidate: row,
+        onAction: handleAction,
+      }),
+  },
 ]
 
 const onboardingColumns = (): DataTableColumns<AllCandidates> => [

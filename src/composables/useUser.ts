@@ -3,6 +3,7 @@ import {
   getUserByIdApi,
   updateUserRecruitmentStatusApi,
   cancelRecruitmentApi,
+  confirmDeclineConfirmationApi,
   finalizeRecruitmentApi,
 } from '@/services/user.service'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
@@ -31,6 +32,13 @@ export function useUser(id: MaybeRefOrGetter<string>) {
     },
   })
 
+  const confirmDeclineMutation = useMutation({
+    mutationFn: () => confirmDeclineConfirmationApi(toValue(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user', toValue(id)] })
+    },
+  })
+
   const finalizeRecruitmentMutation = useMutation({
     mutationFn: (payload: FinalizeRecruitmentPayload) => finalizeRecruitmentApi(payload),
     onSuccess: () => {
@@ -48,6 +56,8 @@ export function useUser(id: MaybeRefOrGetter<string>) {
     isUpdatingRecruitmentStatus: updateRecruitmentStatusMutation.isPending,
     cancelRecruitment: cancelRecruitmentMutation.mutateAsync,
     isCancellingRecruitment: cancelRecruitmentMutation.isPending,
+    confirmDecline: confirmDeclineMutation.mutateAsync,
+    isConfirmingDecline: confirmDeclineMutation.isPending,
     finalizeRecruitment: finalizeRecruitmentMutation.mutateAsync,
     isFinalizingRecruitment: finalizeRecruitmentMutation.isPending,
   }

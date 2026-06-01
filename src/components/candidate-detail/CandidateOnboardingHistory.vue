@@ -8,11 +8,18 @@ import type { OnboardingSnapshot, OnboardingItem } from '@/models/Onboarding'
 
 const props = defineProps<{
   userId: string
+  reviewDetailBasePath?: string
+  allowCreateReview?: boolean
 }>()
 
 const { history, isLoading, isError, error } = useCandidateOnboardingHistory(
   computed(() => props.userId),
 )
+
+const reviewDetailBasePath = computed(
+  () => props.reviewDetailBasePath || '/employee/candidate-list/penilaian-kandidat',
+)
+const allowCreateReview = computed(() => props.allowCreateReview !== false)
 
 const parseSnapshot = (value: string | null | undefined): OnboardingSnapshot | null => {
   if (!value) return null
@@ -47,15 +54,21 @@ const getReviewId = (item: OnboardingItem): string | null => {
   return item.review_id || item.review?.id || null
 }
 
+const shouldShowActionButton = (item: OnboardingItem): boolean => {
+  return Boolean(getReviewId(item)) || allowCreateReview.value
+}
+
 const handleOnboardingAction = (item: OnboardingItem) => {
   const reviewId = getReviewId(item)
   if (reviewId) {
-    router.push(`/employee/candidate-list/penilaian-kandidat/${reviewId}`)
-  } else {
+    router.push(`${reviewDetailBasePath.value}/${reviewId}`)
+  } else if (allowCreateReview.value) {
     router.push({
       path: `/employee/candidate-list/penilaian-kandidat/tambah/${item.id}`,
       query: { candidate_id: props.userId },
     })
+  } else {
+    return
   }
 }
 </script>
@@ -98,7 +111,7 @@ const handleOnboardingAction = (item: OnboardingItem) => {
               </span>
             </div>
           </div>
-          <div>
+          <div v-if="shouldShowActionButton(item)">
             <n-button
               secondary
               size="small"
@@ -108,7 +121,7 @@ const handleOnboardingAction = (item: OnboardingItem) => {
               <template #icon>
                 <n-icon :component="getReviewId(item) ? Eye : Plus" />
               </template>
-              {{ getReviewId(item) ? 'Lihat Penilaian' : 'Tambah Kandidat' }}
+              {{ getReviewId(item) ? 'Lihat Penilaian' : 'Tambah Penilaian' }}
             </n-button>
           </div>
         </div>

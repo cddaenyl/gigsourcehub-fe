@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, unref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
 import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
 import { useAdminMyRequests, useAssignCandidateToSubrequest } from '@/composables/useRequest'
+import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
 import { useStartChat } from '@/composables/useChat'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidateDetailHeader from '@/components/candidate-detail/CandidateDetailHeader.vue'
@@ -29,7 +30,7 @@ import { buildMasterDataOptions } from '@/utils/masterDataOptions'
 import type { UserRecruitmentStatusPayload } from '@/models/User'
 import type { RequestQueryParams } from '@/models/Request'
 import { useCandidateNotesStore } from '@/stores/notes.store'
-import { Alarm, Checkbox, Plane } from '@vicons/tabler'
+import { Alarm, AlertTriangle, Checkbox, Plane } from '@vicons/tabler'
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
@@ -78,6 +79,8 @@ const {
   isUpdatingRecruitmentStatus,
   cancelRecruitment,
   isCancellingRecruitment,
+  confirmDecline,
+  isConfirmingDecline,
   finalizeRecruitment,
   isFinalizingRecruitment,
 } = useUser(userId)
@@ -86,6 +89,7 @@ const {
   isLoading: isActiveSubrequestLoading,
   refetch: refetchActiveSubrequest,
 } = useActiveSubrequest(userId)
+const { history: onboardingHistory } = useCandidateOnboardingHistory(userId)
 
 const recruitModalVisible = ref(false)
 const chatModalVisible = ref(false)
@@ -127,6 +131,20 @@ const displayedLevel = computed(() => optimisticLevel.value ?? user.value?.candi
 const displayedStatus = computed(
   () => optimisticStatus.value ?? user.value?.recruitment_status_id ?? null,
 )
+const currentOnboarding = computed(() => unref(onboardingHistory)[0] ?? null)
+
+const formatOnboardingDate = (value: string | null | undefined): string => {
+  if (!value) return '-'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return date.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
 
 const requestOptions = computed<SelectOption[]>(() =>
   myRequests.value.map((request) => ({
@@ -349,6 +367,19 @@ const handleConfirmCancelRecruitment = async (): Promise<void> => {
   }
 }
 
+const handleConfirmDecline = async (): Promise<void> => {
+  if (!user.value?.id) return
+
+  try {
+    await confirmDecline()
+    message.success('Konfirmasi penolakan kandidat berhasil disimpan.', { duration: 2000 })
+    await Promise.all([refetchUser(), refetchMyRequests(), refetchActiveSubrequest()])
+  } catch (err) {
+    const messageText = err instanceof Error ? err.message : 'Gagal mengonfirmasi penolakan.'
+    message.error(messageText, { duration: 3000 })
+  }
+}
+
 const handleStartChatConfirm = async (): Promise<void> => {
   if (!user.value?.id) {
     return
@@ -478,15 +509,44 @@ const handleAssignCandidate = async (): Promise<void> => {
         />
         <div
           v-if="activeSubrequest && user.recruitment_status_name === 'Accepted'"
-          class="flex text-emerald-700 border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
+          class="flex text-emerald-700 border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1 justify-between"
         >
-          <n-icon size="14" :component="Plane" style="font-weight: bold" />
-          <h2 class="text-xs italic font-normal">
-            Onboarding sebagai
-            <span class="font-semibold"
-              >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
-            >
-          </h2>
+          <div class="flex space-x-1">
+            <n-icon size="14" :component="Plane" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Onboarding sebagai
+              <span class="font-semibold"
+                >{{ currentOnboarding?.job_role_name }} - {{ currentOnboarding?.project_name }} ({{
+                  formatOnboardingDate(currentOnboarding?.start_date)
+                }}
+                - {{ formatOnboardingDate(currentOnboarding?.end_date) }})</span
+              >
+            </h2>
+          </div>
+          <n-button type="error" size="tiny"> Berhentikan </n-button>
+        </div>
+        <div
+          v-else-if="activeSubrequest && user.recruitment_status_name === 'Decline'"
+          class="flex text-red-500 border-l-3 bg-red-50 items-center px-2 py-1.5 rounded-sm gap-1 justify-between"
+        >
+          <div class="flex space-x-1">
+            <n-icon size="14" :component="AlertTriangle" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Kandidat menolak proses rekrutmen
+              <span class="font-semibold"
+                >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
+              >
+            </h2>
+          </div>
+          <n-button
+            type="error"
+            size="tiny"
+            :loading="isConfirmingDecline"
+            :disabled="isConfirmingDecline"
+            @click="handleConfirmDecline"
+          >
+            Konfirmasi
+          </n-button>
         </div>
         <div
           v-else-if="activeSubrequest"
@@ -534,7 +594,11 @@ const handleAssignCandidate = async (): Promise<void> => {
             />
           </n-gi>
         </n-grid>
-        <CandidateOnboardingHistory :user-id="user.id" />
+        <CandidateOnboardingHistory
+          :user-id="user.id"
+          review-detail-base-path="/admin/daftar-kandidat/penilaian-kandidat"
+          :allow-create-review="false"
+        />
       </div>
     </div>
 

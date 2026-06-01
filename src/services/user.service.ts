@@ -324,3 +324,15 @@ export const declineRecruitmentApi = async (id: string): Promise<UserResponse> =
     throw error
   }
 }
+
+export const deleteAccountApi = async (data: { password: string }): Promise<void> => {
+  try {
+    await axios.delete('/profile', { data })
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+

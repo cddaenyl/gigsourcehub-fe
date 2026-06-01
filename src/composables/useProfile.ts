@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { getProfileApi, uploadProfilePictureApi, updateProfileApi, changePasswordApi } from '@/services/user.service'
+import { getProfileApi, uploadProfilePictureApi, updateProfileApi, changePasswordApi, deleteAccountApi } from '@/services/user.service'
 import { computed } from 'vue'
 
 export function useProfile() {
@@ -33,6 +33,10 @@ export function useProfile() {
         mutationFn: (data: any) => changePasswordApi(data),
     })
 
+    const deleteAccountMutation = useMutation({
+        mutationFn: (data: { password: string }) => deleteAccountApi(data),
+    })
+
     const profile = computed(() => query.data.value?.data)
 
     return {
@@ -46,6 +50,9 @@ export function useProfile() {
         isUpdatingProfile: updateProfileMutation.isPending,
         changePassword: changePasswordMutation.mutate,
         changePasswordAsync: changePasswordMutation.mutateAsync,
-        isChangingPassword: changePasswordMutation.isPending
+        isChangingPassword: changePasswordMutation.isPending,
+        deleteAccount: deleteAccountMutation.mutate,
+        deleteAccountAsync: deleteAccountMutation.mutateAsync,
+        isDeletingAccount: deleteAccountMutation.isPending
     }
 }

@@ -4,7 +4,7 @@ import { uploadCV, getParsedCV, confirmCV, getCVDownloadLinkApi } from '@/servic
 export function useUploadCV() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (file: File) => uploadCV(file),
+    mutationFn: ({ file, skipParsing }: { file: File; skipParsing?: boolean }) => uploadCV(file, skipParsing),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parsedCV'] })
     }

@@ -75,6 +75,16 @@ const handleLogout = () => {
 }
 
 const candidateName = computed(() => profile.value?.name || authStore.user?.name || 'Candidate')
+const userInitials = computed(() => {
+  const name = profile.value?.name || authStore.user?.name || ''
+  if (!name) return 'U'
+  const parts = name.trim().split(/\s+/)
+  const first = parts[0] || ''
+  if (!first) return 'U'
+  if (parts.length === 1) return first.substring(0, 2).toUpperCase()
+  const last = parts[parts.length - 1] || ''
+  return (first[0] + (last[0] || '')).toUpperCase()
+})
 const candidateRole = computed(() => {
   if (profile.value?.job_roles?.length) {
     return profile.value.job_roles.map((r: any) => r.name).join(', ')
@@ -135,12 +145,10 @@ const recruitmentStatus = computed(() => profile.value?.recruitment_status_name 
             <n-avatar
               round
               :size="110"
-              :src="authStore.user?.profile_picture || 'https://i.pravatar.cc/150?u=' + authStore.user?.id" 
-              class="border-4 border-white/10 shadow-2xl transition-transform group-hover:scale-105"
+              :src="authStore.user?.profile_picture || profile?.profile_picture || undefined" 
+              class="border-4 border-white/10 shadow-2xl transition-transform group-hover:scale-105 bg-blue-600 text-white font-bold text-4xl flex items-center justify-center"
             >
-              <template #fallback>
-                <n-icon size="50"><User /></n-icon>
-              </template>
+              {{ userInitials }}
             </n-avatar>
           </div>
           

@@ -48,11 +48,13 @@ const showUpdateFlow = ref(false)
 const forceShowUpload = ref(false)
 const isEditing = ref(false)
 const isAiEnabled = ref(true)
+const cvTemplateUrl = ref("")
 
 onMounted(async () => {
   try {
     const data = await fetchAiModeStatus()
     isAiEnabled.value = data.is_ai_mode_enabled
+    cvTemplateUrl.value = data.cv_template_url || ""
   } catch (err) {
     console.error('Failed to fetch AI mode status', err)
   }
@@ -775,6 +777,9 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                 Upload your CV and let AI automatically fill in all your information. Save time and get accurate data
                 extraction
                 instantly!
+              </p>
+              <p v-if="cvTemplateUrl" class="text-gray-300 text-sm mt-2">
+                Download <a :href="cvTemplateUrl" target="_blank" class="underline font-bold text-white hover:text-blue-300 transition-colors">CV Template.docx</a> Here
               </p>
             </div>
           </div>

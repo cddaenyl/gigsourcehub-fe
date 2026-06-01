@@ -1,10 +1,11 @@
 import axios, { AxiosError } from "axios"
 
-export const uploadCV = async (file: File) => {
+export const uploadCV = async (file: File, skipParsing?: boolean) => {
   try {
     const formData = new FormData()
     formData.append('file', file)
-    const response = await axios.post("/cv/upload", formData, {
+    const url = skipParsing ? "/cv/upload?skip_parsing=true" : "/cv/upload"
+    const response = await axios.post(url, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

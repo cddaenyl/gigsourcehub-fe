@@ -94,10 +94,72 @@ const formatTableName = (name: string) => {
         </n-button>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 space-y-4">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-        <p class="text-slate-500 font-medium">Memuat tata kelola sistem...</p>
+      <!-- Skeleton Loading State -->
+      <div v-if="isLoading" class="space-y-6">
+        <!-- KPI Cards Grid Skeleton -->
+        <n-grid cols="1 s:2 m:3 l:5" responsive="screen" :x-gap="16" :y-gap="16">
+          <n-gi v-for="i in 5" :key="i">
+            <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3 animate-pulse">
+              <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+              <div class="h-8 bg-slate-200 rounded w-1/2 mt-2"></div>
+              <div class="h-3 bg-slate-200 rounded w-3/4 mt-3"></div>
+            </div>
+          </n-gi>
+        </n-grid>
+
+        <!-- Main Layout Split Skeleton -->
+        <n-grid cols="1 l:3" :x-gap="20" :y-gap="20" responsive="screen">
+          <!-- AI Engine Status Skeleton (Left) -->
+          <n-gi>
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-2/3"></div>
+              </template>
+              <div class="space-y-6">
+                <div class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50">
+                  <div class="h-12 w-12 rounded-xl bg-slate-200 shrink-0"></div>
+                  <div class="space-y-2 flex-1">
+                    <div class="h-4 bg-slate-200 rounded w-2/3"></div>
+                    <div class="h-3 bg-slate-200 rounded w-full"></div>
+                  </div>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2">
+                  <div class="h-3 bg-slate-200 rounded w-1/3"></div>
+                  <div class="h-2.5 bg-slate-200 rounded w-full"></div>
+                  <div class="h-2.5 bg-slate-200 rounded w-5/6"></div>
+                </div>
+                <div class="h-10 bg-slate-200 rounded-xl w-full"></div>
+              </div>
+            </n-card>
+          </n-gi>
+
+          <!-- Recent CMS Approvals Skeleton (Right - Span 2) -->
+          <n-gi span="2">
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-1/3"></div>
+              </template>
+              <div class="space-y-4">
+                <!-- Table headers skeleton -->
+                <div class="grid grid-cols-5 gap-4 pb-2 border-b border-slate-100">
+                  <div class="h-4 bg-slate-200 rounded w-2/3"></div>
+                  <div class="h-4 bg-slate-200 rounded w-1/2 mx-auto"></div>
+                  <div class="h-4 bg-slate-200 rounded w-1/2 mx-auto"></div>
+                  <div class="h-4 bg-slate-200 rounded w-2/3"></div>
+                  <div class="h-4 bg-slate-200 rounded w-2/3"></div>
+                </div>
+                <!-- Table rows skeleton -->
+                <div v-for="i in 5" :key="i" class="grid grid-cols-5 gap-4 py-3 border-b border-slate-50 last:border-b-0">
+                  <div class="h-3.5 bg-slate-200 rounded w-3/4"></div>
+                  <div class="h-6 bg-slate-200 rounded-lg w-16 mx-auto"></div>
+                  <div class="h-5 bg-slate-200 rounded-full w-20 mx-auto"></div>
+                  <div class="h-3.5 bg-slate-200 rounded w-1/2"></div>
+                  <div class="h-3.5 bg-slate-200 rounded w-2/3"></div>
+                </div>
+              </div>
+            </n-card>
+          </n-gi>
+        </n-grid>
       </div>
 
       <template v-else-if="dashboardData">

@@ -120,10 +120,86 @@ const hireTrendPoints = computed(() => {
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 space-y-4">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        <p class="text-slate-500 font-medium">Menganalisis data rekrutmen...</p>
+      <!-- Skeleton Loading State -->
+      <div v-if="isLoading" class="space-y-6">
+        <n-grid cols="1 l:3" :x-gap="20" :y-gap="20" responsive="screen">
+          <!-- Funnel Section Skeleton (Span 2) -->
+          <n-gi span="2" class="space-y-6">
+            <!-- Funnel Card Skeleton -->
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-1/3"></div>
+              </template>
+              <div class="space-y-6">
+                <div v-for="i in 5" :key="i" class="flex items-center gap-4">
+                  <div class="w-32 sm:w-44 space-y-1 pr-2">
+                    <div class="h-4 bg-slate-200 rounded w-3/4 ml-auto"></div>
+                    <div class="h-3 bg-slate-200 rounded w-1/2 ml-auto"></div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="h-9 bg-slate-50 rounded-lg border border-slate-100 flex items-center px-4">
+                      <div class="h-4 bg-slate-200 rounded w-24"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </n-card>
+
+            <!-- Trend Metrics Card Skeleton -->
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-1/4"></div>
+              </template>
+              <n-grid cols="1 m:2" :x-gap="20" :y-gap="20" responsive="screen">
+                <n-gi v-for="i in 2" :key="i">
+                  <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col justify-between h-44">
+                    <div class="space-y-2">
+                      <div class="h-3 bg-slate-200 rounded w-1/3"></div>
+                      <div class="h-6 bg-slate-200 rounded w-1/2"></div>
+                    </div>
+                    <div class="h-16 bg-slate-200 rounded w-full mt-4"></div>
+                  </div>
+                </n-gi>
+              </n-grid>
+              <!-- Trend Table Skeleton -->
+              <div class="mt-6 space-y-4">
+                <div class="grid grid-cols-4 gap-4 pb-2 border-b border-slate-100">
+                  <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                  <div class="h-4 bg-slate-200 rounded w-1/3 mx-auto"></div>
+                  <div class="h-4 bg-slate-200 rounded w-1/3 mx-auto"></div>
+                  <div class="h-4 bg-slate-200 rounded w-1/3 mx-auto"></div>
+                </div>
+                <div v-for="i in 4" :key="i" class="grid grid-cols-4 gap-4 py-2 border-b border-slate-50 last:border-b-0">
+                  <div class="h-3.5 bg-slate-200 rounded w-2/3"></div>
+                  <div class="h-3.5 bg-slate-200 rounded w-12 mx-auto"></div>
+                  <div class="h-3.5 bg-slate-200 rounded w-12 mx-auto"></div>
+                  <div class="h-3.5 bg-slate-200 rounded w-12 mx-auto"></div>
+                </div>
+              </div>
+            </n-card>
+          </n-gi>
+
+          <!-- Right side status distribution skeleton -->
+          <n-gi class="space-y-6">
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-1/2"></div>
+              </template>
+              <div class="space-y-4">
+                <div v-for="i in 5" :key="i" class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                      <div class="h-3.5 w-3.5 rounded-full bg-slate-200"></div>
+                      <div class="h-3.5 bg-slate-200 rounded w-20"></div>
+                    </div>
+                    <div class="h-4 bg-slate-200 rounded w-8"></div>
+                  </div>
+                  <div class="bg-slate-100 h-1.5 rounded-full"></div>
+                </div>
+              </div>
+            </n-card>
+          </n-gi>
+        </n-grid>
       </div>
 
       <template v-else-if="analyticsData">

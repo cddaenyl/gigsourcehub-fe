@@ -30,7 +30,7 @@ import { buildMasterDataOptions } from '@/utils/masterDataOptions'
 import type { UserRecruitmentStatusPayload } from '@/models/User'
 import type { RequestQueryParams } from '@/models/Request'
 import { useCandidateNotesStore } from '@/stores/notes.store'
-import { Alarm, AlertTriangle, Checkbox, Plane } from '@vicons/tabler'
+import { Alarm, AlertTriangle, Checkbox, CircleX, Plane } from '@vicons/tabler'
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
@@ -65,7 +65,7 @@ const levelOptions: SelectOption[] = [
 
 const { recruitmentStatuses } = useRecruitmentStatuses()
 const recruitmentOptions = computed<SelectOption[]>(() =>
-  buildMasterDataOptions(recruitmentStatuses.value)
+  buildMasterDataOptions(recruitmentStatuses.value),
 )
 
 // Fetch user data
@@ -81,6 +81,8 @@ const {
   isCancellingRecruitment,
   confirmDecline,
   isConfirmingDecline,
+  stopOnboarding,
+  isStoppingOnboarding,
   finalizeRecruitment,
   isFinalizingRecruitment,
 } = useUser(userId)
@@ -94,6 +96,8 @@ const { history: onboardingHistory } = useCandidateOnboardingHistory(userId)
 const recruitModalVisible = ref(false)
 const chatModalVisible = ref(false)
 const cancelRecruitmentModalVisible = ref(false)
+const stopOnboardingModalVisible = ref(false)
+const declineConfirmationModalVisible = ref(false)
 const finalizeModalVisible = ref(false)
 const finalizeStartDate = ref<string | null>(null)
 const finalizeEndDate = ref<string | null>(null)
@@ -289,6 +293,36 @@ const handleCancelRecruitmentClick = (): void => {
   cancelRecruitmentModalVisible.value = true
 }
 
+const handleStopOnboardingClick = (): void => {
+  stopOnboardingModalVisible.value = true
+}
+
+const closeStopOnboardingModal = (): void => {
+  stopOnboardingModalVisible.value = false
+}
+
+const handleConfirmStopOnboarding = async (): Promise<void> => {
+  if (!user.value?.id) return
+
+  try {
+    await stopOnboarding()
+    message.success('Onboarding kandidat berhasil dihentikan.', { duration: 2000 })
+    stopOnboardingModalVisible.value = false
+    await Promise.all([refetchUser(), refetchMyRequests(), refetchActiveSubrequest()])
+  } catch (err) {
+    const messageText = err instanceof Error ? err.message : 'Gagal menghentikan onboarding.'
+    message.error(messageText, { duration: 3000 })
+  }
+}
+
+const handleDeclineConfirmationClick = (): void => {
+  declineConfirmationModalVisible.value = true
+}
+
+const closeDeclineConfirmationModal = (): void => {
+  declineConfirmationModalVisible.value = false
+}
+
 const openFinalizeModal = (): void => {
   if (!activeSubrequest.value?.subrequest_id) {
     finalizeFeedbackType.value = 'error'
@@ -373,6 +407,7 @@ const handleConfirmDecline = async (): Promise<void> => {
   try {
     await confirmDecline()
     message.success('Konfirmasi penolakan kandidat berhasil disimpan.', { duration: 2000 })
+    declineConfirmationModalVisible.value = false
     await Promise.all([refetchUser(), refetchMyRequests(), refetchActiveSubrequest()])
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal mengonfirmasi penolakan.'
@@ -523,7 +558,9 @@ const handleAssignCandidate = async (): Promise<void> => {
               >
             </h2>
           </div>
-          <n-button type="error" size="tiny"> Berhentikan </n-button>
+          <n-button type="error" size="tiny" @click="handleStopOnboardingClick">
+            Berhentikan
+          </n-button>
         </div>
         <div
           v-else-if="activeSubrequest && user.recruitment_status_name === 'Decline'"
@@ -538,13 +575,7 @@ const handleAssignCandidate = async (): Promise<void> => {
               >
             </h2>
           </div>
-          <n-button
-            type="error"
-            size="tiny"
-            :loading="isConfirmingDecline"
-            :disabled="isConfirmingDecline"
-            @click="handleConfirmDecline"
-          >
+          <n-button type="error" size="tiny" @click="handleDeclineConfirmationClick">
             Konfirmasi
           </n-button>
         </div>
@@ -660,6 +691,78 @@ const handleAssignCandidate = async (): Promise<void> => {
               Simpan
             </n-button>
           </div>
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="stopOnboardingModalVisible"
+      preset="card"
+      :bordered="false"
+      :closable="false"
+      style="width: 28rem"
+    >
+      <div class="flex flex-col items-center text-center">
+        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600">
+          <n-icon size="32" :component="CircleX" />
+        </div>
+
+        <h2 class="mt-5 text-2xl font-semibold text-slate-800">Berhentikan Kandidat</h2>
+        <p class="mt-3 text-sm leading-6 text-slate-500">
+          Tindakan ini akan menghentikan status onboarding kandidat dan tidak bisa dibatalkan.
+        </p>
+
+        <div class="mt-8 flex justify-center gap-3">
+          <n-button secondary :disabled="isStoppingOnboarding" @click="closeStopOnboardingModal">
+            Tutup
+          </n-button>
+          <n-button
+            type="error"
+            :loading="isStoppingOnboarding"
+            :disabled="isStoppingOnboarding"
+            @click="handleConfirmStopOnboarding"
+          >
+            Berhentikan
+          </n-button>
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="declineConfirmationModalVisible"
+      preset="card"
+      :bordered="false"
+      :closable="false"
+      style="width: 28rem"
+    >
+      <div class="flex flex-col items-center text-center">
+        <div
+          class="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600"
+        >
+          <n-icon size="32" :component="AlertTriangle" />
+        </div>
+
+        <h2 class="mt-5 text-2xl font-semibold text-slate-800">Konfirmasi Penolakan</h2>
+        <p class="mt-3 text-sm leading-6 text-slate-500">
+          Apakah Anda yakin ingin mengonfirmasi penolakan kandidat ini?
+        </p>
+
+        <div class="mt-8 flex justify-center gap-3">
+          <n-button
+            secondary
+            :disabled="isConfirmingDecline"
+            @click="closeDeclineConfirmationModal"
+          >
+            Batal
+          </n-button>
+          <n-button
+            type="error"
+            :loading="isConfirmingDecline"
+            :disabled="isConfirmingDecline"
+            @click="handleConfirmDecline"
+          >
+            Konfirmasi
+          </n-button>
         </div>
       </div>
     </n-modal>

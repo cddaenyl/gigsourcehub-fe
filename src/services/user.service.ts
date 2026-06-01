@@ -287,6 +287,18 @@ export const confirmDeclineConfirmationApi = async (id: string): Promise<UserRes
   }
 }
 
+export const stopOnboardingApi = async (id: string): Promise<UserResponse> => {
+  try {
+    const response = await axios.patch<UserResponse>(`/users/${id}/stop-onboarding`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
 export const finalizeRecruitmentApi = async (
   payload: FinalizeRecruitmentPayload,
 ): Promise<UserResponse> => {

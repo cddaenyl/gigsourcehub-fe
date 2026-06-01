@@ -131,7 +131,7 @@ const hireTrendPoints = computed(() => {
                 <div class="h-5 bg-slate-200 rounded w-1/3"></div>
               </template>
               <div class="space-y-6">
-                <div v-for="i in 5" :key="i" class="flex items-center gap-4">
+                <div v-for="i in 4" :key="i" class="flex items-center gap-4">
                   <div class="w-32 sm:w-44 space-y-1 pr-2">
                     <div class="h-4 bg-slate-200 rounded w-3/4 ml-auto"></div>
                     <div class="h-3 bg-slate-200 rounded w-1/2 ml-auto"></div>
@@ -244,9 +244,7 @@ const hireTrendPoints = computed(() => {
                           'from-blue-500 to-blue-600': idx === 0,
                           'from-indigo-400 to-indigo-500': idx === 1,
                           'from-purple-400 to-purple-500': idx === 2,
-                          'from-pink-400 to-pink-500': idx === 3,
-                          'from-amber-400 to-amber-500': idx === 4,
-                          'from-emerald-400 to-emerald-500': idx === 5,
+                          'from-emerald-400 to-emerald-500': idx === 3,
                         }"
                         :style="{ width: `${topOfFunnelCount > 0 ? (stage.count / topOfFunnelCount) * 100 : 0}%` }"
                       ></div>

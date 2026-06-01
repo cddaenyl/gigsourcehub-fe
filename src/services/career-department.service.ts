@@ -147,3 +147,31 @@ export const rejectCareerDepartmentApi = async (
     throw error
   }
 }
+
+export const getPublicCareerDepartmentsApi = async (
+  params: Record<string, unknown> = {},
+): Promise<CareerDepartmentListResponse> => {
+  try {
+    const response = await axios.get<CareerDepartmentListResponse>('/public/career-departments', { params })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const takedownCareerDepartmentApi = async (id: string): Promise<unknown> => {
+  try {
+    const response = await axios.post(`/career-departments/approvals/${id}/takedown`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+

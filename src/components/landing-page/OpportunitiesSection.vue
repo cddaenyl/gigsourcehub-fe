@@ -103,16 +103,16 @@ const opportunityCards = computed<OpportunityCard[]>(() => {
     return staticOpportunities
   }
   return vacancies.value.map((v) => {
-    const category = v.subrequest?.job_role || 'Technology Information'
+    const category = v.bidang || 'Technology Information'
     const location = v.schema ? v.schema.charAt(0) + v.schema.slice(1).toLowerCase() : 'Remote'
     const postedAt = formatPostedAt(v.created_at)
-    const tags = parseTags(v.subrequest?.tech_stack)
+    const tags = parseTags(v.tech_stack)
     return {
       label: v.name,
       category,
       postedAt,
       location,
-      duration: 'Project-based',
+      duration: v.project_duration || 'Project-based',
       description: v.overview || v.description || '',
       tags,
     }

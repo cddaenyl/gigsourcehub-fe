@@ -44,6 +44,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/analytics': RouteRecordInfo<
+      '/admin/analytics',
+      '/admin/analytics',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/candidate-chat/': RouteRecordInfo<
       '/admin/candidate-chat/',
       '/admin/candidate-chat',
@@ -131,6 +138,13 @@ declare module 'vue-router/auto-routes' {
     '/admin/lowongan/edit/[id]': RouteRecordInfo<
       '/admin/lowongan/edit/[id]',
       '/admin/lowongan/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/lowongan/view/[id]': RouteRecordInfo<
+      '/admin/lowongan/view/[id]',
+      '/admin/lowongan/view/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -282,6 +296,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/register/success': RouteRecordInfo<
+      '/register/success',
+      '/register/success',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/reset-password/': RouteRecordInfo<
       '/reset-password/',
       '/reset-password',
@@ -313,6 +334,13 @@ declare module 'vue-router/auto-routes' {
     '/superadmin/approval/informasi-perusahaan/': RouteRecordInfo<
       '/superadmin/approval/informasi-perusahaan/',
       '/superadmin/approval/informasi-perusahaan',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/superadmin/approval/kategori-bidang/': RouteRecordInfo<
+      '/superadmin/approval/kategori-bidang/',
+      '/superadmin/approval/kategori-bidang',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -509,6 +537,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/analytics.vue': {
+      routes:
+        | '/admin/analytics'
+      views:
+        | never
+    }
     'src/pages/admin/candidate-chat/index.vue': {
       routes:
         | '/admin/candidate-chat/'
@@ -584,6 +618,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/lowongan/edit/[id].vue': {
       routes:
         | '/admin/lowongan/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/view/[id].vue': {
+      routes:
+        | '/admin/lowongan/view/[id]'
       views:
         | never
     }
@@ -713,6 +753,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/register/success.vue': {
+      routes:
+        | '/register/success'
+      views:
+        | never
+    }
     'src/pages/reset-password/index.vue': {
       routes:
         | '/reset-password/'
@@ -740,6 +786,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/approval/informasi-perusahaan/index.vue': {
       routes:
         | '/superadmin/approval/informasi-perusahaan/'
+      views:
+        | never
+    }
+    'src/pages/superadmin/approval/kategori-bidang/index.vue': {
+      routes:
+        | '/superadmin/approval/kategori-bidang/'
       views:
         | never
     }

@@ -5,8 +5,9 @@ import { useMessage } from 'naive-ui'
 import MasterDataIndexLayout from '@/components/shared/MasterDataIndexLayout.vue'
 import SectorTable from '@/components/tables/SectorTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
+import ConfirmationModal from '@/components/shared/ConfirmationModal.vue'
 import { useSectors } from '@/composables/useSectors'
-import { updateSectorApi } from '@/services/sector.service'
+import { updateSectorApi, deleteSectorApi } from '@/services/sector.service'
 import type { Sector } from '@/models/Sector'
 
 const router = useRouter()
@@ -24,6 +25,42 @@ const queryParams = computed(() => ({
 
 const { sectors, pageCount, isLoading, refetch } = useSectors(queryParams)
 
+// Confirmation modal state
+const isConfirmShow = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmText = ref('')
+const confirmType = ref<'danger' | 'warning' | 'info' | 'success'>('danger')
+const confirmLoading = ref(false)
+const onConfirm = ref<(() => Promise<void>) | null>(null)
+
+const triggerConfirm = (
+  title: string,
+  messageText: string,
+  actionText: string,
+  type: 'danger' | 'warning' | 'info' | 'success',
+  callback: () => Promise<void>
+) => {
+  confirmTitle.value = title
+  confirmMessage.value = messageText
+  confirmText.value = actionText
+  confirmType.value = type
+  onConfirm.value = callback
+  isConfirmShow.value = true
+}
+
+const handleConfirm = async () => {
+  if (onConfirm.value) {
+    confirmLoading.value = true
+    try {
+      await onConfirm.value()
+      isConfirmShow.value = false
+    } finally {
+      confirmLoading.value = false
+    }
+  }
+}
+
 const handleSearch = (val: string) => {
   searchQuery.value = val
   currentPage.value = 1
@@ -38,23 +75,46 @@ const handleAction = async (action: string, sector: Sector) => {
     router.push(`/superadmin/bidang/edit/${sector.id}`)
   } else if (action === 'toggle-status') {
     const newStatus = !sector.is_active
-    const confirmMsg = newStatus 
+    const title = newStatus ? 'Aktifkan Bidang' : 'Nonaktifkan Bidang'
+    const actionText = newStatus ? 'Aktifkan' : 'Nonaktifkan'
+    const msg = newStatus 
       ? `Apakah Anda yakin ingin mengaktifkan bidang ${sector.name}?`
-      : `Apakah Anda yakin ingin menonaktifkan bidang ${sector.name}?`
+      : `Bidang yang dinonaktifkan tidak dapat dipilih dalam proses penambahan atau pengelolaan data baru. Data yang sudah terhubung tetap tersimpan di sistem.`
       
-    if (confirm(confirmMsg)) {
-      try {
-        await updateSectorApi(sector.id, {
-          name: sector.name,
-          hex_code: sector.hex_code,
-          is_active: newStatus
-        })
-        message.success(`Bidang berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
-        refetch()
-      } catch (err: any) {
-        message.error(err.message || 'Gagal mengubah status bidang')
+    triggerConfirm(
+      title,
+      msg,
+      actionText,
+      newStatus ? 'success' : 'danger',
+      async () => {
+        try {
+          await updateSectorApi(sector.id, {
+            name: sector.name,
+            is_active: newStatus
+          })
+          message.success(`Bidang berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
+          refetch()
+        } catch (err: any) {
+          message.error(err.message || 'Gagal mengubah status bidang')
+        }
       }
-    }
+    )
+  } else if (action === 'delete') {
+    triggerConfirm(
+      'Hapus Bidang',
+      `Bidang yang dihapus tidak dapat dipulihkan kembali. Data yang sudah terhubung tetap tersimpan di sistem.`,
+      'Hapus',
+      'danger',
+      async () => {
+        try {
+          await deleteSectorApi(sector.id)
+          message.success(`Bidang ${sector.name} berhasil dihapus`)
+          refetch()
+        } catch (err: any) {
+          message.error(err.response?.data?.message || err.message || 'Gagal menghapus bidang')
+        }
+      }
+    )
   }
 }
 </script>
@@ -87,4 +147,14 @@ const handleAction = async (action: string, sector: Sector) => {
       />
     </template>
   </MasterDataIndexLayout>
+
+  <ConfirmationModal
+    v-model:show="isConfirmShow"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    :confirm-text="confirmText"
+    :type="confirmType"
+    :loading="confirmLoading"
+    @confirm="handleConfirm"
+  />
 </template>

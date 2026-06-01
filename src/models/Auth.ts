@@ -53,3 +53,7 @@ export interface ResetPasswordPayload {
   token: string
   password: string
 }
+
+export interface ResendVerificationPayload {
+  email: string
+}

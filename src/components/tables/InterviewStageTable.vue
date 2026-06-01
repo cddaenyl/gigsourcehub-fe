@@ -2,7 +2,7 @@
 import { h } from 'vue'
 import { NDataTable, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { Edit, X, CircleCheck } from '@vicons/tabler'
+import { Edit, X, CircleCheck, Trash } from '@vicons/tabler'
 import type { InterviewStage } from '@/models/InterviewStage'
 
 interface Props {
@@ -88,7 +88,7 @@ const columns: DataTableColumns<InterviewStage> = [
   {
     title: 'Actions',
     key: 'action',
-    width: 100,
+    width: 140,
     className: 'action-column',
     render: (row) => {
       const actionIcon = row.is_active ? X : CircleCheck
@@ -112,6 +112,14 @@ const columns: DataTableColumns<InterviewStage> = [
             onClick: () => emit('action', 'toggle-status', row),
           },
           [h(NIcon, { component: actionIcon })],
+        ),
+        h(
+          'button',
+          {
+            class: 'p-1.5 rounded-md hover:bg-slate-100 text-red-600 transition-colors',
+            onClick: () => emit('action', 'delete', row),
+          },
+          [h(NIcon, { component: Trash })],
         ),
       ])
     },

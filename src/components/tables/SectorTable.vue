@@ -2,7 +2,7 @@
 import { h } from 'vue'
 import { NDataTable, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { Edit, X, CircleCheck } from '@vicons/tabler'
+import { Edit, X, CircleCheck, Trash } from '@vicons/tabler'
 import type { Sector } from '@/models/Sector'
 
 interface Props {
@@ -35,23 +35,6 @@ const columns: DataTableColumns<Sector> = [
     render: (row) => h('span', { class: 'text-slate-700' }, row.name),
   },
   {
-    title: 'Hex Code',
-    key: 'hex_code',
-    render: (row) =>
-      h('div', { class: 'flex items-center gap-2' }, [
-        h('div', {
-          style: {
-            backgroundColor: row.hex_code,
-            width: '18px',
-            height: '18px',
-            borderRadius: '4px',
-            border: '1px solid #e2e8f0',
-          },
-        }),
-        h('span', { class: 'font-mono text-slate-500' }, row.hex_code),
-      ]),
-  },
-  {
     title: 'Status Bidang',
     key: 'is_active',
     render: (row) => {
@@ -74,7 +57,7 @@ const columns: DataTableColumns<Sector> = [
   {
     title: 'Actions',
     key: 'action',
-    width: 100,
+    width: 140,
     className: 'action-column',
     render: (row) => {
       const actionIcon = row.is_active ? X : CircleCheck
@@ -98,6 +81,14 @@ const columns: DataTableColumns<Sector> = [
             onClick: () => emit('action', 'toggle-status', row),
           },
           [h(NIcon, { component: actionIcon })],
+        ),
+        h(
+          'button',
+          {
+            class: 'p-1.5 rounded-md hover:bg-slate-100 text-red-600 transition-colors',
+            onClick: () => emit('action', 'delete', row),
+          },
+          [h(NIcon, { component: Trash })],
         ),
       ])
     },

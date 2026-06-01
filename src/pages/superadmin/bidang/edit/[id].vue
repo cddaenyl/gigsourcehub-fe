@@ -11,7 +11,6 @@ import {
   type FormRules,
 } from 'naive-ui'
 import MasterDataFormLayout from '@/components/shared/MasterDataFormLayout.vue'
-import ColorPickerInput from '@/components/shared/ColorPickerInput.vue'
 import { getSectorByIdApi, updateSectorApi } from '@/services/sector.service'
 
 const router = useRouter()
@@ -24,17 +23,15 @@ const sectorId = (route.params as any).id as string
 
 const formData = reactive({
   name: '',
-  hex_code: '#0014B2',
   is_active: 1 as number, // Use number for NSelect compatibility
 })
 
 const rules: FormRules = {
   name: { required: true, message: 'Nama Bidang wajib diisi', trigger: 'blur' },
-  hex_code: { required: true, message: 'Hex Code wajib dipilih', trigger: 'change' },
 }
 
 const isFormReady = computed(() => {
-  return formData.name.trim() !== '' && formData.hex_code !== ''
+  return formData.name.trim() !== ''
 })
 
 const fetchSectorData = async () => {
@@ -43,7 +40,6 @@ const fetchSectorData = async () => {
     const res = await getSectorByIdApi(sectorId)
     const sector = res.data
     formData.name = sector.name
-    formData.hex_code = sector.hex_code
     formData.is_active = sector.is_active ? 1 : 0
   } catch (err: any) {
     message.error(err.message || 'Gagal mengambil data bidang')
@@ -64,7 +60,6 @@ const handleSubmit = (e: MouseEvent) => {
       try {
         await updateSectorApi(sectorId, {
           name: formData.name,
-          hex_code: formData.hex_code,
           is_active: Boolean(formData.is_active),
         })
         message.success('Bidang berhasil diperbarui')
@@ -107,10 +102,6 @@ const statusOptions = [
             v-model:value="formData.name" 
             placeholder="Masukkan nama bidang (e.g. Technology, Finance)" 
           />
-        </n-form-item-gi>
-
-        <n-form-item-gi label="Hex Code" path="hex_code">
-          <ColorPickerInput v-model:value="formData.hex_code" />
         </n-form-item-gi>
 
         <n-form-item-gi label="Status Bidang">

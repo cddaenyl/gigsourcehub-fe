@@ -3,6 +3,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   NForm,
+  NInput,
   NSelect,
   NGrid,
   NFormItemGi,
@@ -10,7 +11,6 @@ import {
   type FormRules,
 } from 'naive-ui'
 import MasterDataFormLayout from '@/components/shared/MasterDataFormLayout.vue'
-import ColorPickerInput from '@/components/shared/ColorPickerInput.vue'
 import { createSectorApi } from '@/services/sector.service'
 
 const router = useRouter()
@@ -20,17 +20,15 @@ const isLoading = ref(false)
 
 const formData = reactive({
   name: '',
-  hex_code: '#0014B2',
   is_active: 1, // Use number for NSelect compatibility
 })
 
 const rules: FormRules = {
   name: { required: true, message: 'Nama Bidang wajib diisi', trigger: 'blur' },
-  hex_code: { required: true, message: 'Hex Code wajib dipilih', trigger: 'change' },
 }
 
 const isFormReady = computed(() => {
-  return formData.name.trim() !== '' && formData.hex_code !== ''
+  return formData.name.trim() !== ''
 })
 
 const handleSubmit = (e: MouseEvent) => {
@@ -41,7 +39,6 @@ const handleSubmit = (e: MouseEvent) => {
       try {
         await createSectorApi({
           name: formData.name,
-          hex_code: formData.hex_code,
           is_active: Boolean(formData.is_active),
         })
         message.success('Bidang berhasil ditambahkan')
@@ -83,10 +80,6 @@ const statusOptions = [
             v-model:value="formData.name" 
             placeholder="Masukkan nama bidang (e.g. Technology, Finance)" 
           />
-        </n-form-item-gi>
-
-        <n-form-item-gi label="Hex Code" path="hex_code">
-          <ColorPickerInput v-model:value="formData.hex_code" />
         </n-form-item-gi>
 
         <n-form-item-gi label="Status Bidang">

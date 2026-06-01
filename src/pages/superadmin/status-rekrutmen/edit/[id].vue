@@ -42,6 +42,11 @@ const fetchStatusData = async () => {
   try {
     const res = await getRecruitmentStatusByIdApi(statusId)
     const status = res.data
+    if (status.can_be_deleted === false) {
+      message.error('Status rekrutmen bawaan sistem tidak dapat diubah')
+      router.push('/superadmin/status-rekrutmen')
+      return
+    }
     formData.name = status.name
     formData.hex_code = status.hex_code
     formData.is_active = status.is_active ? 1 : 0

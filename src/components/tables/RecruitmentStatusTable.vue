@@ -2,7 +2,7 @@
 import { h } from 'vue'
 import { NDataTable, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { Edit, X, CircleCheck } from '@vicons/tabler'
+import { Edit, X, CircleCheck, Trash } from '@vicons/tabler'
 import type { RecruitmentStatus } from '@/models/RecruitmentStatus'
 
 interface Props {
@@ -88,20 +88,33 @@ const columns: DataTableColumns<RecruitmentStatus> = [
   {
     title: 'Actions',
     key: 'action',
-    width: 100,
+    width: 140,
     className: 'action-column',
     render: (row) => {
+      const isDeletable = row.can_be_deleted !== false
       const actionIcon = row.is_active ? X : CircleCheck
-      const actionClass = row.is_active
+      
+      const actionClass = !isDeletable
+        ? 'p-1.5 rounded-md text-slate-400 cursor-not-allowed opacity-50'
+        : row.is_active
         ? 'p-1.5 rounded-md hover:bg-slate-100 text-red-600 transition-colors'
         : 'p-1.5 rounded-md hover:bg-slate-100 text-green-600 transition-colors'
+
+      const editClass = !isDeletable
+        ? 'p-1.5 rounded-md text-slate-400 cursor-not-allowed opacity-50'
+        : 'p-1.5 rounded-md hover:bg-slate-100 text-yellow-600 transition-colors'
+
+      const deleteClass = !isDeletable
+        ? 'p-1.5 rounded-md text-slate-400 cursor-not-allowed opacity-50'
+        : 'p-1.5 rounded-md hover:bg-slate-100 text-red-600 transition-colors'
 
       return h('div', { class: 'flex items-center gap-2' }, [
         h(
           'button',
           {
-            class: 'p-1.5 rounded-md hover:bg-slate-100 text-yellow-600 transition-colors',
-            onClick: () => emit('action', 'edit', row),
+            class: editClass,
+            disabled: !isDeletable,
+            onClick: () => isDeletable && emit('action', 'edit', row),
           },
           [h(NIcon, { component: Edit })],
         ),
@@ -109,9 +122,19 @@ const columns: DataTableColumns<RecruitmentStatus> = [
           'button',
           {
             class: actionClass,
-            onClick: () => emit('action', 'toggle-status', row),
+            disabled: !isDeletable,
+            onClick: () => isDeletable && emit('action', 'toggle-status', row),
           },
           [h(NIcon, { component: actionIcon })],
+        ),
+        h(
+          'button',
+          {
+            class: deleteClass,
+            disabled: !isDeletable,
+            onClick: () => isDeletable && emit('action', 'delete', row),
+          },
+          [h(NIcon, { component: Trash })],
         ),
       ])
     },

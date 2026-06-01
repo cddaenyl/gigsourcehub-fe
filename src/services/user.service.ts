@@ -300,3 +300,15 @@ export const finalizeRecruitmentApi = async (
     throw error
   }
 }
+
+export const declineRecruitmentApi = async (id: string): Promise<UserResponse> => {
+  try {
+    const response = await axios.patch<UserResponse>(`/users/${id}/decline`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

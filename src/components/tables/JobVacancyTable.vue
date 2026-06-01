@@ -13,7 +13,7 @@ interface Props {
 defineProps<Props>()
 
 const emit = defineEmits<{
-  action: [action: 'edit' | 'delete', vacancy: JobVacancy]
+  action: [action: 'view' | 'edit' | 'delete', vacancy: JobVacancy]
 }>()
 
 function formatDate(dateStr: string | null | undefined): string {
@@ -115,6 +115,7 @@ const columns: DataTableColumns<JobVacancy> = [
     className: 'action-column',
     render: (row) => {
       const options: DropdownOption[] = [
+        { label: 'Lihat Detail', key: 'view' },
         { label: 'Edit', key: 'edit' },
         { label: 'Hapus', key: 'delete', props: { style: { color: '#EF4444' } } },
       ]
@@ -125,7 +126,7 @@ const columns: DataTableColumns<JobVacancy> = [
           options,
           trigger: 'click',
           onSelect: (key: string) => {
-            if (key === 'edit' || key === 'delete') {
+            if (key === 'view' || key === 'edit' || key === 'delete') {
               emit('action', key, row)
             }
           },

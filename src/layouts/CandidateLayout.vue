@@ -21,6 +21,10 @@ defineOptions({
   name: 'CandidateLayout',
 })
 
+defineProps<{
+  containerClass?: string
+}>()
+
 import { useConversations } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -189,7 +193,7 @@ const recruitmentStatus = computed(() => profile.value?.recruitment_status_name 
 
           <!-- Page Content -->
           <div class="lg:col-span-9 flex flex-col">
-            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex flex-col">
+            <div :class="containerClass || 'bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex flex-col'">
               <slot />
             </div>
           </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { buildMasterDataOptions } from '@/utils/masterDataOptions'
 import { useRouter } from 'vue-router'
 import {
   NForm,
@@ -35,12 +36,7 @@ const isFormReady = computed(() => {
   return formData.name.trim() !== '' && formData.sector_id !== null
 })
 
-const sectorOptions = computed(() => {
-  return sectors.value.map(s => ({
-    label: s.name,
-    value: s.id
-  }))
-})
+const sectorOptions = computed(() => buildMasterDataOptions(sectors.value))
 
 const fetchSectors = async () => {
   isLoadingSectors.value = true

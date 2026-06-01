@@ -26,6 +26,7 @@ import {
   type SelectOption,
 } from 'naive-ui'
 import { useRecruitmentStatuses } from '@/composables/useRecruitmentStatuses'
+import { buildMasterDataOptions } from '@/utils/masterDataOptions'
 import type { UserRecruitmentStatusPayload } from '@/models/User'
 import type { RequestQueryParams } from '@/models/Request'
 import { useCandidateNotesStore } from '@/stores/notes.store'
@@ -64,12 +65,7 @@ const levelOptions: SelectOption[] = [
 
 const { recruitmentStatuses } = useRecruitmentStatuses()
 const recruitmentOptions = computed<SelectOption[]>(() =>
-  recruitmentStatuses.value
-    .filter((status) => status.is_active)
-    .map((status) => ({
-      label: status.name,
-      value: status.id,
-    })),
+  buildMasterDataOptions(recruitmentStatuses.value)
 )
 
 // Fetch user data

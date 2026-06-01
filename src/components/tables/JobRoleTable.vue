@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { h } from 'vue'
-import { NDataTable, NIcon } from 'naive-ui'
+import { NDataTable, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { Edit, Trash } from '@vicons/tabler'
+import { Edit, Trash, X, CircleCheck } from '@vicons/tabler'
 import type { JobRole } from '@/models/JobRole'
 
 interface Props {
@@ -34,11 +34,36 @@ const columns: DataTableColumns<JobRole> = [
     render: (row) => h('span', { class: 'text-slate-600' }, row.sector?.name || '-'),
   },
   {
+    title: 'Status',
+    key: 'is_active',
+    render: (row) => {
+      const type = row.is_active ? 'success' : 'error'
+      return h(
+        NTag,
+        {
+          type: type,
+          round: true,
+          bordered: false,
+          style: { minWidth: '80px', textAlign: 'center' },
+          color: row.is_active
+            ? { color: '#DCFCE7', textColor: '#166534' }
+            : { color: '#FEE2E2', textColor: '#991B1B' },
+        },
+        { default: () => (row.is_active ? 'Active' : 'Inactive') },
+      )
+    },
+  },
+  {
     title: 'Actions',
     key: 'action',
-    width: 100,
+    width: 140,
     className: 'action-column',
     render: (row) => {
+      const actionIcon = row.is_active ? X : CircleCheck
+      const actionClass = row.is_active
+        ? 'p-1.5 rounded-md hover:bg-slate-100 text-red-600 transition-colors'
+        : 'p-1.5 rounded-md hover:bg-slate-100 text-green-600 transition-colors'
+
       return h('div', { class: 'flex items-center gap-2' }, [
         h(
           'button',
@@ -47,6 +72,14 @@ const columns: DataTableColumns<JobRole> = [
             onClick: () => emit('action', 'edit', row),
           },
           [h(NIcon, { component: Edit })],
+        ),
+        h(
+          'button',
+          {
+            class: actionClass,
+            onClick: () => emit('action', 'toggle-status', row),
+          },
+          [h(NIcon, { component: actionIcon })],
         ),
         h(
           'button',

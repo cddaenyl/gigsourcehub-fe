@@ -73,7 +73,11 @@ const bottomMenuOptions: MenuOption[] = [
 
 const handleMenuSelect = (key: string) => {
   sidebarStore.setActiveKey(key)
-  router.push(`${props.basePath}/${key}`)
+  if (key === 'dashboard') {
+    router.push(props.basePath)
+  } else {
+    router.push(`${props.basePath}/${key}`)
+  }
 }
 
 const handleBottomMenuSelect = (key: string) => {

@@ -51,3 +51,15 @@ export const updateInterviewStageApi = async (
     throw error
   }
 }
+
+export const deleteInterviewStageApi = async (id: string): Promise<any> => {
+  try {
+    const response = await axios.delete(`/interview-stages/${id}`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

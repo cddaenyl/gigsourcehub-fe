@@ -83,10 +83,117 @@ const formatDateTime = (val: string) => {
         </n-button>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 space-y-4">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        <p class="text-slate-500 font-medium">Memuat data dashboard...</p>
+      <!-- Skeleton Loading State -->
+      <div v-if="isLoading" class="space-y-6">
+        <!-- KPI Cards Grid Skeleton -->
+        <n-grid cols="1 s:2 m:3 l:5" responsive="screen" :x-gap="16" :y-gap="16">
+          <n-gi v-for="i in 5" :key="i">
+            <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3 animate-pulse">
+              <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+              <div class="h-8 bg-slate-200 rounded w-1/2 mt-2"></div>
+              <div class="h-3 bg-slate-200 rounded w-3/4 mt-3"></div>
+            </div>
+          </n-gi>
+        </n-grid>
+
+        <!-- Main Layout Split Skeleton -->
+        <n-grid cols="1 l:3" :x-gap="20" :y-gap="20" responsive="screen">
+          <!-- Left side content skeleton -->
+          <n-gi span="2" class="space-y-6">
+            <!-- Upcoming Interviews Widget Skeleton -->
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-1/3"></div>
+              </template>
+              <div class="divide-y divide-slate-100">
+                <div v-for="i in 3" :key="i" class="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-full bg-slate-200 shrink-0"></div>
+                    <div class="space-y-2">
+                      <div class="h-4 bg-slate-200 rounded w-32"></div>
+                      <div class="h-3 bg-slate-200 rounded w-48"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <div class="space-y-1 text-right">
+                      <div class="h-3 bg-slate-200 rounded w-24"></div>
+                      <div class="h-2 bg-slate-200 rounded w-16"></div>
+                    </div>
+                    <div class="h-6 bg-slate-200 rounded-full w-20"></div>
+                  </div>
+                </div>
+              </div>
+            </n-card>
+
+            <!-- Recruitment Request Summary Widget Skeleton -->
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-1/4"></div>
+              </template>
+              <!-- Progress Bar Skeleton -->
+              <div class="bg-slate-50 rounded-xl p-5 mb-6 space-y-3">
+                <div class="flex justify-between items-center">
+                  <div class="space-y-2 w-2/3">
+                    <div class="h-3 bg-slate-200 rounded w-1/3"></div>
+                    <div class="h-5 bg-slate-200 rounded w-full"></div>
+                  </div>
+                  <div class="h-8 bg-slate-200 rounded w-12"></div>
+                </div>
+                <div class="h-2 bg-slate-200 rounded w-full mt-2"></div>
+              </div>
+              <!-- Stats Grid Skeleton -->
+              <n-grid cols="2 m:4" :x-gap="16" :y-gap="16">
+                <n-gi v-for="i in 4" :key="i">
+                  <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center space-y-2">
+                    <div class="h-3 bg-slate-200 rounded w-3/4 mx-auto"></div>
+                    <div class="h-6 bg-slate-200 rounded w-1/2 mx-auto"></div>
+                  </div>
+                </n-gi>
+              </n-grid>
+            </n-card>
+          </n-gi>
+
+          <!-- Right side content skeleton -->
+          <n-gi class="space-y-6">
+            <!-- Alerts & Attention Skeleton -->
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-1/2"></div>
+              </template>
+              <div class="space-y-3">
+                <div v-for="i in 4" :key="i" class="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/50">
+                  <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-slate-200"></div>
+                    <div class="space-y-2">
+                      <div class="h-3.5 bg-slate-200 rounded w-24"></div>
+                      <div class="h-2.5 bg-slate-200 rounded w-32"></div>
+                    </div>
+                  </div>
+                  <div class="h-6 bg-slate-200 rounded w-8"></div>
+                </div>
+              </div>
+            </n-card>
+
+            <!-- Recent Activities Skeleton -->
+            <n-card class="shadow-sm rounded-xl border border-slate-100 animate-pulse">
+              <template #header>
+                <div class="h-5 bg-slate-200 rounded w-1/2"></div>
+              </template>
+              <div class="space-y-6 py-2">
+                <div v-for="i in 3" :key="i" class="flex gap-4 items-start relative">
+                  <div class="w-2.5 h-2.5 rounded-full bg-slate-200 mt-1 shrink-0"></div>
+                  <div class="space-y-2 flex-1">
+                    <div class="flex justify-between">
+                      <div class="h-3 bg-slate-200 rounded w-1/3"></div>
+                      <div class="h-2.5 bg-slate-200 rounded w-16"></div>
+                    </div>
+                    <div class="h-3 bg-slate-200 rounded w-3/4"></div>
+                  </div>
+                </div>
+              </div>
+            </n-card>
+          </n-gi>
+        </n-grid>
       </div>
 
       <template v-else-if="dashboardData">

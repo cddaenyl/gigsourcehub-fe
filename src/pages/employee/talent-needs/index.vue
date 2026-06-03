@@ -96,7 +96,9 @@ const handleSearch = (value: string) => {
 }
 
 const handleAction = (action: string, item: TalentNeed) => {
-  console.log(`Action: ${action}`, item)
+  if (action === 'detail') {
+    router.push(`/employee/talent-needs/${item.id}`)
+  }
 }
 const handleAjukanPermintaan = () => {
   router.push('/employee/talent-needs/ajukan-permintaan')
@@ -136,7 +138,11 @@ const handleAjukanPermintaan = () => {
         </div>
 
         <div class="rounded-lg p-2 py-3 space-y-4">
-          <TalentNeedsTable :data="paginatedTalentNeeds" @action="handleAction" />
+          <TalentNeedsTable
+            :data="paginatedTalentNeeds"
+            :actions="['detail']"
+            @action="handleAction"
+          />
 
           <div v-if="isLoading" class="py-8 text-center">
             <p class="text-gray-500">Loading...</p>

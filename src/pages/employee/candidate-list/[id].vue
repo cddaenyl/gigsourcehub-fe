@@ -235,7 +235,11 @@ const formatNoteDate = (dateString: string): string => {
             </CandidateNotesCard>
           </n-gi>
         </n-grid>
-        <CandidateOnboardingHistory :user-id="user.id" />
+        <CandidateOnboardingHistory
+          :user-id="user.id"
+          :allow-create-review="true"
+          :disable-action-before-end-date="true"
+        />
       </div>
     </div>
   </EmployeeLayout>

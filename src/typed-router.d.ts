@@ -254,6 +254,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/employee/talent-needs/[id]': RouteRecordInfo<
+      '/employee/talent-needs/[id]',
+      '/employee/talent-needs/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/employee/talent-needs/ajukan-permintaan/': RouteRecordInfo<
       '/employee/talent-needs/ajukan-permintaan/',
       '/employee/talent-needs/ajukan-permintaan',
@@ -707,6 +714,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/employee/talent-needs/index.vue': {
       routes:
         | '/employee/talent-needs/'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/[id].vue': {
+      routes:
+        | '/employee/talent-needs/[id]'
       views:
         | never
     }

@@ -28,6 +28,7 @@ defineProps<{
 import { useConversations } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
 import { useQueryClient } from '@tanstack/vue-query'
+import { useUnreadNotificationCount } from '@/composables/useNotification'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -37,6 +38,9 @@ const queryClient = useQueryClient()
 
 const { data: chatData } = useConversations(ref(1), ref(10))
 const unreadMessagesCount = computed(() => chatData.value?.data.unread_total || 0)
+
+const { data: unreadNotifData } = useUnreadNotificationCount()
+const unreadNotifCount = computed(() => unreadNotifData.value?.data.unread_count || 0)
 
 const { incomingMessage } = useChatWebSocket()
 watch(incomingMessage, (msg) => {
@@ -62,7 +66,7 @@ const menuItems = computed(() => [
   { label: 'Profile', icon: User, path: '/candidate/profile' },
   { label: 'Message', icon: Message, path: '/candidate/chat', badge: unreadMessagesCount.value },
   { label: 'Recruitment', icon: Briefcase, path: '/candidate/recruitment' },
-  { label: 'Notifications', icon: Bell, path: '/candidate/notifications', badge: 1 },
+  { label: 'Notifications', icon: Bell, path: '/candidate/notifications', badge: unreadNotifCount.value },
   { label: 'Account', icon: Settings, path: '/candidate/account' },
 ])
 

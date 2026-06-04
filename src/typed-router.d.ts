@@ -142,6 +142,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/admin/notifications/': RouteRecordInfo<
+      '/admin/notifications/',
+      '/admin/notifications',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/profile/': RouteRecordInfo<
       '/admin/profile/',
       '/admin/profile',
@@ -236,6 +243,13 @@ declare module 'vue-router/auto-routes' {
     '/employee/my-team/': RouteRecordInfo<
       '/employee/my-team/',
       '/employee/my-team',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/notifications/': RouteRecordInfo<
+      '/employee/notifications/',
+      '/employee/notifications',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -413,6 +427,13 @@ declare module 'vue-router/auto-routes' {
       '/superadmin/jabatan/edit/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | never
+    >,
+    '/superadmin/notifications/': RouteRecordInfo<
+      '/superadmin/notifications/',
+      '/superadmin/notifications',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/superadmin/posisi/': RouteRecordInfo<
@@ -621,6 +642,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/notifications/index.vue': {
+      routes:
+        | '/admin/notifications/'
+      views:
+        | never
+    }
     'src/pages/admin/profile/index.vue': {
       routes:
         | '/admin/profile/'
@@ -702,6 +729,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/employee/my-team/index.vue': {
       routes:
         | '/employee/my-team/'
+      views:
+        | never
+    }
+    'src/pages/employee/notifications/index.vue': {
+      routes:
+        | '/employee/notifications/'
       views:
         | never
     }
@@ -852,6 +885,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/jabatan/edit/[id].vue': {
       routes:
         | '/superadmin/jabatan/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/notifications/index.vue': {
+      routes:
+        | '/superadmin/notifications/'
       views:
         | never
     }

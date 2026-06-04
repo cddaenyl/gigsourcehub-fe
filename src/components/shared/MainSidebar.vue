@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, h, watch } from 'vue'
 import type { Component } from 'vue'
-import { NMenu, NAvatar, NSpace } from 'naive-ui'
+import { NMenu, NAvatar, NSpace, NBadge } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { useSidebarStore } from '@/stores/sidebar.store'
@@ -10,6 +10,7 @@ import { useLogout, useMeQuery } from '@/composables/useAuth'
 import { useAuthStore } from '@/stores/auth.store'
 
 import { useProfile } from '@/composables/useProfile'
+import { useUnreadNotificationCount } from '@/composables/useNotification'
 
 interface Props {
   menuOptions: MenuOption[]
@@ -25,6 +26,9 @@ const authStore = useAuthStore()
 const logout = useLogout()
 const { data: me } = useMeQuery()
 const { profile } = useProfile()
+
+const { data: unreadNotifData } = useUnreadNotificationCount()
+const unreadNotifCount = computed(() => unreadNotifData.value?.data.unread_count || 0)
 
 const defaultAvatarSeed = 'HumanResource'
 
@@ -58,9 +62,16 @@ function renderIcon(icon: Component) {
   return () => h(icon)
 }
 
-const bottomMenuOptions: MenuOption[] = [
+function renderLabelWithBadge(label: string, count: number) {
+  return () => h('div', { class: 'flex items-center justify-between w-full' }, [
+    h('span', null, label),
+    count > 0 ? h(NBadge, { value: count, type: 'error' }) : null
+  ])
+}
+
+const bottomMenuOptions = computed<MenuOption[]>(() => [
   {
-    label: 'Notifikasi',
+    label: renderLabelWithBadge('Notifikasi', unreadNotifCount.value),
     key: 'notifications',
     icon: renderIcon(Bell),
   },
@@ -69,7 +80,7 @@ const bottomMenuOptions: MenuOption[] = [
     key: 'logout',
     icon: renderIcon(Logout),
   },
-]
+])
 
 const handleMenuSelect = (key: string) => {
   sidebarStore.setActiveKey(key)
@@ -82,7 +93,7 @@ const handleMenuSelect = (key: string) => {
 
 const handleBottomMenuSelect = (key: string) => {
   if (key === 'notifications') {
-    console.log('Open notifications')
+    router.push(`${props.basePath}/notifications`)
   } else if (key === 'logout') {
     logout()
   }

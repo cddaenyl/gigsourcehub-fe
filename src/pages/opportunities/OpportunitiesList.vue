@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useMessage, NSelect, NIcon, NSpin } from 'naive-ui'
 import { SmartHome, Briefcase, MapPin, Clock, Calendar, Checkbox, Checks } from '@vicons/tabler'
 import LandingLayout from '@/layouts/UserLayout.vue'
@@ -173,9 +174,11 @@ const filteredVacancies = computed(() => {
   return mappedVacancies.value.filter((v) => v.category === selectedDepartment.value)
 })
 
+const route = useRoute()
+const router = useRouter()
+
 const openVacancyDetail = (vacancy: OpportunityCard) => {
-  selectedVacancy.value = vacancy
-  window.scrollTo({ top: 250, behavior: 'smooth' })
+  router.push({ query: { id: vacancy.id } })
 }
 
 const getListItems = (text: string | null | undefined): string[] => {
@@ -244,9 +247,32 @@ const otherOpportunities = computed(() => {
 })
 
 const selectOtherVacancy = (other: OpportunityCard) => {
-  selectedVacancy.value = other
-  window.scrollTo({ top: 250, behavior: 'smooth' })
+  router.push({ query: { id: other.id } })
 }
+
+const clearVacancyDetail = () => {
+  router.push({ query: {} })
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// Watch both query id and mappedVacancies changes to select the active detailed vacancy
+watch(
+  [() => route.query.id, () => mappedVacancies.value],
+  ([newId, vacanciesList]) => {
+    if (newId && vacanciesList && vacanciesList.length > 0) {
+      const found = vacanciesList.find((v) => String(v.id) === String(newId))
+      if (found) {
+        selectedVacancy.value = found
+        window.scrollTo({ top: 250, behavior: 'smooth' })
+      } else {
+        selectedVacancy.value = null
+      }
+    } else if (!newId) {
+      selectedVacancy.value = null
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -370,7 +396,7 @@ const selectOtherVacancy = (other: OpportunityCard) => {
               <span>Home</span>
             </router-link>
             <span class="text-slate-300">/</span>
-            <button @click="selectedVacancy = null" class="flex items-center gap-1.5 hover:text-[#07229e] transition-colors bg-transparent border-0 p-0 font-medium text-slate-500 cursor-pointer">
+            <button @click="clearVacancyDetail" class="flex items-center gap-1.5 hover:text-[#07229e] transition-colors bg-transparent border-0 p-0 font-medium text-slate-500 cursor-pointer">
               <n-icon :size="20"><Briefcase /></n-icon>
               <span>Opportunities</span>
             </button>

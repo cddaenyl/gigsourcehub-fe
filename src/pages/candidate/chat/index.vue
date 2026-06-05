@@ -4,10 +4,9 @@ import CandidateLayout from '@/layouts/CandidateLayout.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
-import { NInput, NSpin, NEmpty, NIcon } from 'naive-ui'
+import { NInput, NSpin, NEmpty, NIcon, NModal, NButton } from 'naive-ui'
 import {
   Send,
-  FilePlus,
   Eye,
   ArrowBackUp,
   X,
@@ -17,9 +16,12 @@ import {
   MapPin,
   ExternalLink,
   CalendarEvent,
+  DeviceLaptop,
+  Home,
 } from '@vicons/tabler'
 import type { ConversationResp, MessageResp } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
+import { useInterviewById } from '@/composables/useInterviews'
 
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
@@ -310,6 +312,27 @@ const formatInterviewTime = (value: string) => {
     minute: '2-digit',
   }).format(date)
 }
+
+const showInterviewDetailModal = ref(false)
+const selectedInterviewId = ref<string | null>(null)
+
+const {
+  interview: selectedInterview,
+  isLoading: isLoadingInterviewDetail,
+  refetch: refetchInterviewDetail,
+} = useInterviewById(selectedInterviewId)
+
+const openInterviewDetail = async (interviewId: string) => {
+  selectedInterviewId.value = interviewId
+  showInterviewDetailModal.value = true
+  await refetchInterviewDetail()
+}
+
+watch(showInterviewDetailModal, (visible) => {
+  if (!visible) {
+    selectedInterviewId.value = null
+  }
+})
 </script>
 
 <template>
@@ -459,6 +482,20 @@ const formatInterviewTime = (value: string) => {
                             </template>
                           </div>
                         </div>
+
+                        <div class="pt-1">
+                          <n-button
+                            type="primary"
+                            block
+                            @click="
+                              openInterviewDetail(
+                                parseInterviewMessageContent(msg.content)?.interview_id || '',
+                              )
+                            "
+                          >
+                            Lihat Detail
+                          </n-button>
+                        </div>
                       </div>
                     </div>
                   </template>
@@ -526,9 +563,6 @@ const formatInterviewTime = (value: string) => {
           </div>
           <div class="p-6">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors shrink-0" :class="{ 'opacity-50 pointer-events-none': !isChatAvailable }">
-                <n-icon size="24"><FilePlus /></n-icon>
-              </div>
               <n-input 
                 v-model:value="messageInput" 
                 type="textarea" 
@@ -552,6 +586,79 @@ const formatInterviewTime = (value: string) => {
         </div>
       </div>
     </div>
+    <!-- Interview Detail Modal -->
+    <n-modal
+      v-model:show="showInterviewDetailModal"
+      preset="card"
+      :bordered="false"
+      style="width: 40rem"
+    >
+      <div class="-mt-8">
+        <div v-if="isLoadingInterviewDetail" class="flex justify-center py-10">
+          <n-spin size="medium" />
+        </div>
+
+        <div v-else-if="selectedInterview" class="space-y-4">
+          <h4 class="mt-1 text-lg font-semibold text-slate-800">{{ selectedInterview.title }}</h4>
+          <div class="rounded-2xl py-1 space-y-3">
+            <div class="grid gap-3 text-sm text-slate-600">
+              <div v-if="selectedInterview.description" class="bg-white text-sm text-slate-600">
+                {{ selectedInterview.description }}
+              </div>
+              <div class="space-y-3 p-3">
+                <div class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-500"><Clock /></n-icon>
+                  <span class="text-gray-800"
+                    >{{ formatInterviewTime(selectedInterview.scheduled_at) }} WIB</span
+                  >
+                </div>
+                <div class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-500"><CalendarTime /></n-icon>
+                  <span class="text-gray-800">{{
+                    formatInterviewDate(selectedInterview.scheduled_at)
+                  }}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <n-icon
+                    v-if="selectedInterview.method === 'Online'"
+                    size="16"
+                    class="mt-0.5 text-slate-500"
+                    ><DeviceLaptop
+                  /></n-icon>
+                  <n-icon v-else size="16" class="mt-0.5 text-slate-500"><Home /></n-icon>
+                  <span class="text-gray-800">{{
+                    selectedInterview.method === 'Online' ? 'Interview Online' : 'Interview Offline'
+                  }}</span>
+                </div>
+                <div v-if="selectedInterview.method === 'Online'" class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-500"><Video /></n-icon>
+                  <a
+                    :href="selectedInterview.meeting_link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-blue-500 hover:text-blue-600 underline break-all"
+                  >
+                    {{ selectedInterview.meeting_link }}
+                  </a>
+                </div>
+                <div v-else class="flex items-start gap-2">
+                  <n-icon size="16" class="mt-0.5 text-slate-500"><MapPin /></n-icon>
+                  <p class="text-gray-800">{{ selectedInterview.meeting_location || '-' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="py-10 text-center text-gray-500">Detail interview tidak ditemukan.</div>
+
+        <div class="flex justify-center gap-3 pt-4 w-full">
+          <n-button type="default" @click="showInterviewDetailModal = false" style="width: 25%"
+            >Tutup</n-button
+          >
+        </div>
+      </div>
+    </n-modal>
   </CandidateLayout>
 </template>
 

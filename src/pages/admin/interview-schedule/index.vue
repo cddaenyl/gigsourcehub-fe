@@ -233,7 +233,7 @@ const columns: DataTableColumns<InterviewScheduleItem> = [
     render: (row) => h('span', { class: 'text-slate-600' }, formatDateTime(row.scheduled_at)),
   },
   {
-    title: 'Tahap Interview',
+    title: 'Jenis Interview',
     key: 'stage',
     render: (row) =>
       h(

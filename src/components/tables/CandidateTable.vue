@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, h } from 'vue'
-import { NDataTable, NTag } from 'naive-ui'
+import { NDataTable, NTag, NButton, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import CandidateTableActions from './CandidateTableActions.vue'
 import CandidateBookmark from '../CandidateBookmark.vue'
 import CandidateLevelChip from '../CandidateLevelChip.vue'
 import CandidateStatusChip from '../CandidateStatusChip.vue'
 import UserStatusChip from '../chip/UserStatusChip.vue'
+import { Eye } from '@vicons/tabler'
 import type { AllCandidates } from '@/models/Table'
 
 type CandidateTableVariant = 'all' | 'recruitment' | 'bookmarked' | 'onboarding' | 'archive'
@@ -240,6 +241,22 @@ const onboardingColumns = (): DataTableColumns<AllCandidates> => [
         recruitmentStatusName: row.status,
       }),
   },
+  {
+    title: 'Action',
+    key: 'action',
+    render: (row) =>
+      h(
+        NButton,
+        {
+          size: 'small',
+          secondary: true,
+          onClick: () => handleAction('view', row),
+        },
+        {
+          icon: () => h(NIcon, { size: 16 }, { default: () => h(Eye) }),
+        },
+      ),
+  },
 ]
 
 const archiveColumns = (): DataTableColumns<AllCandidates> => [
@@ -270,6 +287,22 @@ const archiveColumns = (): DataTableColumns<AllCandidates> => [
     title: 'Batas Kontrak',
     key: 'contractEnd',
     render: (row) => formatDate(row.contractEnd),
+  },
+  {
+    title: 'Action',
+    key: 'action',
+    render: (row) =>
+      h(
+        NButton,
+        {
+          size: 'small',
+          secondary: true,
+          onClick: () => handleAction('view', row),
+        },
+        {
+          icon: () => h(NIcon, { size: 16 }, { default: () => h(Eye) }),
+        },
+      ),
   },
 ]
 

@@ -95,7 +95,9 @@ const handleRemove = () => {
       <div class="grid grid-cols-1 gap-4">
         <div>
           <n-space vertical :size="6">
-            <h3 class="text-xs font-semibold text-gray-500">Nama Posisi</h3>
+            <h3 class="text-xs font-semibold text-gray-500">
+              Nama Posisi <span class="text-red-500">*</span>
+            </h3>
             <n-select
               :value="modelValue.jobRoleId"
               :options="positionOptions"
@@ -109,7 +111,9 @@ const handleRemove = () => {
 
         <div>
           <n-space vertical :size="6">
-            <h3 class="text-xs font-semibold text-gray-500">Gambaran Umum Posisi</h3>
+            <h3 class="text-xs font-semibold text-gray-500">
+              Gambaran Umum Posisi <span class="text-red-500">*</span>
+            </h3>
             <n-input
               :value="modelValue.overview"
               type="textarea"
@@ -122,7 +126,9 @@ const handleRemove = () => {
 
         <div>
           <n-space vertical :size="6">
-            <h3 class="text-xs font-semibold text-gray-500">Keahlian / Tech Stack</h3>
+            <h3 class="text-xs font-semibold text-gray-500">
+              Keahlian / Tech Stack <span class="text-red-500">*</span>
+            </h3>
 
             <n-input
               v-model:value="techStackInput"
@@ -149,7 +155,9 @@ const handleRemove = () => {
 
         <div>
           <n-space vertical :size="6">
-            <h3 class="text-xs font-semibold text-gray-500">Level Senioritas</h3>
+            <h3 class="text-xs font-semibold text-gray-500">
+              Level Senioritas <span class="text-red-500">*</span>
+            </h3>
             <n-select
               :value="modelValue.level"
               :options="seniorityOptions"
@@ -163,7 +171,7 @@ const handleRemove = () => {
 
         <div>
           <n-space vertical :size="6">
-            <h3 class="text-xs font-semibold text-gray-500">Catatan</h3>
+            <h3 class="text-xs font-semibold text-gray-500">Catatan (Optional)</h3>
             <n-input
               :value="modelValue.notes"
               type="textarea"

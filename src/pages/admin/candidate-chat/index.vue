@@ -617,6 +617,11 @@ const formatInterviewDate = (value: string) => {
   }).format(date)
 }
 
+function disablePreviousDate(ts: number) {
+  const todayStart = new Date().setHours(0, 0, 0, 0)
+  return ts < todayStart
+}
+
 const formatInterviewTime = (value: string) => {
   const date = new Date(value)
 
@@ -1611,6 +1616,7 @@ const isUnread = (c: ConversationResp) => {
                 type="datetime"
                 clearable
                 placeholder="Pilih tanggal dan waktu"
+                :is-date-disabled="disablePreviousDate"
                 class="w-full"
                 :default-time="'09:00:00'"
               />

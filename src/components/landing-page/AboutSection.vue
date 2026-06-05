@@ -25,7 +25,7 @@ defineOptions({
 
       <h2 class="text-3xl leading-tight font-bold text-gray-800 sm:text-4xl">
         Redefending the<br />
-        <span class="text-sky-400">Freelance Experience</span>
+        <span class="text-sky-400 bg-linear-to-l from-[#C27AFF] via-[#7C86FF] to-[#51A2FF] bg-clip-text text-transparent">Freelance Experience</span>
       </h2>
 
       <p class="w-full text-center text-base lg:leading-7 font-medium text-slate-600 sm:text-xl">

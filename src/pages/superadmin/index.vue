@@ -76,7 +76,7 @@ const formatTableName = (name: string) => {
         <div>
           <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
             <n-icon :component="Shield" class="text-indigo-600" />
-            Dashboard Tata Kelola
+            Dashboard
           </h1>
           <p class="text-slate-500 mt-1">Superadmin system metrics, verification approvals, and engine status.</p>
         </div>
@@ -227,7 +227,7 @@ const formatTableName = (name: string) => {
                 <n-icon :component="Briefcase" size="72" />
               </div>
               <p class="text-teal-100 text-xs font-semibold uppercase tracking-wider">Lowongan Aktif</p>
-              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.active_job_vacancies }} <span class="text-sm font-normal">Karir</span></h3>
+              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.active_job_vacancies }} <span class="text-sm font-normal">Posisi</span></h3>
               <p class="text-teal-100 text-xs mt-3">
                 Tayang di landing page
               </p>
@@ -249,23 +249,12 @@ const formatTableName = (name: string) => {
                   </div>
                   <div>
                     <h4 class="text-sm font-bold text-slate-800">
-                      RAG Engine is {{ dashboardData.is_ai_mode_enabled ? 'ONLINE' : 'OFFLINE' }}
+                      AI Module {{ dashboardData.is_ai_mode_enabled ? 'ONLINE' : 'OFFLINE' }}
                     </h4>
                     <p class="text-xs text-slate-500 mt-0.5">
                       {{ dashboardData.is_ai_mode_enabled ? 'Pencarian talenta berbasis kecerdasan buatan aktif' : 'Pencarian AI dinonaktifkan sementara' }}
                     </p>
                   </div>
-                </div>
-
-                <!-- Info block -->
-                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-                  <h5 class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
-                    <n-icon :component="Shield" />
-                    Kebijakan Keamanan AI
-                  </h5>
-                  <p class="text-[11px] text-indigo-700 leading-relaxed mt-1.5">
-                    Mode AI mengizinkan parser resume otomatis, pencocokan skor keselarasan, dan asisten rekrutmen interaktif berjalan menggunakan model LLM terintegrasi.
-                  </p>
                 </div>
                 
                 <n-button 

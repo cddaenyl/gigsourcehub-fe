@@ -207,10 +207,6 @@ const formatDateTime = (val: string) => {
               </div>
               <p class="text-teal-100 text-xs font-semibold uppercase tracking-wider">Avg Time-to-Hire</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.time_to_hire_days }} <span class="text-sm font-normal">Hari</span></h3>
-              <p class="text-teal-100 text-xs mt-3 flex items-center gap-1">
-                <n-icon :component="TrendingUp" size="14" />
-                Optimal target &lt; 20 hari
-              </p>
             </div>
           </n-gi>
 
@@ -221,10 +217,6 @@ const formatDateTime = (val: string) => {
               </div>
               <p class="text-blue-100 text-xs font-semibold uppercase tracking-wider">Offer Acceptance</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.offer_acceptance_rate }}%</h3>
-              <p class="text-blue-100 text-xs mt-3 flex items-center gap-1">
-                <n-icon :component="TrendingUp" size="14" />
-                Target penerimaan 80%+
-              </p>
             </div>
           </n-gi>
 
@@ -233,11 +225,8 @@ const formatDateTime = (val: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="Briefcase" size="72" />
               </div>
-              <p class="text-indigo-100 text-xs font-semibold uppercase tracking-wider">Active Job Vacancies</p>
+              <p class="text-indigo-100 text-xs font-semibold uppercase tracking-wider">Published Job Vacancies</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.active_job_vacancies }} <span class="text-sm font-normal">Posisi</span></h3>
-              <p class="text-indigo-100 text-xs mt-3 flex items-center gap-1">
-                Publikasi aktif di karir
-              </p>
             </div>
           </n-gi>
 
@@ -248,9 +237,6 @@ const formatDateTime = (val: string) => {
               </div>
               <p class="text-purple-100 text-xs font-semibold uppercase tracking-wider">Interview Attendance</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.interview_attendance_rate }}%</h3>
-              <p class="text-purple-100 text-xs mt-3 flex items-center gap-1">
-                Kehadiran wawancara
-              </p>
             </div>
           </n-gi>
 
@@ -261,9 +247,6 @@ const formatDateTime = (val: string) => {
               </div>
               <p class="text-orange-100 text-xs font-semibold uppercase tracking-wider">Quality of Hire</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.quality_of_hire }}%</h3>
-              <p class="text-orange-100 text-xs mt-3 flex items-center gap-1">
-                Berdasarkan review rating
-              </p>
             </div>
           </n-gi>
         </n-grid>
@@ -328,14 +311,14 @@ const formatDateTime = (val: string) => {
             </n-card>
 
             <!-- Recruitment Request Summary Widget -->
-            <n-card title="Ringkasan Permintaan SDM" class="shadow-sm rounded-xl border border-slate-100">
+            <n-card title="Ringkasan Request" class="shadow-sm rounded-xl border border-slate-100">
               <!-- Headcount progress card inside -->
               <div class="bg-gradient-to-r from-slate-50 to-blue-50/50 rounded-xl p-5 mb-6 border border-slate-100">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div class="space-y-1">
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fulfillment Level Headcount</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fulfillment Posisi</p>
                     <h4 class="text-xl font-bold text-slate-800">
-                      {{ dashboardData.requests_summary.filled_headcount }} dari {{ dashboardData.requests_summary.required_headcount }} SDM Terpenuhi
+                      {{ dashboardData.requests_summary.filled_headcount }} dari {{ dashboardData.requests_summary.required_headcount }} Posisi Terpenuhi
                     </h4>
                   </div>
                   <div class="text-right">
@@ -360,7 +343,7 @@ const formatDateTime = (val: string) => {
               <n-grid cols="2 m:4" :x-gap="16" :y-gap="16">
                 <n-gi>
                   <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-100 text-center">
-                    <p class="text-xs font-medium text-slate-500">Total Permintaan</p>
+                    <p class="text-xs font-medium text-slate-500">Total Request</p>
                     <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ dashboardData.requests_summary.total_requests }}</h3>
                   </div>
                 </n-gi>
@@ -385,9 +368,9 @@ const formatDateTime = (val: string) => {
               </n-grid>
 
               <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                <p class="text-xs text-slate-400">Tingkat pemenuhan permintaan keseluruhan:</p>
+                <p class="text-xs text-slate-400">Tingkat pemenuhan request keseluruhan:</p>
                 <span class="text-xs font-bold text-slate-700">
-                  {{ Math.round(dashboardData.requests_summary.request_fulfillment_percentage) }}% Permintaan Selesai
+                  {{ Math.round(dashboardData.requests_summary.request_fulfillment_percentage) }}% Request Selesai
                 </span>
               </div>
             </n-card>

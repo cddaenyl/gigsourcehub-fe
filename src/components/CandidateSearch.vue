@@ -9,13 +9,16 @@ import { useAICandidateSearch } from '../composables/useAICandidateSearch'
 import { useAIChatHistory } from '../composables/useAIChatHistory'
 import { useAuthStore } from '../stores/auth.store'
 import { getUserProfilePictureApi } from '../services/user.service'
+import { getProfilePictureThumbnail } from '@/utils/image'
 import type { ChatMessage } from '../models/CandidateSearch'
 import CandidateLevelChip from './CandidateLevelChip.vue'
 
-const props = withDefaults(defineProps<{
+interface Props {
   placeholder?: string
   isAiEnabled?: boolean
-}>(), {
+}
+
+const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Cari kandidat',
   isAiEnabled: true,
 })
@@ -151,7 +154,7 @@ const fetchProfilePic = async (id: string) => {
   
   try {
     const res = await getUserProfilePictureApi(id)
-    profilePics.value[id] = res.profile_picture_url
+    profilePics.value[id] = getProfilePictureThumbnail(res.profile_picture_url) || null
   } catch (err) {
     console.error(`Failed to fetch profile pic for candidate ${id}`, err)
     profilePics.value[id] = null
@@ -351,7 +354,7 @@ defineExpose({
                    <span class="font-bold text-[14px] text-slate-800">You</span>
                    <span class="text-xs text-slate-400">{{ msg.timestamp }}</span>
                    <div class="w-8 h-8 rounded-full bg-slate-100 overflow-hidden shrink-0 shadow-sm ml-1 border border-slate-200 flex items-center justify-center text-slate-500">
-                      <img v-if="currentUser?.profile_picture" :src="currentUser.profile_picture" alt="User avatar" class="w-full h-full object-cover" />
+                      <img v-if="currentUser?.profile_picture" :src="getProfilePictureThumbnail(currentUser.profile_picture)" alt="User avatar" class="w-full h-full object-cover" />
                       <n-icon v-else :component="User" size="18" />
                    </div>
                  </div>

@@ -52,17 +52,7 @@ const toggleBookmark = async () => {
   }
 }
 
-const getProfilePictureThumbnail = (url: string | null): string | undefined => {
-  if (!url) return undefined
-
-  const lastDotIndex = url.lastIndexOf('.')
-  if (lastDotIndex === -1) return url
-
-  const filename = url.substring(0, lastDotIndex)
-  const extension = url.substring(lastDotIndex)
-
-  return `${filename}_thumb${extension}`
-}
+import { getProfilePictureThumbnail } from '@/utils/image'
 
 const profilePictureThumbnail = computed(() =>
   getProfilePictureThumbnail(props.user.profile_picture),
@@ -97,7 +87,12 @@ const handleStartChat = (): void => {
   <n-card>
     <div class="flex gap-4 items-center px-1 stroke-gray-200">
       <div class="flex items-center justify-center">
-        <n-avatar :size="50" :src="profilePictureThumbnail" round>
+        <img
+          v-if="profilePictureThumbnail"
+          :src="profilePictureThumbnail"
+          class="w-[50px] h-[50px] rounded-full object-cover"
+        />
+        <n-avatar v-else :size="50" round>
           <template #fallback>
             <n-icon :component="UserSearch" :size="24" />
           </template>

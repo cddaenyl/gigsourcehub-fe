@@ -29,22 +29,16 @@ const {
 
 const defaultAvatarSeed = 'HumanResource'
 
-const getThumbUrl = (url: string | null | undefined): string | undefined => {
-  if (!url) return undefined
-  const lastDotIndex = url.lastIndexOf('.')
-  if (lastDotIndex === -1) return url
-  const filename = url.substring(0, lastDotIndex)
-  const extension = url.substring(lastDotIndex)
-  return `${filename}_thumb${extension}`
-}
+import { getProfilePictureThumbnail } from '@/utils/image'
 
 const userInfo = computed(() => {
   const user = profile.value || me.value || authStore.user
   const name = user?.name || 'Human Resource'
   const email = user?.email || 'human.resource@gigsource.com'
-  const avatar =
-    getThumbUrl(user?.profile_picture) ||
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || defaultAvatarSeed)}`
+  const rawAvatar = profile.value?.profile_picture || authStore.user?.profile_picture
+  const avatar = rawAvatar
+    ? getProfilePictureThumbnail(rawAvatar)
+    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || defaultAvatarSeed)}`
 
   return {
     name,
@@ -198,10 +192,15 @@ const handleSavePassword = async () => {
               @click="triggerFileInput"
               class="relative group cursor-pointer w-28 h-28 rounded-full overflow-hidden border-4 border-[#C7D0F3] shadow-md transition-all hover:scale-105"
             >
+              <img
+                v-if="previewAvatarUrl || userInfo.avatar"
+                :src="previewAvatarUrl || userInfo.avatar"
+                class="w-[104px] h-[104px] rounded-full object-cover bg-gray-100"
+              />
               <n-avatar
+                v-else
                 round
                 :size="104"
-                :src="previewAvatarUrl || userInfo.avatar"
                 class="bg-gray-100"
               />
               <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">

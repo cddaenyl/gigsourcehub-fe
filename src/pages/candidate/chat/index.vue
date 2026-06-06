@@ -247,7 +247,7 @@ const formatMessage = (content: string) => {
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
   }
-  let escaped = escapeHtml(content)
+  const escaped = escapeHtml(content)
   const urlRegex = /(https?:\/\/[^\s]+)/g
   return escaped.replace(urlRegex, (url) => {
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline break-all">${url}</a>`

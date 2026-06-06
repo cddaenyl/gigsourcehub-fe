@@ -6,6 +6,7 @@ import { useKabupaten, useProvinsi } from '@/composables/useRegion'
 import CandidateLayout from '@/layouts/CandidateLayout.vue'
 import { fetchAiModeStatus } from '@/services/system-setting'
 import { useAuthStore } from '@/stores/auth.store'
+import { getProfilePictureThumbnail } from '@/utils/image'
 import {
   ArrowLeft,
   CloudUpload,
@@ -20,7 +21,6 @@ import {
 } from '@vicons/tabler'
 import type { UploadFileInfo } from 'naive-ui'
 import {
-  NAlert,
   NAvatar,
   NButton,
   NDatePicker,
@@ -31,9 +31,11 @@ import {
   NIcon,
   NInput,
   NInputNumber,
+  NModal,
   NSelect, NSpin,
   NTag,
-  NUpload
+  NUpload,
+  useMessage
 } from 'naive-ui'
 import { computed, onMounted, ref, watch } from 'vue'
 
@@ -42,8 +44,6 @@ defineOptions({
 })
 
 // const logout = useLogout() // Moved to layout
-const successFeedback = ref("")
-const errorFeedback = ref("")
 const showUpdateFlow = ref(false)
 const forceShowUpload = ref(false)
 const isEditing = ref(false)
@@ -62,14 +62,14 @@ onMounted(async () => {
 
 // Composables
 const authStore = useAuthStore()
-const { profile, uploadPicture, isUploadingPicture, isLoading: isLoadingProfile, updateProfile, isUpdatingProfile } = useProfile()
+const { profile, uploadPicture, isUploadingPicture, isLoading: isLoadingProfile, updateProfile, updateProfileAsync, isUpdatingProfile } = useProfile()
 const { sectors, allRoles, isLoading: isLoadingJobRoles } = useJobRole()
+const message = useMessage()
 const { data: cvLinkData, refetch: refetchCVLink } = useCVDownloadLink()
 const uploadMutation = useUploadCV()
 const upload = uploadMutation.mutate
 const cvQuery = useParsedCV()
 const confirmMutation = useConfirmCV()
-const confirm = confirmMutation.mutate
 
 const userInitials = computed(() => {
   const name = profile.value?.name || authStore.user?.name || formData.value?.name || ""
@@ -81,6 +81,15 @@ const userInitials = computed(() => {
   const last = parts[parts.length - 1] || ''
   return (first[0] + (last[0] || '')).toUpperCase()
 })
+
+const profilePictureUrl = computed(() => {
+  return getProfilePictureThumbnail(profile.value?.profile_picture)
+})
+
+watch(profile, (newVal) => {
+  console.log('Profile updated in index.vue:', newVal)
+  console.log('Profile picture in index.vue:', newVal?.profile_picture)
+}, { immediate: true })
 
 const jobRoleOptions = computed(() => {
   const options = []
@@ -155,13 +164,11 @@ const jobRoleOptions = computed(() => {
   return options
 })
 
-// Validation for job roles
 const handleJobRolesUpdate = (value: string[]) => {
   if (value.length > 3) {
-    errorFeedback.value = "You can only select a maximum of 3 job roles."
+    message.error("You can only select a maximum of 3 job roles.")
     formData.value.job_role_ids = value.slice(0, 3)
   } else {
-    errorFeedback.value = ""
     formData.value.job_role_ids = value
   }
 }
@@ -169,9 +176,18 @@ const handleJobRolesUpdate = (value: string[]) => {
 
 const fileList = ref<UploadFileInfo[]>([])
 const pictureUploadRef = ref<any>(null)
+const regularCVUploadRef = ref<any>(null)
+const showCVPreviewModal = ref(false)
+
+const cvPreviewUrl = computed(() => cvLinkData.value?.data?.url || '')
+const cvPreviewName = computed(() => cvLinkData.value?.data?.name || 'Curriculum Vitae')
 
 const triggerPictureUpload = () => {
   pictureUploadRef.value?.$el?.querySelector('input')?.click()
+}
+
+const triggerRegularCVUpload = () => {
+  regularCVUploadRef.value?.$el?.querySelector('input')?.click()
 }
 
 const formData = ref<Record<string, any>>({
@@ -258,10 +274,10 @@ const handleProfilePictureUpload = (data: { file: UploadFileInfo }) => {
   if (data.file.file) {
     uploadPicture(data.file.file, {
       onSuccess: () => {
-        successFeedback.value = "Profile picture updated!"
+        message.success("Profile picture updated!")
       },
       onError: (err: any) => {
-        errorFeedback.value = err.message || "Failed to upload picture"
+        message.error(err.message || "Failed to upload picture")
       }
     })
   }
@@ -315,12 +331,10 @@ const isUploadingAi = ref(false)
 
 const handleAiCVUpload = (data: { file: UploadFileInfo }) => {
   if (data.file.file) {
-    errorFeedback.value = ""
-    successFeedback.value = ""
     isUploadingAi.value = true
     upload({ file: data.file.file, skipParsing: false }, {
       onSuccess: () => {
-        successFeedback.value = "Upload successful! Waiting for AI processing..."
+        message.success("Upload successful! Waiting for AI processing...")
         isEditing.value = false
         showUpdateFlow.value = true
         forceShowUpload.value = false
@@ -328,7 +342,7 @@ const handleAiCVUpload = (data: { file: UploadFileInfo }) => {
         refetchCVLink()
       },
       onError: (err: any) => {
-        errorFeedback.value = err.message || "AI CV Upload failed"
+        message.error(err.message || "AI CV Upload failed")
       },
       onSettled: () => {
         isUploadingAi.value = false
@@ -339,17 +353,15 @@ const handleAiCVUpload = (data: { file: UploadFileInfo }) => {
 
 const handleRegularCVUpload = (data: { file: UploadFileInfo }) => {
   if (data.file.file) {
-    errorFeedback.value = ""
-    successFeedback.value = ""
     isUploadingRegular.value = true
     upload({ file: data.file.file, skipParsing: true }, {
       onSuccess: () => {
-        successFeedback.value = "CV file updated successfully!"
+        message.success("CV file updated successfully!")
         cvQuery.refetch()
         refetchCVLink()
       },
       onError: (err: any) => {
-        errorFeedback.value = err.message || "CV file upload failed"
+        message.error(err.message || "CV file upload failed")
       },
       onSettled: () => {
         isUploadingRegular.value = false
@@ -359,15 +371,13 @@ const handleRegularCVUpload = (data: { file: UploadFileInfo }) => {
 }
 
 const submitUpload = () => {
-  errorFeedback.value = ""
-  successFeedback.value = ""
   const currentFile = fileList.value[0]?.file
   if (fileList.value.length > 0 && currentFile) {
     upload({ file: currentFile, skipParsing: !isAiEnabled.value }, {
       onSuccess: () => {
-        successFeedback.value = isAiEnabled.value
+        message.success(isAiEnabled.value
           ? "Upload successful! Waiting for AI processing..."
-          : "Upload successful!"
+          : "Upload successful!")
         fileList.value = []
         forceShowUpload.value = false
         cvQuery.refetch()
@@ -377,34 +387,32 @@ const submitUpload = () => {
         }
       },
       onError: (err: any) => {
-        errorFeedback.value = err.message || "Upload failed"
+        message.error(err.message || "Upload failed")
       }
     })
   }
 }
 
-const onConfirm = () => {
-  errorFeedback.value = ""
-  successFeedback.value = ""
+const onConfirm = async () => {
   try {
-    confirm(formData.value, {
-      onSuccess: () => {
-        successFeedback.value = "Profile updated successfully!"
-        showUpdateFlow.value = false
-      },
-      onError: (err: any) => {
-        errorFeedback.value = err.message || "Failed to update profile"
-      }
-    })
-  } catch (e) {
-    errorFeedback.value = "An error occurred during update"
+    // 1. Confirm CV parsed data
+    await confirmMutation.mutateAsync(formData.value)
+
+    // 2. Update profile with latest fields (birthdate, phone number, name, etc.)
+    const body = {
+      ...formData.value,
+      birthdate: formData.value.birthdate ? new Date(formData.value.birthdate).toISOString().split('T')[0] : null
+    }
+    await updateProfileAsync(body)
+
+    message.success("Profile updated successfully!")
+    showUpdateFlow.value = false
+  } catch (err: any) {
+    message.error(err.message || "Failed to update profile")
   }
 }
 
 const onUpdateProfile = () => {
-  errorFeedback.value = ""
-  successFeedback.value = ""
-
   // In this edit mode, we might want to manually set job_role_ids if they changed via applied_roles tags
   const body = {
     ...formData.value,
@@ -413,11 +421,11 @@ const onUpdateProfile = () => {
 
   updateProfile(body, {
     onSuccess: () => {
-      successFeedback.value = "Profile updated successfully!"
+      message.success("Profile updated successfully!")
       isEditing.value = false
     },
     onError: (err: any) => {
-      errorFeedback.value = err.message || "Failed to update profile"
+      message.error(err.message || "Failed to update profile")
     }
   })
 }
@@ -496,11 +504,12 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
     }
     const parsed = { ...parsedDataObj }
 
-    if (parsed.kabupaten_kota && typeof parsed.kabupaten_kota === 'string') {
+    if (parsed.kabupaten_kota && typeof parsed.kabupaten_kota === 'string' && parsed.kabupaten_kota.includes('.')) {
       parsed.kabupaten_kota_id = parsed.kabupaten_kota
-      if (parsed.kabupaten_kota.includes('.')) {
-        parsed.provinsi_id = parsed.kabupaten_kota.split('.')[0]
-      }
+      parsed.provinsi_id = parsed.kabupaten_kota.split('.')[0]
+    } else {
+      parsed.kabupaten_kota_id = null
+      parsed.provinsi_id = null
     }
 
     // Ensure arrays are initialized
@@ -509,6 +518,9 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
     parsed.job_role_ids = parsed.job_role_ids || []
     parsed.gpa = Number(parsed.gpa) || 0
     parsed.years_experience = Number(parsed.years_experience) || 0
+
+    // Don't take name from parsed CV data, use existing name instead
+    parsed.name = profile.value?.name || authStore.user?.name || formData.value.name || ""
 
     // Map applied_roles (objects) to job_role_ids (IDs if match found, else Objects)
     if (parsed.applied_roles.length > 0) {
@@ -535,20 +547,10 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
     ? 'bg-[#050A1F] rounded-3xl shadow-2xl border border-[#1e295d]/30 overflow-hidden flex-1 flex flex-col text-white p-6 md:p-8'
     : 'bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex flex-col'">
     <div class="p-6">
-      <!-- Feedback Alerts -->
-      <div v-if="errorFeedback" class="mb-4">
-        <n-alert title="Error" type="error" closable @close="errorFeedback = ''">
-          {{ errorFeedback }}
-        </n-alert>
-      </div>
-      <div v-if="successFeedback" class="mb-4">
-        <n-alert title="Success" type="success" closable @close="successFeedback = ''">
-          {{ successFeedback }}
-        </n-alert>
-      </div>
+
 
       <!-- Loading State -->
-      <n-spin :show="isLoadingProfile || cvQuery.isPending.value || isUploadingPicture">
+      <n-spin :show="isLoadingProfile || isUploadingPicture">
 
         <!-- PROFILE VIEW (Default if complete and not updating) -->
         <div v-if="currentStep === 'VIEW'">
@@ -581,8 +583,12 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                   <!-- Personal Information -->
                   <section>
                     <div class="relative group w-fit">
-                      <n-avatar round :size="100"
-                        :src="profile?.profile_picture || authStore.user?.profile_picture || undefined"
+                      <img
+                        v-if="profilePictureUrl"
+                        :src="profilePictureUrl"
+                        class="w-[100px] h-[100px] rounded-full object-cover shadow-lg border-2 border-white transition-all group-hover:scale-105"
+                      />
+                      <n-avatar v-else round :size="100"
                         class="shadow-lg border-2 border-white bg-blue-600 text-white font-bold text-3xl transition-all group-hover:scale-105 flex items-center justify-center">
                         {{ userInitials }}
                       </n-avatar>
@@ -723,7 +729,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                     <p class="text-sm font-bold text-primary mb-2">Curriculum Vitae</p>
                     <div
                       class="p-5 border border-gray-200 rounded-2xl flex items-center justify-between hover:border-blue-300 transition-colors group cursor-pointer"
-                      @click="downloadCV">
+                      @click="showCVPreviewModal = true">
                       <div class="flex items-center gap-4">
                         <div
                           class="w-12 h-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center border border-red-100 group-hover:bg-red-500 group-hover:text-white transition-all">
@@ -736,8 +742,8 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                         </div>
                       </div>
                       <div class="flex items-center gap-4 text-gray-400">
-                        <n-icon :component="Eye" size="18" class="hover:text-blue-500 cursor-pointer" />
-                        <n-icon :component="Download" size="18" class="hover:text-blue-500 cursor-pointer" />
+                        <n-icon :component="Eye" size="18" class="hover:text-blue-500 cursor-pointer" @click.stop="showCVPreviewModal = true" />
+                        <n-icon :component="Download" size="18" class="hover:text-blue-500 cursor-pointer" @click.stop="downloadCV" />
                       </div>
                     </div>
                   </section>
@@ -868,7 +874,6 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
             </div>
 
             <div v-else class="flex flex-col items-center">
-              <n-spin size="large" class="mb-8" />
               <h2 class="text-3xl font-extrabold text-white mb-2">AI Analyzer is at work</h2>
 
               <!-- Progress Bar Container -->
@@ -950,7 +955,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                     class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-white font-semibold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-95 focus:outline-none"
                   >
                     <n-icon :component="CloudUpload" size="18" />
-                    <span>Reupload CV</span>
+                    <span>Reupload and Parse CV</span>
                   </button>
                 </n-upload>
               </n-spin>
@@ -964,8 +969,12 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
               <section>
                 <h3 class="text-xl font-bold text-primary mb-4">Profile Photo</h3>
                 <div class="border border-gray-200 rounded-xl p-5 flex items-center gap-6">
-                  <n-avatar round :size="72"
-                    :src="profile?.profile_picture || authStore.user?.profile_picture || undefined"
+                  <img
+                    v-if="profilePictureUrl"
+                    :src="profilePictureUrl"
+                    class="w-[72px] h-[72px] rounded-full object-cover shadow border-2 border-white flex-shrink-0"
+                  />
+                  <n-avatar v-else round :size="72"
                     class="shadow border-2 border-white bg-blue-600 text-white font-bold text-2xl flex-shrink-0 flex items-center justify-center">
                     {{ userInitials }}
                   </n-avatar>
@@ -1088,22 +1097,13 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                       placeholder="Enter your summary" />
                   </n-form-item>
 
-                  <!-- Fields of Interest | Applied Role -->
-                  <n-grid :cols="2" :x-gap="16">
-                    <n-gi>
-                      <n-form-item label="Fields of Interest">
-                        <n-input v-model:value="formData.bidang" placeholder="Select your fields of interest" />
-                      </n-form-item>
-                    </n-gi>
-                    <n-gi>
-                      <n-form-item label="Applied Role">
-                        <n-select :key="allRoles?.length || 0" v-model:value="formData.job_role_ids" multiple
-                          :max-tag-count="3" :options="jobRoleOptions"
-                          placeholder="Select the role you are applying for"
-                          :loading="isLoadingJobRoles" @update:value="handleJobRolesUpdate" />
-                      </n-form-item>
-                    </n-gi>
-                  </n-grid>
+                  <!-- Applied Role -->
+                  <n-form-item label="Applied Role">
+                    <n-select :key="allRoles?.length || 0" v-model:value="formData.job_role_ids" multiple
+                      :max-tag-count="3" :options="jobRoleOptions"
+                      placeholder="Select the role you are applying for"
+                      :loading="isLoadingJobRoles" @update:value="handleJobRolesUpdate" />
+                  </n-form-item>
 
                   <!-- Work Experience -->
                   <n-form-item label="Work Experience">
@@ -1124,33 +1124,66 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                   </n-form-item>
 
                   <!-- CV Upload (File Only) -->
-                  <n-form-item :label="isAiEnabled ? 'Curriculum Vitae (CV) - File Only (No AI Auto-Fill)' : 'Curriculum Vitae (CV)'">
-                    <n-spin :show="isUploadingRegular">
-                      <n-upload class="w-full [&_.n-upload-trigger]:w-full [&_.n-upload-trigger]:block"
-                        :default-upload="false" @change="handleRegularCVUpload"
-                        accept=".pdf,.jpg,.gif" :max="1" :show-file-list="false" directory-dnd>
+                  <n-form-item :label="isAiEnabled ? 'Curriculum Vitae (CV)' : 'Curriculum Vitae (CV)'">
+                    <n-spin :show="isUploadingRegular" class="w-full">
+                      <!-- If CV exists, show Figma-style view/edit bar -->
+                      <div v-if="cvLinkData?.data?.url" class="w-full flex flex-col gap-2">
                         <div
-                          class="w-full border-dashed border-2 border-gray-200 hover:border-primary hover:bg-gray-50/50 transition-all rounded-xl p-8 cursor-pointer text-center">
-                          <div v-if="cvLinkData?.data?.url" class="flex flex-col items-center">
-                            <n-icon :component="FileText" size="32" class="text-green-500 mb-2" />
-                            <p class="text-gray-700 font-semibold text-sm">
-                              Current CV: {{ cvLinkData.data.name || 'Professional_CV.pdf' }}
-                            </p>
-                            <p class="text-gray-400 text-xs mt-1 max-w-sm">
-                              Upload a new file to replace the existing document without altering your form details.
-                            </p>
-                            <p class="text-gray-500 text-[10px] mt-2 mb-3">Supported file types: PDF, JPG, GIF</p>
-                            <span
-                              class="inline-block border border-gray-300 text-gray-600 font-semibold text-xs px-6 py-2 rounded hover:bg-gray-50 transition-colors">
-                              Change CV File
+                          class="w-full border border-gray-200 rounded-xl px-4 py-3 flex items-center justify-between hover:border-blue-400 hover:shadow-sm transition-all bg-white cursor-pointer"
+                          @click="showCVPreviewModal = true"
+                        >
+                          <div class="flex items-center gap-3">
+                            <div class="relative w-8 h-10 bg-white rounded border border-gray-200 shadow-sm flex flex-col items-center justify-between pb-0.5 pt-1 overflow-hidden flex-shrink-0">
+                              <n-icon :component="FileText" size="16" class="text-red-500 -mt-0.5" />
+                              <div class="w-full bg-red-500 text-white text-[7px] font-bold text-center py-0.5 scale-90">
+                                PDF
+                              </div>
+                            </div>
+                            <span class="font-bold text-slate-800 text-[15px] hover:text-blue-600 transition-colors truncate max-w-[200px] sm:max-w-[300px] md:max-w-[450px]">
+                              {{ cvLinkData.data.name || 'Professional_CV.pdf' }}
                             </span>
                           </div>
-                          <div v-else class="flex flex-col items-center">
+
+                          <!-- Edit button triggers file picker -->
+                          <div @click.stop="triggerRegularCVUpload" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                            <n-icon :component="Edit" size="16" class="text-gray-600" />
+                            <span class="text-xs font-semibold text-gray-700">Edit</span>
+                          </div>
+                        </div>
+
+                        <!-- Hidden upload trigger -->
+                        <n-upload
+                          ref="regularCVUploadRef"
+                          class="hidden"
+                          :default-upload="false"
+                          @change="handleRegularCVUpload"
+                          accept=".pdf,.jpg,.gif"
+                          :max="1"
+                          :show-file-list="false"
+                        />
+                      </div>
+
+                      <!-- If no CV exists, show drag & drop area -->
+                      <n-upload
+                        v-else
+                        class="w-full [&_.n-upload-trigger]:w-full [&_.n-upload-trigger]:block"
+                        :default-upload="false"
+                        @change="handleRegularCVUpload"
+                        accept=".pdf,.jpg,.gif"
+                        :max="1"
+                        :show-file-list="false"
+                        directory-dnd
+                      >
+                        <div
+                          class="w-full border-dashed border-2 border-gray-200 hover:border-primary hover:bg-gray-50/50 transition-all rounded-xl p-8 cursor-pointer text-center"
+                        >
+                          <div class="flex flex-col items-center">
                             <n-icon :component="FileText" size="32" class="text-gray-300 mb-3" />
                             <p class="text-gray-500 font-medium text-sm">Drop your file or click to upload</p>
                             <p class="text-gray-400 text-xs mt-1 mb-4">Supported file types: PDF, JPG, GIF</p>
                             <span
-                              class="inline-block border border-gray-300 text-gray-600 font-semibold text-xs px-6 py-2 rounded hover:bg-gray-50 transition-colors">
+                              class="inline-block border border-gray-300 text-gray-600 font-semibold text-xs px-6 py-2 rounded hover:bg-gray-50 transition-colors"
+                            >
                               Browse
                             </span>
                           </div>
@@ -1179,6 +1212,37 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
         </div>
       </n-spin>
     </div>
+
+    <!-- PDF CV Preview Modal -->
+    <n-modal
+      v-model:show="showCVPreviewModal"
+      preset="card"
+      :bordered="false"
+      style="width: 52rem"
+    >
+      <div class="-mt-8">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Preview CV</h3>
+            <p class="text-sm text-gray-500">
+              {{ cvPreviewName }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <iframe
+            v-if="cvPreviewUrl"
+            :src="cvPreviewUrl"
+            title="CV Preview"
+            class="h-[70vh] w-full"
+          ></iframe>
+          <div v-else class="flex items-center justify-center py-16 text-sm text-slate-400">
+            Preview tidak tersedia.
+          </div>
+        </div>
+      </div>
+    </n-modal>
   </CandidateLayout>
 </template>
 

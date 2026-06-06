@@ -16,6 +16,7 @@ import { Calendar, CirclePlus } from '@vicons/tabler'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import CandidateDetailHeader from '@/components/candidate-detail/CandidateDetailHeader.vue'
 import { useUser } from '@/composables/useUser'
+import { getProfilePictureThumbnail } from '@/utils/image'
 import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
 import { useReviewQuestions, useCreateReview } from '@/composables/useReview'
 import type { OnboardingItem, OnboardingSnapshot } from '@/models/Onboarding'
@@ -45,6 +46,10 @@ const {
   isError: isUserError,
   error: userError,
 } = useUser(candidateUserId)
+
+const profilePictureThumbnail = computed(() =>
+  getProfilePictureThumbnail(candidateUser.value?.profile_picture),
+)
 
 // Fetch Candidate onboarding history list to find this specific history item
 const { history: onboardingHistory, isLoading: isOnboardingLoading } =
@@ -210,7 +215,12 @@ const handleSubmit = async () => {
         <!-- Candidate Profile Header Card -->
         <n-card class="shadow-sm border border-slate-200">
           <div class="flex items-center gap-4">
-            <n-avatar round :size="56" :src="candidateUser?.profile_picture || undefined" />
+            <img
+              v-if="profilePictureThumbnail"
+              :src="profilePictureThumbnail"
+              class="w-[56px] h-[56px] rounded-full object-cover"
+            />
+            <n-avatar v-else round :size="56" />
             <div class="flex-1">
               <h2 class="text-lg font-bold text-slate-800">{{ candidateUser?.name }}</h2>
               <p class="text-sm font-semibold text-primary">

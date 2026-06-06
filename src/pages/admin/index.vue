@@ -26,6 +26,7 @@ import {
 } from '@vicons/tabler'
 import AdminLayout from '../../layouts/AdminLayout.vue'
 import { getAdminDashboardSummaryApi, type AdminDashboardSummary } from '@/services/dashboard.service'
+import { getProfilePictureThumbnail } from '@/utils/image'
 
 const router = useRouter()
 const message = useMessage()
@@ -292,7 +293,7 @@ const formatDateTime = (val: string) => {
                 >
                   <div class="flex items-center gap-3">
                     <div class="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm overflow-hidden shrink-0 border border-slate-100">
-                      <img v-if="iv.candidate_user_profile_picture" :src="iv.candidate_user_profile_picture" alt="Avatar" class="h-full w-full object-cover" />
+                      <img v-if="iv.candidate_user_profile_picture" :src="getProfilePictureThumbnail(iv.candidate_user_profile_picture)" alt="Avatar" class="h-full w-full object-cover" />
                       <span v-else>{{ iv.candidate_user_name?.charAt(0) || 'C' }}</span>
                     </div>
                     <div>

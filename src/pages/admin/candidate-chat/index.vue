@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, reactive } 
 import { useRouter, useRoute } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { useAuthStore } from '@/stores/auth.store'
+import { getProfilePictureThumbnail } from '@/utils/image'
 import {
   useConversations,
   useMessages,
@@ -86,9 +87,6 @@ interface InterviewChatMessagePayload {
 
 const INTERVIEW_MESSAGE_PREFIX = '__interview_chat__:'
 const OFFERING_MESSAGE_PREFIX = '__offering_chat__:'
-const getInitialsAvatar = (name?: string) => {
-  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || '?')}`
-}
 
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
@@ -201,15 +199,6 @@ const filteredConversations = computed(() => {
   return list
 })
 
-const getThumbUrl = (url: string | null | undefined) => {
-  if (!url) return undefined
-  const parts = url.split('.')
-  if (parts.length > 1) {
-    const ext = parts.pop()
-    return `${parts.join('.')}_thumb.${ext}`
-  }
-  return `${url}_thumb`
-}
 
 // Scroll to bottom helper
 const scrollToBottom = async () => {
@@ -1033,15 +1022,19 @@ const isUnread = (c: ConversationResp) => {
               @click="selectConversation(conv.id)"
             >
               <div class="flex items-start gap-3">
+                <img
+                  v-if="conv.candidate_user_profile_picture"
+                  :src="getProfilePictureThumbnail(conv.candidate_user_profile_picture)"
+                  class="w-[48px] h-[48px] rounded-full object-cover"
+                />
                 <n-avatar
+                  v-else
                   round
                   :size="48"
-                  object-fit="cover"
-                  :src="
-                    getThumbUrl(conv.candidate_user_profile_picture) ||
-                    getInitialsAvatar(conv.candidate_user_name)
-                  "
-                />
+                  class="bg-blue-600 text-white font-bold"
+                >
+                  <span>{{ conv.candidate_user_name?.substring(0, 2).toUpperCase() || '?' }}</span>
+                </n-avatar>
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-baseline mb-1">
                     <h4 class="font-semibold text-gray-900 truncate pr-2">
@@ -1109,14 +1102,19 @@ const isUnread = (c: ConversationResp) => {
             class="h-16 border-b border-gray-200 px-6 flex justify-between items-center bg-white shrink-0"
           >
             <div class="flex items-center gap-4">
+              <img
+                v-if="activeConversation.candidate_user_profile_picture"
+                :src="getProfilePictureThumbnail(activeConversation.candidate_user_profile_picture)"
+                class="w-[40px] h-[40px] rounded-full object-cover"
+              />
               <n-avatar
+                v-else
                 round
                 :size="40"
-                :src="
-                  getThumbUrl(activeConversation.candidate_user_profile_picture) ||
-                  getInitialsAvatar(activeConversation.candidate_user_name)
-                "
-              />
+                class="bg-blue-600 text-white font-bold"
+              >
+                <span>{{ activeConversation.candidate_user_name?.substring(0, 2).toUpperCase() || '?' }}</span>
+              </n-avatar>
               <div>
                 <h3 class="font-semibold text-gray-900">
                   {{ activeConversation.candidate_user_name }}

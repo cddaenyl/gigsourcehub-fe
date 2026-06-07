@@ -75,11 +75,11 @@ const handleAction = async (action: string, stage: InterviewStage) => {
     router.push(`/superadmin/interview-stages/edit/${stage.id}`)
   } else if (action === 'toggle-status') {
     const newStatus = !stage.is_active
-    const title = newStatus ? 'Aktifkan Tahap Interview' : 'Nonaktifkan Tahap Interview'
+    const title = newStatus ? 'Aktifkan Jenis Interview' : 'Nonaktifkan Jenis Interview'
     const actionText = newStatus ? 'Aktifkan' : 'Nonaktifkan'
     const msg = newStatus
-      ? `Apakah Anda yakin ingin mengaktifkan tahap interview ${stage.name}?`
-      : `Tahap interview yang dinonaktifkan tidak dapat dipilih dalam proses penambahan atau pengelolaan data baru. Data yang sudah terhubung tetap tersimpan di sistem.`
+      ? `Apakah Anda yakin ingin mengaktifkan Jenis Interview ${stage.name}?`
+      : `Jenis Interview yang dinonaktifkan tidak dapat dipilih dalam proses penambahan atau pengelolaan data baru. Data yang sudah terhubung tetap tersimpan di sistem.`
 
     triggerConfirm(
       title,
@@ -93,26 +93,26 @@ const handleAction = async (action: string, stage: InterviewStage) => {
             hex_code: stage.hex_code,
             is_active: newStatus,
           })
-          message.success(`Tahap interview berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
+          message.success(`Jenis Interview berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`)
           refetch()
         } catch (err: any) {
-          message.error(err.message || 'Gagal mengubah status tahap interview')
+          message.error(err.message || 'Gagal mengubah status Jenis Interview')
         }
       }
     )
   } else if (action === 'delete') {
     triggerConfirm(
-      'Hapus Tahap Interview',
-      `Tahap interview ${stage.name} yang dihapus tidak dapat dipulihkan kembali. Data yang sudah terhubung tetap tersimpan di sistem.`,
+      'Hapus Jenis Interview',
+      `Jenis Interview ${stage.name} yang dihapus tidak dapat dipulihkan kembali. Data yang sudah terhubung tetap tersimpan di sistem.`,
       'Hapus',
       'danger',
       async () => {
         try {
           await deleteInterviewStageApi(stage.id)
-          message.success('Tahap interview berhasil dihapus')
+          message.success('Jenis Interview berhasil dihapus')
           refetch()
         } catch (err: any) {
-          message.error(err.message || 'Gagal menghapus tahap interview')
+          message.error(err.message || 'Gagal menghapus Jenis Interview')
         }
       }
     )
@@ -121,13 +121,8 @@ const handleAction = async (action: string, stage: InterviewStage) => {
 </script>
 
 <template>
-  <MasterDataIndexLayout
-    title="Master Data Tahap Interview"
-    add-button-text="Tambah Tahap Interview"
-    v-model:search-query="searchQuery"
-    @search="handleSearch"
-    @add="handleAdd"
-  >
+  <MasterDataIndexLayout title="Master Data Jenis Interview" add-button-text="Tambah Jenis Interview"
+    v-model:search-query="searchQuery" @search="handleSearch" @add="handleAdd">
     <template #table>
       <InterviewStageTable :data="interviewStages" :loading="isLoading" @action="handleAction" />
 
@@ -137,21 +132,10 @@ const handleAction = async (action: string, stage: InterviewStage) => {
     </template>
 
     <template #pagination>
-      <CandidatePagination
-        v-model:page="currentPage"
-        v-model:page-size="pageSize"
-        :page-count="pageCount"
-      />
+      <CandidatePagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="pageCount" />
     </template>
   </MasterDataIndexLayout>
 
-  <ConfirmationModal
-    v-model:show="isConfirmShow"
-    :title="confirmTitle"
-    :message="confirmMessage"
-    :confirm-text="confirmText"
-    :type="confirmType"
-    :loading="confirmLoading"
-    @confirm="handleConfirm"
-  />
+  <ConfirmationModal v-model:show="isConfirmShow" :title="confirmTitle" :message="confirmMessage"
+    :confirm-text="confirmText" :type="confirmType" :loading="confirmLoading" @confirm="handleConfirm" />
 </template>

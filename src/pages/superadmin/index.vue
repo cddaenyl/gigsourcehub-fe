@@ -87,7 +87,7 @@ const formatTableName = (name: string) => {
           class="hover:opacity-90 transition-opacity"
           @click="router.push('/superadmin/approval/faq')"
         >
-          Tinjau Persetujuan ({{ dashboardData.pending_approvals_count }})
+          Tinjau Approval ({{ dashboardData.pending_approvals_count }})
           <template #icon>
             <n-icon :component="ArrowRight" />
           </template>
@@ -174,8 +174,8 @@ const formatTableName = (name: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="AlertCircle" size="72" />
               </div>
-              <p class="text-amber-100 text-xs font-semibold uppercase tracking-wider">Persetujuan Pending</p>
-              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.pending_approvals_count }} <span class="text-sm font-normal">Tugas</span></h3>
+              <p class="text-amber-100 text-xs font-semibold uppercase tracking-wider">Approval Pending</p>
+              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.pending_approvals_count }} <span class="text-sm font-normal">Approval</span></h3>
               <p class="text-amber-100 text-xs mt-3 flex items-center gap-1">
                 Butuh persetujuan CMS
               </p>
@@ -200,8 +200,8 @@ const formatTableName = (name: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="User" size="72" />
               </div>
-              <p class="text-purple-100 text-xs font-semibold uppercase tracking-wider">Total HR / Admin</p>
-              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.total_admins }} <span class="text-sm font-normal">Staf</span></h3>
+              <p class="text-purple-100 text-xs font-semibold uppercase tracking-wider">Total Admin</p>
+              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.total_admins }} <span class="text-sm font-normal">HR</span></h3>
               <p class="text-purple-100 text-xs mt-3">
                 Pengelola rekrutmen
               </p>
@@ -213,7 +213,7 @@ const formatTableName = (name: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="Briefcase" size="72" />
               </div>
-              <p class="text-indigo-100 text-xs font-semibold uppercase tracking-wider">Total Klien (Employee)</p>
+              <p class="text-indigo-100 text-xs font-semibold uppercase tracking-wider">Total Pegawai</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.total_employees }} <span class="text-sm font-normal">Akun</span></h3>
               <p class="text-indigo-100 text-xs mt-3">
                 Pemilik permintaan SDM

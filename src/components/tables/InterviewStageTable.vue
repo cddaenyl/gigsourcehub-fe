@@ -24,7 +24,7 @@ const columns: DataTableColumns<InterviewStage> = [
     render: (_, index) => index + 1,
   },
   {
-    title: 'Nama Tahap Interview',
+    title: 'Nama Jenis Interview',
     key: 'name',
     render: (row) => h('span', { class: 'text-slate-700 font-medium' }, row.name),
   },
@@ -128,14 +128,7 @@ const columns: DataTableColumns<InterviewStage> = [
 </script>
 
 <template>
-  <n-data-table
-    :columns="columns"
-    :data="data"
-    :bordered="false"
-    :loading="loading"
-    single-column
-    single-row
-  />
+  <n-data-table :columns="columns" :data="data" :bordered="false" :loading="loading" single-column single-row />
 </template>
 
 <style scoped>

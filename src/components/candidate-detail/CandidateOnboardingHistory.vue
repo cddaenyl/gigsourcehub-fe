@@ -10,6 +10,7 @@ const props = defineProps<{
   userId: string
   reviewDetailBasePath?: string
   allowCreateReview?: boolean
+  disableActionBeforeEndDate?: boolean
 }>()
 
 const { history, isLoading, isError, error } = useCandidateOnboardingHistory(
@@ -54,11 +55,23 @@ const getReviewId = (item: OnboardingItem): string | null => {
   return item.review_id || item.review?.id || null
 }
 
+const isOnboardingFinished = (item: OnboardingItem): boolean => {
+  const endDate = new Date(item.end_date)
+  if (Number.isNaN(endDate.getTime())) return true
+  return endDate.getTime() <= Date.now()
+}
+
 const shouldShowActionButton = (item: OnboardingItem): boolean => {
   return Boolean(getReviewId(item)) || allowCreateReview.value
 }
 
+const isActionDisabled = (item: OnboardingItem): boolean => {
+  return Boolean(props.disableActionBeforeEndDate && !isOnboardingFinished(item))
+}
+
 const handleOnboardingAction = (item: OnboardingItem) => {
+  if (isActionDisabled(item)) return
+
   const reviewId = getReviewId(item)
   if (reviewId) {
     router.push(`${reviewDetailBasePath.value}/${reviewId}`)
@@ -116,6 +129,7 @@ const handleOnboardingAction = (item: OnboardingItem) => {
               secondary
               size="small"
               class="onboarding-action"
+              :disabled="isActionDisabled(item)"
               @click="handleOnboardingAction(item)"
             >
               <template #icon>

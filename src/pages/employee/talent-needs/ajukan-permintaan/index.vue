@@ -38,6 +38,7 @@ const requestSchema = z.object({
   dueDate: z.number({ message: 'Target pemenuhan wajib diisi' }),
   projectName: z.string().trim().min(1, 'Nama project wajib diisi'),
   projectDuration: z.string().trim().min(1, 'Durasi project wajib diisi'),
+  urgency: z.enum(['LOW', 'MIDDLE', 'HIGH'], { message: 'Tingkat urgensi wajib dipilih' }),
   subRequests: z
     .array(
       z.object({
@@ -53,7 +54,6 @@ const requestSchema = z.object({
       }),
     )
     .min(1, 'Minimal 1 subrequest harus ditambahkan'),
-  urgency: z.enum(['LOW', 'MIDDLE', 'HIGH'], { message: 'Tingkat urgensi wajib dipilih' }),
 })
 
 const createEmptySubRequest = (): TalentRequestSubrequestForm => ({
@@ -166,6 +166,10 @@ const handleSubmitRequest = handleSubmit(
     message.warning('Lengkapi data utama dan minimal posisi + keahlian pada setiap subrequest.')
   },
 )
+
+function disablePreviousDate(ts: number) {
+  return ts < Date.now()
+}
 </script>
 
 <template>
@@ -188,7 +192,9 @@ const handleSubmitRequest = handleSubmit(
           <n-space vertical size="large" class="mx-2 my-3 mb-5">
             <div class="space-y-4">
               <n-space vertical :size="6">
-                <h3 class="text-xs font-bold text-gray-500">Nama Project / Kegiatan</h3>
+                <h3 class="text-xs font-bold text-gray-500">
+                  Nama Project / Kegiatan <span class="text-red-500">*</span>
+                </h3>
 
                 <n-input
                   v-model:value="projectName"
@@ -198,7 +204,9 @@ const handleSubmitRequest = handleSubmit(
               </n-space>
 
               <n-space vertical :size="6">
-                <h3 class="text-xs font-bold text-gray-500">Durasi Project</h3>
+                <h3 class="text-xs font-bold text-gray-500">
+                  Durasi Project <span class="text-red-500">*</span>
+                </h3>
 
                 <n-input v-model:value="projectDuration" placeholder="cth : 3 - 6 Bulan" />
                 <p v-if="projectDurationError" class="text-xs text-red-500">
@@ -208,7 +216,9 @@ const handleSubmitRequest = handleSubmit(
 
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <n-space vertical>
-                  <h3 class="text-xs font-bold text-gray-500">Tingkat Urgensi</h3>
+                  <h3 class="text-xs font-bold text-gray-500">
+                    Tingkat Urgensi <span class="text-red-500">*</span>
+                  </h3>
                   <n-select
                     v-model:value="urgency"
                     :options="urgencyOptions"
@@ -218,13 +228,16 @@ const handleSubmitRequest = handleSubmit(
                 </n-space>
 
                 <n-space vertical :size="9">
-                  <h3 class="text-xs font-bold text-gray-500">Target Pemenuhan</h3>
+                  <h3 class="text-xs font-bold text-gray-500">
+                    Target Pemenuhan <span class="text-red-500">*</span>
+                  </h3>
                   <n-date-picker
                     v-model:value="dueDate"
                     type="date"
                     clearable
                     class="w-full"
                     placeholder="Pilih batas waktu pemenuhan kebutuhan"
+                    :is-date-disabled="disablePreviousDate"
                   />
                   <p v-if="dueDateError" class="text-xs text-red-500">{{ dueDateError }}</p>
                 </n-space>

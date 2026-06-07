@@ -76,7 +76,7 @@ const formatTableName = (name: string) => {
         <div>
           <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
             <n-icon :component="Shield" class="text-indigo-600" />
-            Dashboard Tata Kelola
+            Dashboard
           </h1>
           <p class="text-slate-500 mt-1">Superadmin system metrics, verification approvals, and engine status.</p>
         </div>
@@ -87,7 +87,7 @@ const formatTableName = (name: string) => {
           class="hover:opacity-90 transition-opacity"
           @click="router.push('/superadmin/approval/faq')"
         >
-          Tinjau Persetujuan ({{ dashboardData.pending_approvals_count }})
+          Tinjau Approval ({{ dashboardData.pending_approvals_count }})
           <template #icon>
             <n-icon :component="ArrowRight" />
           </template>
@@ -174,8 +174,8 @@ const formatTableName = (name: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="AlertCircle" size="72" />
               </div>
-              <p class="text-amber-100 text-xs font-semibold uppercase tracking-wider">Persetujuan Pending</p>
-              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.pending_approvals_count }} <span class="text-sm font-normal">Tugas</span></h3>
+              <p class="text-amber-100 text-xs font-semibold uppercase tracking-wider">Approval Pending</p>
+              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.pending_approvals_count }} <span class="text-sm font-normal">Approval</span></h3>
               <p class="text-amber-100 text-xs mt-3 flex items-center gap-1">
                 Butuh persetujuan CMS
               </p>
@@ -200,8 +200,8 @@ const formatTableName = (name: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="User" size="72" />
               </div>
-              <p class="text-purple-100 text-xs font-semibold uppercase tracking-wider">Total HR / Admin</p>
-              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.total_admins }} <span class="text-sm font-normal">Staf</span></h3>
+              <p class="text-purple-100 text-xs font-semibold uppercase tracking-wider">Total Admin</p>
+              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.total_admins }} <span class="text-sm font-normal">HR</span></h3>
               <p class="text-purple-100 text-xs mt-3">
                 Pengelola rekrutmen
               </p>
@@ -213,7 +213,7 @@ const formatTableName = (name: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="Briefcase" size="72" />
               </div>
-              <p class="text-indigo-100 text-xs font-semibold uppercase tracking-wider">Total Klien (Employee)</p>
+              <p class="text-indigo-100 text-xs font-semibold uppercase tracking-wider">Total Pegawai</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.total_employees }} <span class="text-sm font-normal">Akun</span></h3>
               <p class="text-indigo-100 text-xs mt-3">
                 Pemilik permintaan SDM
@@ -227,7 +227,7 @@ const formatTableName = (name: string) => {
                 <n-icon :component="Briefcase" size="72" />
               </div>
               <p class="text-teal-100 text-xs font-semibold uppercase tracking-wider">Lowongan Aktif</p>
-              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.active_job_vacancies }} <span class="text-sm font-normal">Karir</span></h3>
+              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.active_job_vacancies }} <span class="text-sm font-normal">Posisi</span></h3>
               <p class="text-teal-100 text-xs mt-3">
                 Tayang di landing page
               </p>
@@ -249,23 +249,12 @@ const formatTableName = (name: string) => {
                   </div>
                   <div>
                     <h4 class="text-sm font-bold text-slate-800">
-                      RAG Engine is {{ dashboardData.is_ai_mode_enabled ? 'ONLINE' : 'OFFLINE' }}
+                      AI Module {{ dashboardData.is_ai_mode_enabled ? 'ONLINE' : 'OFFLINE' }}
                     </h4>
                     <p class="text-xs text-slate-500 mt-0.5">
                       {{ dashboardData.is_ai_mode_enabled ? 'Pencarian talenta berbasis kecerdasan buatan aktif' : 'Pencarian AI dinonaktifkan sementara' }}
                     </p>
                   </div>
-                </div>
-
-                <!-- Info block -->
-                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-                  <h5 class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
-                    <n-icon :component="Shield" />
-                    Kebijakan Keamanan AI
-                  </h5>
-                  <p class="text-[11px] text-indigo-700 leading-relaxed mt-1.5">
-                    Mode AI mengizinkan parser resume otomatis, pencocokan skor keselarasan, dan asisten rekrutmen interaktif berjalan menggunakan model LLM terintegrasi.
-                  </p>
                 </div>
                 
                 <n-button 

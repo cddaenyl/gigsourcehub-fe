@@ -28,6 +28,7 @@ defineProps<{
 import { useConversations } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
 import { useQueryClient } from '@tanstack/vue-query'
+import { useUnreadNotificationCount } from '@/composables/useNotification'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -37,6 +38,9 @@ const queryClient = useQueryClient()
 
 const { data: chatData } = useConversations(ref(1), ref(10))
 const unreadMessagesCount = computed(() => chatData.value?.data.unread_total || 0)
+
+const { data: unreadNotifData } = useUnreadNotificationCount()
+const unreadNotifCount = computed(() => unreadNotifData.value?.data.unread_count || 0)
 
 const { incomingMessage } = useChatWebSocket()
 watch(incomingMessage, (msg) => {
@@ -62,7 +66,7 @@ const menuItems = computed(() => [
   { label: 'Profile', icon: User, path: '/candidate/profile' },
   { label: 'Message', icon: Message, path: '/candidate/chat', badge: unreadMessagesCount.value },
   { label: 'Recruitment', icon: Briefcase, path: '/candidate/recruitment' },
-  { label: 'Notifications', icon: Bell, path: '/candidate/notifications', badge: 1 },
+  { label: 'Notifications', icon: Bell, path: '/candidate/notifications', badge: unreadNotifCount.value },
   { label: 'Account', icon: Settings, path: '/candidate/account' },
 ])
 
@@ -85,6 +89,18 @@ const userInitials = computed(() => {
   const last = parts[parts.length - 1] || ''
   return (first[0] + (last[0] || '')).toUpperCase()
 })
+
+import { getProfilePictureThumbnail } from '@/utils/image'
+
+const profilePictureUrl = computed(() => {
+  return getProfilePictureThumbnail(profile.value?.profile_picture)
+})
+
+watch(profile, (newVal) => {
+  console.log('Profile updated in CandidateLayout.vue:', newVal)
+  console.log('Profile picture in CandidateLayout.vue:', newVal?.profile_picture)
+}, { immediate: true })
+
 const candidateRole = computed(() => {
   if (profile.value?.job_roles?.length) {
     return profile.value.job_roles.map((r: any) => r.name).join(', ')
@@ -142,10 +158,15 @@ const recruitmentStatus = computed(() => profile.value?.recruitment_status_name 
       <div class="max-w-7xl mx-auto px-8 py-4 pb-12 relative z-10">
         <div class="flex items-center gap-10">
           <div class="relative group">
+            <img
+              v-if="profilePictureUrl"
+              :src="profilePictureUrl"
+              class="w-[110px] h-[110px] rounded-full object-cover border-4 border-white/10 shadow-2xl transition-transform group-hover:scale-105"
+            />
             <n-avatar
+              v-else
               round
               :size="110"
-              :src="authStore.user?.profile_picture || profile?.profile_picture || undefined" 
               class="border-4 border-white/10 shadow-2xl transition-transform group-hover:scale-105 bg-blue-600 text-white font-bold text-4xl flex items-center justify-center"
             >
               {{ userInitials }}

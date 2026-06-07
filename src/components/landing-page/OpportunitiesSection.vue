@@ -12,6 +12,7 @@ const goToOpportunities = () => {
 }
 
 type OpportunityCard = {
+  id?: string
   label: string
   category: string
   postedAt: string
@@ -25,7 +26,8 @@ const vacancies = ref<any[]>([])
 
 const staticOpportunities: OpportunityCard[] = [
   {
-    label: 'Senior Front Developer',
+    id: 'static-1',
+    label: 'Senior Front End Developer',
     category: 'Technology Information',
     postedAt: '2 days ago',
     location: 'Remote',
@@ -35,6 +37,7 @@ const staticOpportunities: OpportunityCard[] = [
     tags: ['HTML', 'CSS', 'JavaScript', 'Vue.js', 'React.js', 'Tailwind CSS', 'Git', '3+'],
   },
   {
+    id: 'static-2',
     label: 'Product Designer',
     category: 'Design Systems',
     postedAt: '4 days ago',
@@ -45,6 +48,7 @@ const staticOpportunities: OpportunityCard[] = [
     tags: ['Figma', 'UX', 'UI', 'Research', 'Prototyping', 'Design System'],
   },
   {
+    id: 'static-3',
     label: 'Product Strategist',
     category: 'Product',
     postedAt: '1 day ago',
@@ -108,6 +112,7 @@ const opportunityCards = computed<OpportunityCard[]>(() => {
     const postedAt = formatPostedAt(v.created_at)
     const tags = parseTags(v.tech_stack)
     return {
+      id: v.id,
       label: v.name,
       category,
       postedAt,
@@ -118,6 +123,11 @@ const opportunityCards = computed<OpportunityCard[]>(() => {
     }
   })
 })
+
+const goToOpportunityDetail = (id: string | undefined) => {
+  if (!id) return
+  router.push({ path: '/opportunities/OpportunitiesList', query: { id } })
+}
 
 defineOptions({
   name: 'OpportunitiesSection',
@@ -158,8 +168,9 @@ defineOptions({
       </div>
 
       <div class="py-2 grid gap-6 sm:grid-cols-2 xl:grid-cols-3 lg:mt-8 overflow-x-auto">
-        <article v-for="card in opportunityCards" :key="card.label"
-          class="group relative overflow-hidden rounded-3xl bg-white px-6 pt-6 pb-8 shadow-[0px_4px_4px_0px_rgba(7,34,158,0.18)] outline -outline-offset-1 outline-slate-300 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0px_16px_32px_-18px_rgba(7,34,158,0.35)] sm:px-8 sm:pt-8 sm:pb-10">
+        <article v-for="card in opportunityCards" :key="card.id || card.label"
+          @click="goToOpportunityDetail(card.id)"
+          class="group cursor-pointer relative overflow-hidden rounded-3xl bg-white px-6 pt-6 pb-8 shadow-[0px_4px_4px_0px_rgba(7,34,158,0.18)] outline -outline-offset-1 outline-slate-300 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0px_16px_32px_-18px_rgba(7,34,158,0.35)] sm:px-8 sm:pt-8 sm:pb-10">
           <div
             class="absolute right-0 top-0 h-40 w-40 rounded-bl-[100px] bg-linear-to-br from-blue-500 to-cyan-500 opacity-10 blur-[19.95px]">
           </div>

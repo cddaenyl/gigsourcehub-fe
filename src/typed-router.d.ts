@@ -30,6 +30,258 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/': RouteRecordInfo<
+      '/admin/',
+      '/admin',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/analytics': RouteRecordInfo<
+      '/admin/analytics',
+      '/admin/analytics',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/candidate-chat/': RouteRecordInfo<
+      '/admin/candidate-chat/',
+      '/admin/candidate-chat',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/daftar-kandidat/': RouteRecordInfo<
+      '/admin/daftar-kandidat/',
+      '/admin/daftar-kandidat',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/daftar-kandidat/[id]': RouteRecordInfo<
+      '/admin/daftar-kandidat/[id]',
+      '/admin/daftar-kandidat/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/daftar-kandidat/penilaian-kandidat/[id]': RouteRecordInfo<
+      '/admin/daftar-kandidat/penilaian-kandidat/[id]',
+      '/admin/daftar-kandidat/penilaian-kandidat/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/interview-schedule/': RouteRecordInfo<
+      '/admin/interview-schedule/',
+      '/admin/interview-schedule',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/landing-page/': RouteRecordInfo<
+      '/admin/landing-page/',
+      '/admin/landing-page',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/landing-page/faq/': RouteRecordInfo<
+      '/admin/landing-page/faq/',
+      '/admin/landing-page/faq',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/landing-page/informasi-perusahaan/': RouteRecordInfo<
+      '/admin/landing-page/informasi-perusahaan/',
+      '/admin/landing-page/informasi-perusahaan',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/landing-page/kategori-bidang/': RouteRecordInfo<
+      '/admin/landing-page/kategori-bidang/',
+      '/admin/landing-page/kategori-bidang',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/lowongan/': RouteRecordInfo<
+      '/admin/lowongan/',
+      '/admin/lowongan',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/lowongan/create': RouteRecordInfo<
+      '/admin/lowongan/create',
+      '/admin/lowongan/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/lowongan/edit/[id]': RouteRecordInfo<
+      '/admin/lowongan/edit/[id]',
+      '/admin/lowongan/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/lowongan/view/[id]': RouteRecordInfo<
+      '/admin/lowongan/view/[id]',
+      '/admin/lowongan/view/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/notifications/': RouteRecordInfo<
+      '/admin/notifications/',
+      '/admin/notifications',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/profile/': RouteRecordInfo<
+      '/admin/profile/',
+      '/admin/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/talent-needs/': RouteRecordInfo<
+      '/admin/talent-needs/',
+      '/admin/talent-needs',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/talent-needs/[id]': RouteRecordInfo<
+      '/admin/talent-needs/[id]',
+      '/admin/talent-needs/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/candidate/': RouteRecordInfo<
+      '/candidate/',
+      '/candidate',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/candidate/account/': RouteRecordInfo<
+      '/candidate/account/',
+      '/candidate/account',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/candidate/chat/': RouteRecordInfo<
+      '/candidate/chat/',
+      '/candidate/chat',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/candidate/notifications/': RouteRecordInfo<
+      '/candidate/notifications/',
+      '/candidate/notifications',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/candidate/profile/': RouteRecordInfo<
+      '/candidate/profile/',
+      '/candidate/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/candidate/recruitment/': RouteRecordInfo<
+      '/candidate/recruitment/',
+      '/candidate/recruitment',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/candidate-list/': RouteRecordInfo<
+      '/employee/candidate-list/',
+      '/employee/candidate-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/candidate-list/[id]': RouteRecordInfo<
+      '/employee/candidate-list/[id]',
+      '/employee/candidate-list/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/employee/candidate-list/penilaian-kandidat/[id]': RouteRecordInfo<
+      '/employee/candidate-list/penilaian-kandidat/[id]',
+      '/employee/candidate-list/penilaian-kandidat/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/employee/candidate-list/penilaian-kandidat/tambah/[onboardHistoryId]': RouteRecordInfo<
+      '/employee/candidate-list/penilaian-kandidat/tambah/[onboardHistoryId]',
+      '/employee/candidate-list/penilaian-kandidat/tambah/:onboardHistoryId',
+      { onboardHistoryId: ParamValue<true> },
+      { onboardHistoryId: ParamValue<false> },
+      | never
+    >,
+    '/employee/my-team/': RouteRecordInfo<
+      '/employee/my-team/',
+      '/employee/my-team',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/notifications/': RouteRecordInfo<
+      '/employee/notifications/',
+      '/employee/notifications',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/profile/': RouteRecordInfo<
+      '/employee/profile/',
+      '/employee/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/talent-needs/': RouteRecordInfo<
+      '/employee/talent-needs/',
+      '/employee/talent-needs',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/employee/talent-needs/[id]': RouteRecordInfo<
+      '/employee/talent-needs/[id]',
+      '/employee/talent-needs/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/employee/talent-needs/ajukan-permintaan/': RouteRecordInfo<
+      '/employee/talent-needs/ajukan-permintaan/',
+      '/employee/talent-needs/ajukan-permintaan',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/forgot-password/': RouteRecordInfo<
+      '/forgot-password/',
+      '/forgot-password',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/login/': RouteRecordInfo<
       '/login/',
       '/login',
@@ -170,6 +422,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/superadmin/notifications/': RouteRecordInfo<
+      '/superadmin/notifications/',
+      '/superadmin/notifications',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/superadmin/posisi/': RouteRecordInfo<
       '/superadmin/posisi/',
       '/superadmin/posisi',
@@ -277,6 +536,222 @@ declare module 'vue-router/auto-routes' {
     'src/pages/index.vue': {
       routes:
         | '/'
+      views:
+        | never
+    }
+    'src/pages/admin/index.vue': {
+      routes:
+        | '/admin/'
+      views:
+        | never
+    }
+    'src/pages/admin/analytics.vue': {
+      routes:
+        | '/admin/analytics'
+      views:
+        | never
+    }
+    'src/pages/admin/candidate-chat/index.vue': {
+      routes:
+        | '/admin/candidate-chat/'
+      views:
+        | never
+    }
+    'src/pages/admin/daftar-kandidat/index.vue': {
+      routes:
+        | '/admin/daftar-kandidat/'
+      views:
+        | never
+    }
+    'src/pages/admin/daftar-kandidat/[id].vue': {
+      routes:
+        | '/admin/daftar-kandidat/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/daftar-kandidat/penilaian-kandidat/[id].vue': {
+      routes:
+        | '/admin/daftar-kandidat/penilaian-kandidat/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/interview-schedule/index.vue': {
+      routes:
+        | '/admin/interview-schedule/'
+      views:
+        | never
+    }
+    'src/pages/admin/landing-page/index.vue': {
+      routes:
+        | '/admin/landing-page/'
+      views:
+        | never
+    }
+    'src/pages/admin/landing-page/faq/index.vue': {
+      routes:
+        | '/admin/landing-page/faq/'
+      views:
+        | never
+    }
+    'src/pages/admin/landing-page/informasi-perusahaan/index.vue': {
+      routes:
+        | '/admin/landing-page/informasi-perusahaan/'
+      views:
+        | never
+    }
+    'src/pages/admin/landing-page/kategori-bidang/index.vue': {
+      routes:
+        | '/admin/landing-page/kategori-bidang/'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/index.vue': {
+      routes:
+        | '/admin/lowongan/'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/create.vue': {
+      routes:
+        | '/admin/lowongan/create'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/edit/[id].vue': {
+      routes:
+        | '/admin/lowongan/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/lowongan/view/[id].vue': {
+      routes:
+        | '/admin/lowongan/view/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/notifications/index.vue': {
+      routes:
+        | '/admin/notifications/'
+      views:
+        | never
+    }
+    'src/pages/admin/profile/index.vue': {
+      routes:
+        | '/admin/profile/'
+      views:
+        | never
+    }
+    'src/pages/admin/talent-needs/index.vue': {
+      routes:
+        | '/admin/talent-needs/'
+      views:
+        | never
+    }
+    'src/pages/admin/talent-needs/[id].vue': {
+      routes:
+        | '/admin/talent-needs/[id]'
+      views:
+        | never
+    }
+    'src/pages/candidate/index.vue': {
+      routes:
+        | '/candidate/'
+      views:
+        | never
+    }
+    'src/pages/candidate/account/index.vue': {
+      routes:
+        | '/candidate/account/'
+      views:
+        | never
+    }
+    'src/pages/candidate/chat/index.vue': {
+      routes:
+        | '/candidate/chat/'
+      views:
+        | never
+    }
+    'src/pages/candidate/notifications/index.vue': {
+      routes:
+        | '/candidate/notifications/'
+      views:
+        | never
+    }
+    'src/pages/candidate/profile/index.vue': {
+      routes:
+        | '/candidate/profile/'
+      views:
+        | never
+    }
+    'src/pages/candidate/recruitment/index.vue': {
+      routes:
+        | '/candidate/recruitment/'
+      views:
+        | never
+    }
+    'src/pages/employee/candidate-list/index.vue': {
+      routes:
+        | '/employee/candidate-list/'
+      views:
+        | never
+    }
+    'src/pages/employee/candidate-list/[id].vue': {
+      routes:
+        | '/employee/candidate-list/[id]'
+      views:
+        | never
+    }
+    'src/pages/employee/candidate-list/penilaian-kandidat/[id].vue': {
+      routes:
+        | '/employee/candidate-list/penilaian-kandidat/[id]'
+      views:
+        | never
+    }
+    'src/pages/employee/candidate-list/penilaian-kandidat/tambah/[onboardHistoryId].vue': {
+      routes:
+        | '/employee/candidate-list/penilaian-kandidat/tambah/[onboardHistoryId]'
+      views:
+        | never
+    }
+    'src/pages/employee/my-team/index.vue': {
+      routes:
+        | '/employee/my-team/'
+      views:
+        | never
+    }
+    'src/pages/employee/notifications/index.vue': {
+      routes:
+        | '/employee/notifications/'
+      views:
+        | never
+    }
+    'src/pages/employee/profile/index.vue': {
+      routes:
+        | '/employee/profile/'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/index.vue': {
+      routes:
+        | '/employee/talent-needs/'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/[id].vue': {
+      routes:
+        | '/employee/talent-needs/[id]'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/ajukan-permintaan/index.vue': {
+      routes:
+        | '/employee/talent-needs/ajukan-permintaan/'
+      views:
+        | never
+    }
+    'src/pages/forgot-password/index.vue': {
+      routes:
+        | '/forgot-password/'
       views:
         | never
     }
@@ -397,6 +872,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/superadmin/jabatan/edit/[id].vue': {
       routes:
         | '/superadmin/jabatan/edit/[id]'
+      views:
+        | never
+    }
+    'src/pages/superadmin/notifications/index.vue': {
+      routes:
+        | '/superadmin/notifications/'
       views:
         | never
     }

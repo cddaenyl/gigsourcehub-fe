@@ -26,6 +26,7 @@ import {
 } from '@vicons/tabler'
 import AdminLayout from '../../layouts/AdminLayout.vue'
 import { getAdminDashboardSummaryApi, type AdminDashboardSummary } from '@/services/dashboard.service'
+import { getProfilePictureThumbnail } from '@/utils/image'
 
 const router = useRouter()
 const message = useMessage()
@@ -206,10 +207,6 @@ const formatDateTime = (val: string) => {
               </div>
               <p class="text-teal-100 text-xs font-semibold uppercase tracking-wider">Avg Time-to-Hire</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.time_to_hire_days }} <span class="text-sm font-normal">Hari</span></h3>
-              <p class="text-teal-100 text-xs mt-3 flex items-center gap-1">
-                <n-icon :component="TrendingUp" size="14" />
-                Optimal target &lt; 20 hari
-              </p>
             </div>
           </n-gi>
 
@@ -220,10 +217,6 @@ const formatDateTime = (val: string) => {
               </div>
               <p class="text-blue-100 text-xs font-semibold uppercase tracking-wider">Offer Acceptance</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.offer_acceptance_rate }}%</h3>
-              <p class="text-blue-100 text-xs mt-3 flex items-center gap-1">
-                <n-icon :component="TrendingUp" size="14" />
-                Target penerimaan 80%+
-              </p>
             </div>
           </n-gi>
 
@@ -232,11 +225,8 @@ const formatDateTime = (val: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="Briefcase" size="72" />
               </div>
-              <p class="text-indigo-100 text-xs font-semibold uppercase tracking-wider">Active Job Vacancies</p>
+              <p class="text-indigo-100 text-xs font-semibold uppercase tracking-wider">Published Job Vacancies</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.active_job_vacancies }} <span class="text-sm font-normal">Posisi</span></h3>
-              <p class="text-indigo-100 text-xs mt-3 flex items-center gap-1">
-                Publikasi aktif di karir
-              </p>
             </div>
           </n-gi>
 
@@ -247,9 +237,6 @@ const formatDateTime = (val: string) => {
               </div>
               <p class="text-purple-100 text-xs font-semibold uppercase tracking-wider">Interview Attendance</p>
               <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.interview_attendance_rate }}%</h3>
-              <p class="text-purple-100 text-xs mt-3 flex items-center gap-1">
-                Kehadiran wawancara
-              </p>
             </div>
           </n-gi>
 
@@ -258,11 +245,8 @@ const formatDateTime = (val: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="TrendingUp" size="72" />
               </div>
-              <p class="text-orange-100 text-xs font-semibold uppercase tracking-wider">Quality of Hire</p>
-              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.quality_of_hire }}%</h3>
-              <p class="text-orange-100 text-xs mt-3 flex items-center gap-1">
-                Berdasarkan review rating
-              </p>
+              <p class="text-orange-100 text-xs font-semibold uppercase tracking-wider">AVG Review Score</p>
+              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.avg_review_score }} <span class="text-sm font-normal">/ 5</span></h3>
             </div>
           </n-gi>
         </n-grid>
@@ -274,14 +258,14 @@ const formatDateTime = (val: string) => {
           <n-gi span="2" class="space-y-6">
             
             <!-- Upcoming Interviews Widget -->
-            <n-card title="Jadwal Wawancara Mendatang" class="shadow-sm rounded-xl border border-slate-100">
+            <n-card title="Jadwal Interview Mendatang" class="shadow-sm rounded-xl border border-slate-100">
               <template #header-extra>
                 <n-badge :value="dashboardData.upcoming_interviews.length" type="info" />
               </template>
 
               <div v-if="dashboardData.upcoming_interviews.length === 0" class="flex flex-col items-center justify-center py-10">
                 <n-icon :component="Inbox" size="48" class="text-slate-300" />
-                <p class="text-slate-400 mt-2 text-sm">Tidak ada jadwal wawancara terdekat.</p>
+                <p class="text-slate-400 mt-2 text-sm">Tidak ada jadwal interview mendatang</p>
               </div>
 
               <div v-else class="divide-y divide-slate-100">
@@ -292,7 +276,7 @@ const formatDateTime = (val: string) => {
                 >
                   <div class="flex items-center gap-3">
                     <div class="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm overflow-hidden shrink-0 border border-slate-100">
-                      <img v-if="iv.candidate_user_profile_picture" :src="iv.candidate_user_profile_picture" alt="Avatar" class="h-full w-full object-cover" />
+                      <img v-if="iv.candidate_user_profile_picture" :src="getProfilePictureThumbnail(iv.candidate_user_profile_picture)" alt="Avatar" class="h-full w-full object-cover" />
                       <span v-else>{{ iv.candidate_user_name?.charAt(0) || 'C' }}</span>
                     </div>
                     <div>
@@ -327,14 +311,14 @@ const formatDateTime = (val: string) => {
             </n-card>
 
             <!-- Recruitment Request Summary Widget -->
-            <n-card title="Ringkasan Permintaan SDM" class="shadow-sm rounded-xl border border-slate-100">
+            <n-card title="Ringkasan Request" class="shadow-sm rounded-xl border border-slate-100">
               <!-- Headcount progress card inside -->
               <div class="bg-gradient-to-r from-slate-50 to-blue-50/50 rounded-xl p-5 mb-6 border border-slate-100">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div class="space-y-1">
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fulfillment Level Headcount</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fulfillment Posisi</p>
                     <h4 class="text-xl font-bold text-slate-800">
-                      {{ dashboardData.requests_summary.filled_headcount }} dari {{ dashboardData.requests_summary.required_headcount }} SDM Terpenuhi
+                      {{ dashboardData.requests_summary.filled_headcount }} dari {{ dashboardData.requests_summary.required_headcount }} Posisi Terpenuhi
                     </h4>
                   </div>
                   <div class="text-right">
@@ -359,13 +343,13 @@ const formatDateTime = (val: string) => {
               <n-grid cols="2 m:4" :x-gap="16" :y-gap="16">
                 <n-gi>
                   <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-100 text-center">
-                    <p class="text-xs font-medium text-slate-500">Total Permintaan</p>
+                    <p class="text-xs font-medium text-slate-500">Total Request</p>
                     <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ dashboardData.requests_summary.total_requests }}</h3>
                   </div>
                 </n-gi>
                 <n-gi>
                   <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-100 text-center">
-                    <p class="text-xs font-medium text-green-600">Terpenuhi (Done)</p>
+                    <p class="text-xs font-medium text-green-600">Terpenuhi</p>
                     <h3 class="text-2xl font-bold text-green-600 mt-1">{{ dashboardData.requests_summary.fulfilled_requests }}</h3>
                   </div>
                 </n-gi>
@@ -384,9 +368,9 @@ const formatDateTime = (val: string) => {
               </n-grid>
 
               <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                <p class="text-xs text-slate-400">Tingkat pemenuhan permintaan keseluruhan:</p>
+                <p class="text-xs text-slate-400">Tingkat pemenuhan request keseluruhan:</p>
                 <span class="text-xs font-bold text-slate-700">
-                  {{ Math.round(dashboardData.requests_summary.request_fulfillment_percentage) }}% Permintaan Selesai
+                  {{ Math.round(dashboardData.requests_summary.request_fulfillment_percentage) }}% Request Selesai
                 </span>
               </div>
             </n-card>
@@ -419,7 +403,7 @@ const formatDateTime = (val: string) => {
                       <n-icon :component="Calendar" size="20" />
                     </div>
                     <div>
-                      <h5 class="text-xs font-bold text-amber-900">Wawancara Hari Ini</h5>
+                      <h5 class="text-xs font-bold text-amber-900">Interview Hari Ini</h5>
                       <p class="text-[10px] text-amber-600">Jadwal interview hari ini</p>
                     </div>
                   </div>
@@ -445,7 +429,7 @@ const formatDateTime = (val: string) => {
                       <n-icon :component="Clock" size="20" />
                     </div>
                     <div>
-                      <h5 class="text-xs font-bold text-slate-900">Placement Segera Berakhir</h5>
+                      <h5 class="text-xs font-bold text-slate-900">Fulfillment Segera Berakhir</h5>
                       <p class="text-[10px] text-slate-500">Berakhir dalam 30 hari kedepan</p>
                     </div>
                   </div>

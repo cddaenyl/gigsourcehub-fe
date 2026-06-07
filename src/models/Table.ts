@@ -1,5 +1,6 @@
 export interface AllCandidates {
   id: string
+  candidate_id?: string
   no: number
   nama: string
   bidang: string

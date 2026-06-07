@@ -38,7 +38,13 @@ const onboardHistoryId = computed((): string => {
 })
 
 // Fetch Candidate details
+import { getProfilePictureThumbnail } from '@/utils/image'
+
 const { user: candidateUser, isLoading: isUserLoading } = useUser(candidateUserId)
+
+const profilePictureThumbnail = computed(() =>
+  getProfilePictureThumbnail(candidateUser.value?.profile_picture),
+)
 
 // Fetch Onboarding history list
 const { history: onboardingHistory, isLoading: isOnboardingLoading } =
@@ -160,7 +166,12 @@ const recommendationConfig: Record<
         <!-- Candidate Profile Header Card -->
         <n-card class="shadow-sm border border-slate-200">
           <div class="flex items-center gap-4">
-            <n-avatar round :size="56" :src="candidateUser?.profile_picture || undefined" />
+            <img
+              v-if="profilePictureThumbnail"
+              :src="profilePictureThumbnail"
+              class="w-[56px] h-[56px] rounded-full object-cover"
+            />
+            <n-avatar v-else round :size="56" />
             <div class="flex-1">
               <h2 class="text-lg font-bold text-slate-800">
                 {{ candidateUser?.name || 'Kandidat' }}

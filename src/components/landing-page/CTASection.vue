@@ -1,9 +1,28 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { ArrowRight, Checks, Rocket, Shield, Users } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
+import { useAuthStore } from '@/stores/auth.store'
+import { getDefaultRouteForUser } from '@/utils/auth'
 
 defineOptions({
   name: 'CTASection',
+})
+
+const authStore = useAuthStore()
+
+const targetRoute = computed(() => {
+  if (authStore.isAuthenticated) {
+    return getDefaultRouteForUser(authStore.user)
+  }
+  return '/register'
+})
+
+const buttonText = computed(() => {
+  if (authStore.isAuthenticated) {
+    return 'Dashboard'
+  }
+  return 'Join Talent Pool'
 })
 </script>
 
@@ -38,20 +57,20 @@ defineOptions({
 
     <div class="mx-auto mt-6 w-full max-w-4xl lg:mt-12">
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a
-          href="/sign-up"
+        <RouterLink
+          :to="targetRoute"
           class="flex justify-center items-center gap-1 bg-white text-gray-800 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] px-5 py-3 font-bold rounded-full hover:bg-gray-300 transition-colors text-center"
         >
-          Join Talent Pool
+          {{ buttonText }}
           <n-icon :size="18" :component="ArrowRight" color="#1e2939" class />
-        </a>
+        </RouterLink>
 
-        <a
-          href="#how-it-works"
+        <RouterLink
+          to="/opportunities/OpportunitiesList"
           class="flex justify-center outline-1 outline-white/30 -outline-offset-2 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] backdrop-blur-md text-white bg-linear-to-t from-white/10 to-white/5 px-5 py-3 rounded-full font-semibold transition-colors text-center hover:bg-white/10"
         >
           Explore Opportunities
-        </a>
+        </RouterLink>
       </div>
     </div>
 

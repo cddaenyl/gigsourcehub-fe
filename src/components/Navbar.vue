@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, nextTick, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ArrowRight, ArrowsJoin, Menu2, X } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
 import logoSrc from '@/assets/LogoGigSource.svg'
+import { useAuthStore } from '@/stores/auth.store'
+import { getDefaultRouteForUser } from '@/utils/auth'
 
 defineOptions({
   name: 'LandingNavbar',
@@ -20,16 +23,58 @@ const navItems: NavItem[] = [
   { label: 'FAQ', href: '#faq' },
 ]
 
+const authStore = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+
+const targetRoute = computed(() => {
+  if (authStore.isAuthenticated) {
+    return getDefaultRouteForUser(authStore.user)
+  }
+  return '/register'
+})
+
+const buttonText = computed(() => {
+  if (authStore.isAuthenticated) {
+    return 'Dashboard'
+  }
+  return 'Join Talent Pool'
+})
+
 const handleQuickLinkClick = (event: MouseEvent, href: string) => {
   if (!href.startsWith('#')) return
 
-  const target = document.querySelector(href)
-  if (!target) return
-  closeMenu()
-  event.preventDefault()
-  target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  window.history.replaceState(null, '', href)
+  if (route.path !== '/') {
+    event.preventDefault()
+    closeMenu()
+    router.push('/' + href)
+  } else {
+    const target = document.querySelector(href)
+    if (!target) return
+    closeMenu()
+    event.preventDefault()
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.history.replaceState(null, '', href)
+  }
 }
+
+// Watch route hash to handle scroll when routing from other pages
+watch(
+  () => route.hash,
+  (newHash) => {
+    if (newHash && route.path === '/') {
+      nextTick(() => {
+        setTimeout(() => {
+          const target = document.querySelector(newHash)
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 100)
+      })
+    }
+  },
+  { immediate: true },
+)
 
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
@@ -85,7 +130,7 @@ onUnmounted(() => {
           </a>
         </nav>
         <RouterLink
-          to="/register"
+          :to="targetRoute"
           class="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm outline -outline-offset-1 transition-colors"
           :class="
             isScrolled
@@ -93,7 +138,7 @@ onUnmounted(() => {
               : 'bg-blue-500/20 text-white outline-white/10 hover:bg-blue-500/30'
           "
         >
-          Join Talent Pool
+          {{ buttonText }}
           <NIcon :size="18" :component="ArrowsJoin" />
         </RouterLink>
       </div>
@@ -138,7 +183,7 @@ onUnmounted(() => {
         </a>
 
         <RouterLink
-          to="/register"
+          :to="targetRoute"
           class="mt-2 inline-flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-medium ring-1 ring-inset transition-colors"
           :class="
             isScrolled
@@ -147,7 +192,7 @@ onUnmounted(() => {
           "
           @click="closeMenu"
         >
-          Join Talent Pool
+          {{ buttonText }}
           <NIcon :size="18" :component="ArrowRight" />
         </RouterLink>
       </div>

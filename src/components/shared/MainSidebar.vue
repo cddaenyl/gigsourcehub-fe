@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, h, watch } from 'vue'
 import type { Component } from 'vue'
-import { NMenu, NAvatar, NSpace } from 'naive-ui'
+import { NMenu, NAvatar, NSpace, NBadge } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { useSidebarStore } from '@/stores/sidebar.store'
@@ -10,6 +10,7 @@ import { useLogout, useMeQuery } from '@/composables/useAuth'
 import { useAuthStore } from '@/stores/auth.store'
 
 import { useProfile } from '@/composables/useProfile'
+import { useUnreadNotificationCount } from '@/composables/useNotification'
 
 interface Props {
   menuOptions: MenuOption[]
@@ -26,25 +27,22 @@ const logout = useLogout()
 const { data: me } = useMeQuery()
 const { profile } = useProfile()
 
+const { data: unreadNotifData } = useUnreadNotificationCount()
+const unreadNotifCount = computed(() => unreadNotifData.value?.data.unread_count || 0)
+
 const defaultAvatarSeed = 'HumanResource'
 
-const getThumbUrl = (url: string | null | undefined): string | undefined => {
-  if (!url) return undefined
-  const lastDotIndex = url.lastIndexOf('.')
-  if (lastDotIndex === -1) return url
-  const filename = url.substring(0, lastDotIndex)
-  const extension = url.substring(lastDotIndex)
-  return `${filename}_thumb${extension}`
-}
+import { getProfilePictureThumbnail } from '@/utils/image'
 
 const userInfo = computed(() => {
   const user = profile.value || me.value || authStore.user
   const role = user?.system_role_name
   const name = user?.name || 'Human Resource'
   const email = user?.email || 'human.resource@gigsource.com'
-  const avatar =
-    getThumbUrl(user?.profile_picture) ||
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || defaultAvatarSeed)}`
+  const rawAvatar = profile.value?.profile_picture || authStore.user?.profile_picture
+  const avatar = rawAvatar
+    ? getProfilePictureThumbnail(rawAvatar)
+    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || defaultAvatarSeed)}`
 
   return {
     name,
@@ -58,9 +56,16 @@ function renderIcon(icon: Component) {
   return () => h(icon)
 }
 
-const bottomMenuOptions: MenuOption[] = [
+function renderLabelWithBadge(label: string, count: number) {
+  return () => h('div', { class: 'flex items-center justify-between w-full' }, [
+    h('span', null, label),
+    count > 0 ? h(NBadge, { value: count, type: 'error' }) : null
+  ])
+}
+
+const bottomMenuOptions = computed<MenuOption[]>(() => [
   {
-    label: 'Notifikasi',
+    label: renderLabelWithBadge('Notifikasi', unreadNotifCount.value),
     key: 'notifications',
     icon: renderIcon(Bell),
   },
@@ -69,7 +74,7 @@ const bottomMenuOptions: MenuOption[] = [
     key: 'logout',
     icon: renderIcon(Logout),
   },
-]
+])
 
 const handleMenuSelect = (key: string) => {
   sidebarStore.setActiveKey(key)
@@ -82,7 +87,7 @@ const handleMenuSelect = (key: string) => {
 
 const handleBottomMenuSelect = (key: string) => {
   if (key === 'notifications') {
-    console.log('Open notifications')
+    router.push(`${props.basePath}/notifications`)
   } else if (key === 'logout') {
     logout()
   }
@@ -137,7 +142,12 @@ watch(
       >
         <div class="p-2 rounded-xl group-hover:bg-[#F0F2FD] border border-transparent group-hover:border-[#C7D0F3] transition-all">
           <n-space align="center" :wrap="false">
-            <n-avatar round :size="40" :src="userInfo.avatar" class="shadow-sm border border-gray-100" />
+            <img
+              v-if="userInfo.avatar"
+              :src="userInfo.avatar"
+              class="w-[40px] h-[40px] rounded-full object-cover shadow-sm border border-gray-100"
+            />
+            <n-avatar v-else round :size="40" class="shadow-sm border border-gray-100" />
             <div class="flex-1 min-w-0 pb-1">
               <div class="text-sm font-semibold text-gray-800 truncate group-hover:text-primary transition-colors">
                 {{ userInfo.name }}

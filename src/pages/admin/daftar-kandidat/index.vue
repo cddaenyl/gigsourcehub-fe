@@ -110,6 +110,10 @@ const handleAction = (action: string, candidate: AllCandidates) => {
     case 'detail':
       router.push(`/admin/daftar-kandidat/${candidate.id}`)
       break
+
+    case 'view':
+      router.push(`/admin/daftar-kandidat/${candidate.candidate_id}`)
+      break
     case 'recruit':
       // console.log('Recruit candidate:', candidate)
       // TODO: Implement recruit logic
@@ -118,6 +122,7 @@ const handleAction = (action: string, candidate: AllCandidates) => {
       // console.log('Chat with candidate:', candidate)
       // TODO: Implement chat logic
       break
+
     default:
     // console.log(`Action: ${action}`, candidate)
   }

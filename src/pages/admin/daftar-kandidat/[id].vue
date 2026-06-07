@@ -669,14 +669,6 @@ const handleAssignCandidate = async (): Promise<void> => {
               clearable
             />
           </div>
-
-          <!-- <p class="text-sm text-slate-500">
-            Catatan: Tombol Simpan akan dinonaktifkan jika kombinasi kandidat dan subrequest ini
-            sudah pernah di-assign pada sesi ini.
-          </p> -->
-          <!-- <p v-if="isDuplicateAssignment" class="text-sm text-amber-600">
-            Kandidat ini sudah di-assign ke posisi terpilih pada. Pilih posisi lain.
-          </p> -->
         </n-space>
 
         <div class="-mx-6 -mb-6 bg-slate-100 px-6 py-5">

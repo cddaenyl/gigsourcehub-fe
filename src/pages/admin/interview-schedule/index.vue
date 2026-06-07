@@ -163,7 +163,7 @@ const handleStageChange = async (interview: InterviewScheduleItem, stageId: stri
   const selectedStage = interviewStages.value.find((stage) => stage.id === stageId)
 
   if (!selectedStage) {
-    message.error('Tahap interview tidak ditemukan.')
+    message.error('Jenis Interview tidak ditemukan.')
     return
   }
 
@@ -173,10 +173,10 @@ const handleStageChange = async (interview: InterviewScheduleItem, stageId: stri
       stage_id: stageId,
       status: interview.status,
     })
-    message.success(`Tahap interview berhasil diubah ke ${selectedStage.name}.`)
+    message.success(`Jenis Interview berhasil diubah ke ${selectedStage.name}.`)
     await refetch()
   } catch (error) {
-    message.error(error instanceof Error ? error.message : 'Gagal mengubah tahap interview.')
+    message.error(error instanceof Error ? error.message : 'Gagal mengubah Jenis Interview.')
   }
 }
 
@@ -233,7 +233,7 @@ const columns: DataTableColumns<InterviewScheduleItem> = [
     render: (row) => h('span', { class: 'text-slate-600' }, formatDateTime(row.scheduled_at)),
   },
   {
-    title: 'Tahap Interview',
+    title: 'Jenis Interview',
     key: 'stage',
     render: (row) =>
       h(
@@ -302,24 +302,14 @@ const columns: DataTableColumns<InterviewScheduleItem> = [
             <n-tab-pane name="scheduled" tab="Scheduled" />
           </n-tabs>
 
-          <n-data-table
-            :columns="columns"
-            :data="interviews"
-            :bordered="false"
-            :loading="isLoading"
-            single-column
-            single-row
-          />
+          <n-data-table :columns="columns" :data="interviews" :bordered="false" :loading="isLoading" single-column
+            single-row />
 
           <div v-if="isLoading" class="py-8 text-center">
             <p class="text-gray-500">Loading...</p>
           </div>
 
-          <CandidatePagination
-            v-model:page="currentPage"
-            v-model:page-size="pageSize"
-            :page-count="pageCount"
-          />
+          <CandidatePagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="pageCount" />
         </div>
       </div>
     </n-config-provider>

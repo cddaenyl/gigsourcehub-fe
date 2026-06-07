@@ -1,8 +1,28 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { ArrowRight } from '@vicons/tabler'
 import { NIcon } from 'naive-ui'
+import { useAuthStore } from '@/stores/auth.store'
+import { getDefaultRouteForUser } from '@/utils/auth'
+
 defineOptions({
   name: 'Hero',
+})
+
+const authStore = useAuthStore()
+
+const targetRoute = computed(() => {
+  if (authStore.isAuthenticated) {
+    return getDefaultRouteForUser(authStore.user)
+  }
+  return '/register'
+})
+
+const buttonText = computed(() => {
+  if (authStore.isAuthenticated) {
+    return 'Dashboard'
+  }
+  return 'Join Talent Pool'
 })
 </script>
 
@@ -35,13 +55,13 @@ defineOptions({
             and business solutions with startups and enterprises.
           </p>
           <div class="flex flex-col sm:flex-row gap-4">
-            <a
-              href="/register"
+            <RouterLink
+              :to="targetRoute"
               class="flex justify-center items-center gap-1 bg-white text-gray-800 px-5 py-3 font-bold rounded-full hover:bg-gray-300 transition-colors text-center"
             >
-              Join Talent Pool
+              {{ buttonText }}
               <n-icon :size="18" :component="ArrowRight" color="#1e2939" class />
-            </a>
+            </RouterLink>
 
             <a
               href="#opportunities"

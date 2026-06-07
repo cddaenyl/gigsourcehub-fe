@@ -52,6 +52,7 @@ const mapOnboardingRow = (item: OnboardingItem, no: number): AllCandidates => {
 
   return {
     id: item.id,
+    candidate_id: candidate?.id || '',
     no,
     nama: candidate?.name || '-',
     bidang: candidate?.bidang || '-',

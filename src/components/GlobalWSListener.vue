@@ -14,28 +14,40 @@ const playNotificationSound = () => {
     if (!AudioContext) return
     const ctx = new AudioContext()
     
-    const playTone = (freq: number, startTime: number, duration: number) => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(freq, startTime)
-      
-      gain.gain.setValueAtTime(0, startTime)
-      gain.gain.linearRampToValueAtTime(0.25, startTime + 0.04)
-      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
-      
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      
-      osc.start(startTime)
-      osc.stop(startTime + duration)
+    const runSound = () => {
+      const playTone = (freq: number, startTime: number, duration: number) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(freq, startTime)
+        
+        gain.gain.setValueAtTime(0, startTime)
+        gain.gain.linearRampToValueAtTime(0.25, startTime + 0.04)
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
+        
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        
+        osc.start(startTime)
+        osc.stop(startTime + duration)
+      }
+
+      const now = ctx.currentTime
+      // Ascending chime: C5 (523.25 Hz) then G5 (783.99 Hz)
+      playTone(523.25, now, 0.35)
+      playTone(783.99, now + 0.08, 0.45)
     }
 
-    const now = ctx.currentTime
-    // Ascending chime: C5 (523.25 Hz) then G5 (783.99 Hz)
-    playTone(523.25, now, 0.35)
-    playTone(783.99, now + 0.08, 0.45)
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => {
+        runSound()
+      }).catch(err => {
+        console.warn('AudioContext failed to resume:', err)
+      })
+    } else {
+      runSound()
+    }
   } catch (e) {
     console.error('Web Audio API play error:', e)
   }

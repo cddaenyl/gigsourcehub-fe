@@ -245,8 +245,8 @@ const formatDateTime = (val: string) => {
               <div class="absolute right-2 -bottom-2 opacity-15">
                 <n-icon :component="TrendingUp" size="72" />
               </div>
-              <p class="text-orange-100 text-xs font-semibold uppercase tracking-wider">Quality of Hire</p>
-              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.quality_of_hire }}%</h3>
+              <p class="text-orange-100 text-xs font-semibold uppercase tracking-wider">AVG Review Score</p>
+              <h3 class="text-3xl font-bold mt-2">{{ dashboardData.kpis.avg_review_score }} <span class="text-sm font-normal">/ 5</span></h3>
             </div>
           </n-gi>
         </n-grid>
@@ -258,14 +258,14 @@ const formatDateTime = (val: string) => {
           <n-gi span="2" class="space-y-6">
             
             <!-- Upcoming Interviews Widget -->
-            <n-card title="Jadwal Wawancara Mendatang" class="shadow-sm rounded-xl border border-slate-100">
+            <n-card title="Jadwal Interview Mendatang" class="shadow-sm rounded-xl border border-slate-100">
               <template #header-extra>
                 <n-badge :value="dashboardData.upcoming_interviews.length" type="info" />
               </template>
 
               <div v-if="dashboardData.upcoming_interviews.length === 0" class="flex flex-col items-center justify-center py-10">
                 <n-icon :component="Inbox" size="48" class="text-slate-300" />
-                <p class="text-slate-400 mt-2 text-sm">Tidak ada jadwal wawancara terdekat.</p>
+                <p class="text-slate-400 mt-2 text-sm">Tidak ada jadwal interview mendatang</p>
               </div>
 
               <div v-else class="divide-y divide-slate-100">
@@ -349,7 +349,7 @@ const formatDateTime = (val: string) => {
                 </n-gi>
                 <n-gi>
                   <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-100 text-center">
-                    <p class="text-xs font-medium text-green-600">Terpenuhi (Done)</p>
+                    <p class="text-xs font-medium text-green-600">Terpenuhi</p>
                     <h3 class="text-2xl font-bold text-green-600 mt-1">{{ dashboardData.requests_summary.fulfilled_requests }}</h3>
                   </div>
                 </n-gi>
@@ -403,7 +403,7 @@ const formatDateTime = (val: string) => {
                       <n-icon :component="Calendar" size="20" />
                     </div>
                     <div>
-                      <h5 class="text-xs font-bold text-amber-900">Wawancara Hari Ini</h5>
+                      <h5 class="text-xs font-bold text-amber-900">Interview Hari Ini</h5>
                       <p class="text-[10px] text-amber-600">Jadwal interview hari ini</p>
                     </div>
                   </div>
@@ -429,7 +429,7 @@ const formatDateTime = (val: string) => {
                       <n-icon :component="Clock" size="20" />
                     </div>
                     <div>
-                      <h5 class="text-xs font-bold text-slate-900">Placement Segera Berakhir</h5>
+                      <h5 class="text-xs font-bold text-slate-900">Fulfillment Segera Berakhir</h5>
                       <p class="text-[10px] text-slate-500">Berakhir dalam 30 hari kedepan</p>
                     </div>
                   </div>

@@ -142,15 +142,15 @@ const allCandidateColumns = (): DataTableColumns<AllCandidates> => [
 ]
 
 const recruitmentColumns = (): DataTableColumns<AllCandidates> => [
-  {
-    title: '',
-    key: 'bookmark',
-    width: 30,
-    render: (row) =>
-      h(CandidateBookmark, {
-        userId: row.id,
-      }),
-  },
+  // {
+  //   title: '',
+  //   key: 'bookmark',
+  //   width: 30,
+  //   render: (row) =>
+  //     h(CandidateBookmark, {
+  //       userId: row.id,
+  //     }),
+  // },
   {
     title: 'No',
     key: 'no',

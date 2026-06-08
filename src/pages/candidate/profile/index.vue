@@ -395,8 +395,11 @@ const submitUpload = () => {
 
 const onConfirm = async () => {
   try {
-    // 1. Confirm CV parsed data
-    await confirmMutation.mutateAsync(formData.value)
+    // 1. Confirm CV parsed data only if the status is PARSED
+    const cvStatus = cvQuery.data.value?.data?.status
+    if (cvStatus === 'PARSED') {
+      await confirmMutation.mutateAsync(formData.value)
+    }
 
     // 2. Update profile with latest fields (birthdate, phone number, name, etc.)
     const body = {
@@ -444,6 +447,19 @@ const currentStep = computed(() => {
 
   // If AI is enabled
   const isParsingOrWaiting = cv && (cv.status === 'UPLOADED' || cv.status === 'PARSING' || cv.status === 'FAILED') && cv.parsed_data === null
+
+  // If CV exists but is not confirmed, we handle the parsing and review states
+  if (cv && cv.status !== 'CONFIRMED') {
+    if (cv.status === 'UPLOADED' || cv.status === 'PARSING') {
+      return 'PARSING'
+    }
+    if (cv.status === 'PARSED' && cv.parsed_data) {
+      return 'REVIEW'
+    }
+    if (cv.status === 'FAILED' && !isProfileComplete.value) {
+      return 'PARSING'
+    }
+  }
 
   // If user explicitly chooses to update
   if (showUpdateFlow.value) {
@@ -583,11 +599,8 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                   <!-- Personal Information -->
                   <section>
                     <div class="relative group w-fit">
-                      <img
-                        v-if="profilePictureUrl"
-                        :src="profilePictureUrl"
-                        class="w-[100px] h-[100px] rounded-full object-cover shadow-lg border-2 border-white transition-all group-hover:scale-105"
-                      />
+                      <img v-if="profilePictureUrl" :src="profilePictureUrl"
+                        class="w-[100px] h-[100px] rounded-full object-cover shadow-lg border-2 border-white transition-all group-hover:scale-105" />
                       <n-avatar v-else round :size="100"
                         class="shadow-lg border-2 border-white bg-blue-600 text-white font-bold text-3xl transition-all group-hover:scale-105 flex items-center justify-center">
                         {{ userInitials }}
@@ -657,7 +670,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                         <p class="text-sm font-bold text-primary">Provinsi</p>
                         <p class="text-[17px] font-bold text-gray-800">
                           {{provinsiOptions.find((p: any) => p.value ===
-                            (profile?.kabupaten_kota_id?.split('.')[0]))?.label || '-' }}
+                            (profile?.kabupaten_kota_id?.split('.')[0]))?.label || '-'}}
                         </p>
                       </div>
                     </div>
@@ -742,8 +755,10 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                         </div>
                       </div>
                       <div class="flex items-center gap-4 text-gray-400">
-                        <n-icon :component="Eye" size="18" class="hover:text-blue-500 cursor-pointer" @click.stop="showCVPreviewModal = true" />
-                        <n-icon :component="Download" size="18" class="hover:text-blue-500 cursor-pointer" @click.stop="downloadCV" />
+                        <n-icon :component="Eye" size="18" class="hover:text-blue-500 cursor-pointer"
+                          @click.stop="showCVPreviewModal = true" />
+                        <n-icon :component="Download" size="18" class="hover:text-blue-500 cursor-pointer"
+                          @click.stop="downloadCV" />
                       </div>
                     </div>
                   </section>
@@ -785,7 +800,8 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                 instantly!
               </p>
               <p v-if="cvTemplateUrl" class="text-gray-300 text-sm mt-2">
-                Download <a :href="cvTemplateUrl" target="_blank" class="underline font-bold text-white hover:text-blue-300 transition-colors">CV Template.docx</a> Here
+                Download <a :href="cvTemplateUrl" target="_blank"
+                  class="underline font-bold text-white hover:text-blue-300 transition-colors">CV Template.docx</a> Here
               </p>
             </div>
           </div>
@@ -861,7 +877,9 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
               </div>
               <h2 class="text-3xl font-extrabold text-white mb-2">AI Parsing Failed</h2>
               <p class="text-gray-400 mt-2 mb-8">
-                We were unable to parse your CV automatically. This could be due to a temporary service interruption or document format issues. You can fill in your details manually to complete your profile.
+                We were unable to parse your CV automatically. This could be due to a temporary service interruption or
+                document
+                format issues. You can fill in your details manually to complete your profile.
               </p>
               <div class="flex justify-center gap-4">
                 <n-button type="primary" color="#0014B2" @click="startEditing" class="font-bold">
@@ -921,39 +939,40 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
           <div v-if="isAiEnabled && (currentStep === 'REVIEW' || cvLinkData?.data?.url)"
             class="flex flex-col md:flex-row gap-4 items-center justify-between p-6 rounded-xl shadow-lg relative overflow-hidden mb-8 border border-blue-900/30"
             style="background: linear-gradient(-84.0771deg, rgb(11, 17, 33) 47.518%, rgb(2, 6, 23) 53.988%)">
-            
+
             <!-- Ellipse overlays for premium glassmorphism/glow effect -->
-            <div class="absolute left-[-50px] top-[-50px] w-64 h-64 rounded-full bg-blue-500/10 blur-[60px] pointer-events-none"></div>
-            <div class="absolute right-[-50px] bottom-[-50px] w-64 h-64 rounded-full bg-indigo-500/10 blur-[60px] pointer-events-none"></div>
+            <div
+              class="absolute left-[-50px] top-[-50px] w-64 h-64 rounded-full bg-blue-500/10 blur-[60px] pointer-events-none">
+            </div>
+            <div
+              class="absolute right-[-50px] bottom-[-50px] w-64 h-64 rounded-full bg-indigo-500/10 blur-[60px] pointer-events-none">
+            </div>
 
             <div class="flex items-center gap-4 z-10">
               <!-- Left spark/check icon -->
-              <div class="w-12 h-12 bg-blue-500/15 border border-blue-500/30 text-blue-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner">
+              <div
+                class="w-12 h-12 bg-blue-500/15 border border-blue-500/30 text-blue-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner">
                 <svg class="w-6 h-6 animate-pulse" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
+                  <path
+                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                    fill="currentColor" />
                 </svg>
               </div>
               <div class="text-left">
                 <h4 class="text-lg font-bold text-white leading-snug">CV Parsed Successfully!</h4>
                 <p class="text-sm text-gray-300 mt-1 leading-relaxed max-w-xl">
-                  We’ve pre-filled the form for you. Please double-check the information to ensure everything is accurate.
+                  We’ve pre-filled the form for you. Please double-check the information to ensure everything is
+                  accurate.
                 </p>
               </div>
             </div>
 
             <div class="z-10 flex-shrink-0">
               <n-spin :show="isUploadingAi">
-                <n-upload
-                  :default-upload="false"
-                  @change="handleAiCVUpload"
-                  accept=".pdf"
-                  :max="1"
-                  :show-file-list="false"
-                >
-                  <button
-                    type="button"
-                    class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-white font-semibold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-95 focus:outline-none"
-                  >
+                <n-upload :default-upload="false" @change="handleAiCVUpload" accept=".pdf" :max="1"
+                  :show-file-list="false">
+                  <button type="button"
+                    class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-white font-semibold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-95 focus:outline-none">
                     <n-icon :component="CloudUpload" size="18" />
                     <span>Reupload and Parse CV</span>
                   </button>
@@ -969,11 +988,8 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
               <section>
                 <h3 class="text-xl font-bold text-primary mb-4">Profile Photo</h3>
                 <div class="border border-gray-200 rounded-xl p-5 flex items-center gap-6">
-                  <img
-                    v-if="profilePictureUrl"
-                    :src="profilePictureUrl"
-                    class="w-[72px] h-[72px] rounded-full object-cover shadow border-2 border-white flex-shrink-0"
-                  />
+                  <img v-if="profilePictureUrl" :src="profilePictureUrl"
+                    class="w-[72px] h-[72px] rounded-full object-cover shadow border-2 border-white flex-shrink-0" />
                   <n-avatar v-else round :size="72"
                     class="shadow border-2 border-white bg-blue-600 text-white font-bold text-2xl flex-shrink-0 flex items-center justify-center">
                     {{ userInitials }}
@@ -1027,7 +1043,8 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                 <h3 class="text-xl font-bold text-primary mb-4">Education</h3>
                 <div class="border border-gray-200 rounded-xl p-5 space-y-4">
                   <n-form-item label="University / School">
-                    <n-input v-model:value="formData.school_university" placeholder="Enter your university or school name" />
+                    <n-input v-model:value="formData.school_university"
+                      placeholder="Enter your university or school name" />
                   </n-form-item>
                   <n-grid :cols="2" :x-gap="16">
                     <n-gi>
@@ -1100,8 +1117,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                   <!-- Applied Role -->
                   <n-form-item label="Applied Role">
                     <n-select :key="allRoles?.length || 0" v-model:value="formData.job_role_ids" multiple
-                      :max-tag-count="3" :options="jobRoleOptions"
-                      placeholder="Select the role you are applying for"
+                      :max-tag-count="3" :options="jobRoleOptions" placeholder="Select the role you are applying for"
                       :loading="isLoadingJobRoles" @update:value="handleJobRolesUpdate" />
                   </n-form-item>
 
@@ -1130,60 +1146,47 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                       <div v-if="cvLinkData?.data?.url" class="w-full flex flex-col gap-2">
                         <div
                           class="w-full border border-gray-200 rounded-xl px-4 py-3 flex items-center justify-between hover:border-blue-400 hover:shadow-sm transition-all bg-white cursor-pointer"
-                          @click="showCVPreviewModal = true"
-                        >
+                          @click="showCVPreviewModal = true">
                           <div class="flex items-center gap-3">
-                            <div class="relative w-8 h-10 bg-white rounded border border-gray-200 shadow-sm flex flex-col items-center justify-between pb-0.5 pt-1 overflow-hidden flex-shrink-0">
+                            <div
+                              class="relative w-8 h-10 bg-white rounded border border-gray-200 shadow-sm flex flex-col items-center justify-between pb-0.5 pt-1 overflow-hidden flex-shrink-0">
                               <n-icon :component="FileText" size="16" class="text-red-500 -mt-0.5" />
-                              <div class="w-full bg-red-500 text-white text-[7px] font-bold text-center py-0.5 scale-90">
+                              <div
+                                class="w-full bg-red-500 text-white text-[7px] font-bold text-center py-0.5 scale-90">
                                 PDF
                               </div>
                             </div>
-                            <span class="font-bold text-slate-800 text-[15px] hover:text-blue-600 transition-colors truncate max-w-[200px] sm:max-w-[300px] md:max-w-[450px]">
+                            <span
+                              class="font-bold text-slate-800 text-[15px] hover:text-blue-600 transition-colors truncate max-w-[200px] sm:max-w-[300px] md:max-w-[450px]">
                               {{ cvLinkData.data.name || 'Professional_CV.pdf' }}
                             </span>
                           </div>
 
                           <!-- Edit button triggers file picker -->
-                          <div @click.stop="triggerRegularCVUpload" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                          <div @click.stop="triggerRegularCVUpload"
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors">
                             <n-icon :component="Edit" size="16" class="text-gray-600" />
                             <span class="text-xs font-semibold text-gray-700">Edit</span>
                           </div>
                         </div>
 
                         <!-- Hidden upload trigger -->
-                        <n-upload
-                          ref="regularCVUploadRef"
-                          class="hidden"
-                          :default-upload="false"
-                          @change="handleRegularCVUpload"
-                          accept=".pdf,.jpg,.gif"
-                          :max="1"
-                          :show-file-list="false"
-                        />
+                        <n-upload ref="regularCVUploadRef" class="hidden" :default-upload="false"
+                          @change="handleRegularCVUpload" accept=".pdf,.jpg,.gif" :max="1" :show-file-list="false" />
                       </div>
 
                       <!-- If no CV exists, show drag & drop area -->
-                      <n-upload
-                        v-else
-                        class="w-full [&_.n-upload-trigger]:w-full [&_.n-upload-trigger]:block"
-                        :default-upload="false"
-                        @change="handleRegularCVUpload"
-                        accept=".pdf,.jpg,.gif"
-                        :max="1"
-                        :show-file-list="false"
-                        directory-dnd
-                      >
+                      <n-upload v-else class="w-full [&_.n-upload-trigger]:w-full [&_.n-upload-trigger]:block"
+                        :default-upload="false" @change="handleRegularCVUpload" accept=".pdf,.jpg,.gif" :max="1"
+                        :show-file-list="false" directory-dnd>
                         <div
-                          class="w-full border-dashed border-2 border-gray-200 hover:border-primary hover:bg-gray-50/50 transition-all rounded-xl p-8 cursor-pointer text-center"
-                        >
+                          class="w-full border-dashed border-2 border-gray-200 hover:border-primary hover:bg-gray-50/50 transition-all rounded-xl p-8 cursor-pointer text-center">
                           <div class="flex flex-col items-center">
                             <n-icon :component="FileText" size="32" class="text-gray-300 mb-3" />
                             <p class="text-gray-500 font-medium text-sm">Drop your file or click to upload</p>
                             <p class="text-gray-400 text-xs mt-1 mb-4">Supported file types: PDF, JPG, GIF</p>
                             <span
-                              class="inline-block border border-gray-300 text-gray-600 font-semibold text-xs px-6 py-2 rounded hover:bg-gray-50 transition-colors"
-                            >
+                              class="inline-block border border-gray-300 text-gray-600 font-semibold text-xs px-6 py-2 rounded hover:bg-gray-50 transition-colors">
                               Browse
                             </span>
                           </div>
@@ -1197,8 +1200,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
 
             <!-- Action Buttons -->
             <div class="flex justify-between items-center mt-10 pt-6 border-t border-gray-100">
-              <n-button ghost size="large"
-                @click="currentStep === 'REVIEW' ? startUpdateFlow() : (isEditing = false)">
+              <n-button ghost size="large" @click="currentStep === 'REVIEW' ? startUpdateFlow() : (isEditing = false)">
                 {{ currentStep === 'REVIEW' ? 'Re-upload CV' : 'Cancel' }}
               </n-button>
               <n-button type="primary" color="#0014B2" size="large"
@@ -1214,12 +1216,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
     </div>
 
     <!-- PDF CV Preview Modal -->
-    <n-modal
-      v-model:show="showCVPreviewModal"
-      preset="card"
-      :bordered="false"
-      style="width: 52rem"
-    >
+    <n-modal v-model:show="showCVPreviewModal" preset="card" :bordered="false" style="width: 52rem">
       <div class="-mt-8">
         <div class="flex items-center justify-between gap-4">
           <div>
@@ -1231,12 +1228,7 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
         </div>
 
         <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          <iframe
-            v-if="cvPreviewUrl"
-            :src="cvPreviewUrl"
-            title="CV Preview"
-            class="h-[70vh] w-full"
-          ></iframe>
+          <iframe v-if="cvPreviewUrl" :src="cvPreviewUrl" title="CV Preview" class="h-[70vh] w-full"></iframe>
           <div v-else class="flex items-center justify-center py-16 text-sm text-slate-400">
             Preview tidak tersedia.
           </div>
@@ -1245,4 +1237,3 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
     </n-modal>
   </CandidateLayout>
 </template>
-

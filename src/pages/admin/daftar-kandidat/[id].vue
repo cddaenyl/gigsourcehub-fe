@@ -107,6 +107,31 @@ const finalizeFeedbackDetail = ref('')
 const selectedRequestId = ref<string | null>(null)
 const selectedSubrequestId = ref<string | null>(null)
 const assignedPairKeys = ref<string[]>([])
+const showCVPreview = ref(false)
+const CVPreviewUrl = ref<string | null>(null)
+const CVPreviewName = ref<string | null>(null)
+
+const handlePreviewCV = (payload: { url: string | null; name: string | null }) => {
+  CVPreviewUrl.value = payload.url
+  CVPreviewName.value = payload.name
+  showCVPreview.value = true
+}
+
+// const handleDownloadCV = (payload: { url: string | null; name: string | null }) => {
+//   if (!payload.url) return
+//   // Try to force download if possible, otherwise open in new tab
+//   try {
+//     const a = document.createElement('a')
+//     a.href = payload.url
+//     a.target = '_blank'
+//     if (payload.name) a.download = payload.name
+//     document.body.appendChild(a)
+//     a.click()
+//     a.remove()
+//   } catch (err) {
+//     window.open(payload.url, '_blank')
+//   }
+// }
 
 const myRequestsParams = computed<RequestQueryParams>(() => ({
   page: 1,
@@ -602,7 +627,7 @@ const handleAssignCandidate = async (): Promise<void> => {
         </div>
         <n-grid :x-gap="8" :cols="2" item-responsive>
           <n-gi>
-            <CandidateInfoCard :user="user" />
+            <CandidateInfoCard :user="user" @preview-cv="handlePreviewCV" />
           </n-gi>
 
           <n-gi>
@@ -902,6 +927,31 @@ const handleAssignCandidate = async (): Promise<void> => {
       @positive-click="closeFinalizeFeedback"
     >
       <p>{{ finalizeFeedbackDetail }}</p>
+    </n-modal>
+
+    <n-modal v-model:show="showCVPreview" preset="card" :bordered="false" style="width: 52rem">
+      <div class="-mt-8">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold">Preview Dokumen</h3>
+            <p class="text-sm text-gray-500">
+              {{ CVPreviewName || 'Dokumen' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <iframe
+            v-if="CVPreviewUrl"
+            :src="CVPreviewUrl"
+            title="CV Preview"
+            class="h-[70vh] w-full"
+          ></iframe>
+          <div v-else class="flex items-center justify-center py-16 text-sm text-slate-400">
+            Preview tidak tersedia.
+          </div>
+        </div>
+      </div>
     </n-modal>
   </AdminLayout>
 </template>

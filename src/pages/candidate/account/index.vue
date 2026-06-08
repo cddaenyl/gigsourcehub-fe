@@ -99,6 +99,13 @@ const confirmDeleteAccount = async () => {
     <div class="p-8 space-y-12">
       <!-- Keamanan & Password Section -->
       <n-spin :show="isChangingPassword">
+        <template #icon>
+          <div class="flex gap-2">
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          </div>
+        </template>
         <div class="max-w-2xl">
           <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
             <n-icon :component="Lock" class="text-primary" /> Keamanan & Password

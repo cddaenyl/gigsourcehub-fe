@@ -7,6 +7,7 @@ export function useActiveSubrequest(id: MaybeRefOrGetter<string>) {
     queryKey: computed(() => ['active-subrequest', toValue(id)]),
     queryFn: () => getActiveSubrequestApi(toValue(id)),
     enabled: computed(() => !!toValue(id)),
+    retry: false,
   })
 
   const activeSubrequest = computed(() => query.data.value?.data ?? null)

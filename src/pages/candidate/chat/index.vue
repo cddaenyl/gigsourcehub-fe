@@ -4,7 +4,7 @@ import CandidateLayout from '@/layouts/CandidateLayout.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
-import { NInput, NSpin, NEmpty, NIcon, NModal, NButton } from 'naive-ui'
+import { NInput, NEmpty, NIcon, NModal, NButton } from 'naive-ui'
 import {
   Send,
   Eye,
@@ -340,7 +340,11 @@ watch(showInterviewDetailModal, (visible) => {
     <div class="h-[calc(100vh-95px)] flex flex-col relative">
       <template v-if="isLoadingConversations">
           <div class="flex-1 flex items-center justify-center min-h-[500px]">
-            <n-spin size="large" />
+            <div class="flex gap-2 justify-center items-center">
+              <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+              <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            </div>
           </div>
       </template>
       <template v-else-if="!activeConversation">
@@ -359,7 +363,11 @@ watch(showInterviewDetailModal, (visible) => {
         <!-- Messages -->
         <div class="flex-1 overflow-y-auto p-6 bg-gray-50/30" ref="messagesContainer">
           <div v-if="isLoadingMessages" class="flex justify-center p-8">
-            <n-spin size="medium" />
+            <div class="flex gap-2 justify-center items-center">
+              <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+              <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            </div>
           </div>
           <div v-else class="space-y-6">
             <template v-for="(msg, index) in messages" :key="msg.id">
@@ -595,7 +603,11 @@ watch(showInterviewDetailModal, (visible) => {
     >
       <div class="-mt-8">
         <div v-if="isLoadingInterviewDetail" class="flex justify-center py-10">
-          <n-spin size="medium" />
+          <div class="flex gap-2 justify-center items-center">
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          </div>
         </div>
 
         <div v-else-if="selectedInterview" class="space-y-4">

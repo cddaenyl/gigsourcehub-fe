@@ -79,7 +79,12 @@ const formatTime = (dateString: string) => {
     <!-- Content -->
     <div class="flex-1 overflow-auto rounded-md flex flex-col pb-6" :class="isCandidate ? '' : 'px-6 max-w-[1200px] mx-auto w-full'">
       <div v-if="isLoading" class="flex justify-center items-center h-40">
-        <n-spin size="large" />
+        <div v-if="isCandidate" class="flex gap-2 justify-center items-center">
+          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+        </div>
+        <n-spin v-else size="large" />
       </div>
 
       <div v-else-if="!notificationsData?.data?.list?.length" class="flex justify-center items-center h-64 bg-white border border-gray-200 rounded-md">

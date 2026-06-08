@@ -567,6 +567,13 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
 
       <!-- Loading State -->
       <n-spin :show="isLoadingProfile || isUploadingPicture">
+        <template #icon>
+          <div class="flex gap-2">
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          </div>
+        </template>
 
         <!-- PROFILE VIEW (Default if complete and not updating) -->
         <div v-if="currentStep === 'VIEW'">
@@ -856,7 +863,15 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                 ? 'bg-transparent text-gray-500 border-gray-700 cursor-not-allowed opacity-50'
                 : 'bg-gradient-to-r from-[#0d2a84] to-[#12286c] hover:from-[#1135a5] hover:to-[#173397] border-[#263e8a] text-white cursor-pointer active:scale-95'
             ]" @click="submitUpload">
-              <n-spin v-if="uploadMutation.isPending.value" size="small" class="mr-1" stroke="currentColor" />
+              <n-spin v-if="uploadMutation.isPending.value" size="small" class="mr-1" stroke="currentColor">
+                <template #icon>
+                  <div class="flex gap-1 items-center mr-1">
+                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce"></div>
+                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  </div>
+                </template>
+              </n-spin>
               <span>{{ uploadMutation.isPending.value ? 'Extracting...' : 'Extract CV Data with AI' }}</span>
               <svg v-if="!uploadMutation.isPending.value" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none"
                 xmlns="http://www.w3.org/2000/svg">
@@ -969,6 +984,13 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
 
             <div class="z-10 flex-shrink-0">
               <n-spin :show="isUploadingAi">
+                <template #icon>
+                  <div class="flex gap-2">
+                    <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  </div>
+                </template>
                 <n-upload :default-upload="false" @change="handleAiCVUpload" accept=".pdf" :max="1"
                   :show-file-list="false">
                   <button type="button"
@@ -1142,6 +1164,13 @@ watch(() => cvQuery.data.value?.data?.parsed_data, (newData) => {
                   <!-- CV Upload (File Only) -->
                   <n-form-item :label="isAiEnabled ? 'Curriculum Vitae (CV)' : 'Curriculum Vitae (CV)'">
                     <n-spin :show="isUploadingRegular" class="w-full">
+                      <template #icon>
+                        <div class="flex gap-2">
+                          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+                          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        </div>
+                      </template>
                       <!-- If CV exists, show Figma-style view/edit bar -->
                       <div v-if="cvLinkData?.data?.url" class="w-full flex flex-col gap-2">
                         <div

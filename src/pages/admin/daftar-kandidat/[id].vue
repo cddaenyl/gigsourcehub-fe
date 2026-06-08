@@ -617,7 +617,7 @@ const handleAssignCandidate = async (): Promise<void> => {
           </h2>
         </div>
         <div
-          v-else-if="!activeSubrequest"
+          v-else-if="!isActiveSubrequestLoading && !activeSubrequest"
           class="flex text-slate-500 border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
         >
           <n-icon size="14" :component="Alarm" style="font-weight: bold" />

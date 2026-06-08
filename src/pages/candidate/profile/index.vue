@@ -636,6 +636,14 @@ watch(
     <div class="p-6">
       <!-- Loading State -->
       <n-spin :show="isLoadingProfile || isUploadingPicture">
+        <template #icon>
+          <div class="flex gap-2">
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          </div>
+        </template>
+
         <!-- PROFILE VIEW (Default if complete and not updating) -->
         <div v-if="currentStep === 'VIEW'">
           <div class="relative">
@@ -1038,33 +1046,24 @@ watch(
 
           <!-- Action Button -->
           <div class="flex justify-center mt-6">
-            <button
-              type="button"
-              :disabled="fileList.length === 0 || uploadMutation.isPending.value"
-              :class="[
-                'px-7 py-2.5 rounded-full font-semibold text-sm shadow-xl transition-all flex items-center justify-center gap-2 border',
-                fileList.length === 0
-                  ? 'bg-transparent text-gray-500 border-gray-700 cursor-not-allowed opacity-50'
-                  : 'bg-gradient-to-r from-[#0d2a84] to-[#12286c] hover:from-[#1135a5] hover:to-[#173397] border-[#263e8a] text-white cursor-pointer active:scale-95',
-              ]"
-              @click="submitUpload"
-            >
-              <n-spin
-                v-if="uploadMutation.isPending.value"
-                size="small"
-                class="mr-1"
-                stroke="currentColor"
-              />
-              <span>{{
-                uploadMutation.isPending.value ? 'Extracting...' : 'Extract CV Data with AI'
-              }}</span>
-              <svg
-                v-if="!uploadMutation.isPending.value"
-                class="w-4 h-4 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+            <button type="button" :disabled="fileList.length === 0 || uploadMutation.isPending.value" :class="[
+              'px-7 py-2.5 rounded-full font-semibold text-sm shadow-xl transition-all flex items-center justify-center gap-2 border',
+              fileList.length === 0
+                ? 'bg-transparent text-gray-500 border-gray-700 cursor-not-allowed opacity-50'
+                : 'bg-gradient-to-r from-[#0d2a84] to-[#12286c] hover:from-[#1135a5] hover:to-[#173397] border-[#263e8a] text-white cursor-pointer active:scale-95'
+            ]" @click="submitUpload">
+              <n-spin v-if="uploadMutation.isPending.value" size="small" class="mr-1" stroke="currentColor">
+                <template #icon>
+                  <div class="flex gap-1 items-center mr-1">
+                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce"></div>
+                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  </div>
+                </template>
+              </n-spin>
+              <span>{{ uploadMutation.isPending.value ? 'Extracting...' : 'Extract CV Data with AI' }}</span>
+              <svg v-if="!uploadMutation.isPending.value" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M12 3C12 3 12 7.5 14.5 10C17 12.5 21.5 12.5 21.5 12.5C21.5 12.5 17 12.5 14.5 15C12 17.5 12 22 12 22C12 22 12 17.5 9.5 15C7 12.5 2.5 12.5 2.5 12.5C2.5 12.5 7 12.5 9.5 10C12 7.5 12 3 12 3Z"
                   fill="currentColor"
@@ -1206,17 +1205,17 @@ watch(
 
             <div class="z-10 flex-shrink-0">
               <n-spin :show="isUploadingAi">
-                <n-upload
-                  :default-upload="false"
-                  @change="handleAiCVUpload"
-                  accept=".pdf"
-                  :max="1"
-                  :show-file-list="false"
-                >
-                  <button
-                    type="button"
-                    class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-white font-semibold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-95 focus:outline-none"
-                  >
+                <template #icon>
+                  <div class="flex gap-2">
+                    <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  </div>
+                </template>
+                <n-upload :default-upload="false" @change="handleAiCVUpload" accept=".pdf" :max="1"
+                  :show-file-list="false">
+                  <button type="button"
+                    class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-white font-semibold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-95 focus:outline-none">
                     <n-icon :component="CloudUpload" size="18" />
                     <span>Reupload and Parse CV</span>
                   </button>
@@ -1468,6 +1467,13 @@ watch(
                     :label="isAiEnabled ? 'Curriculum Vitae (CV)' : 'Curriculum Vitae (CV)'"
                   >
                     <n-spin :show="isUploadingRegular" class="w-full">
+                      <template #icon>
+                        <div class="flex gap-2">
+                          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+                          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                          <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        </div>
+                      </template>
                       <!-- If CV exists, show Figma-style view/edit bar -->
                       <div v-if="cvLinkData?.data?.url" class="w-full flex flex-col gap-2">
                         <div

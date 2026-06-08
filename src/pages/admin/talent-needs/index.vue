@@ -137,6 +137,7 @@ const paginatedTalentNeeds = computed<TalentNeed[]>(() => {
     batasWaktu: formatDate(request.due_date),
     picHr: request.admin_name || '-',
     status: formatStatusLabel(request.status),
+    requestStatus: request.status,
     urgensi: formatUrgencyLabel(request.urgency),
   }))
 })
@@ -274,6 +275,11 @@ const handleExportSelect = async (formatType: string) => {
 
           <div class="flex-1 min-w-0 rounded-lg space-y-4">
             <TalentNeedsTabs v-model="activeTab" />
+            <!-- <TalentNeedsTable
+              :data="paginatedTalentNeeds"
+              :actions="['detail', 'validate']"
+              @action="handleAction"
+            /> -->
             <TalentNeedsTable
               :data="paginatedTalentNeeds"
               :actions="['detail', 'validate']"

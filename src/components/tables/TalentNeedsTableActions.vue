@@ -51,14 +51,21 @@ const actionOptionMap: Record<TalentNeedActionKey, { label: string; icon: Compon
 const createActionOptions = (row: TalentNeed) => {
   return props.actions
     .filter((action) => action in actionOptionMap)
-    .map((action) => ({
-      label: actionOptionMap[action].label,
-      key: action,
-      icon: renderIcon(actionOptionMap[action].icon),
-      props: {
-        onClick: () => handleAction(action, row),
-      },
-    }))
+    .reduce((acc: any[], action) => {
+      // only show "validate" when the request/talent need raw status is PENDING
+      if (action === 'validate' && row.requestStatus?.toUpperCase() !== 'PENDING') return acc
+
+      acc.push({
+        label: actionOptionMap[action].label,
+        key: action,
+        icon: renderIcon(actionOptionMap[action].icon),
+        props: {
+          onClick: () => handleAction(action, row),
+        },
+      })
+
+      return acc
+    }, [])
 }
 </script>
 

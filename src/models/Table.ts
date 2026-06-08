@@ -28,5 +28,6 @@ export interface TalentNeed {
   batasWaktu: string
   picHr: string
   status: string
+  requestStatus?: string
   urgensi: 'High' | 'Middle' | 'Low'
 }

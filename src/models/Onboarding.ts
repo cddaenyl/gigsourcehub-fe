@@ -44,6 +44,10 @@ export interface OnboardingQueryParams {
   page?: number
   limit?: number
   search?: string
+  job_role_name?: string
+  project_name?: string
+  employee_user?: string
+  format?: string
 }
 
 export interface OnboardingTeamRow {

@@ -6,11 +6,25 @@ import CandidateSearch from '@/components/CandidateSearch.vue'
 import CandidateTabs from '@/components/CandidateTabs.vue'
 import CandidateTable from '@/components/tables/CandidateTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
-import { NConfigProvider } from 'naive-ui'
+import CandidateDirectoryFilters from '@/components/CandidateDirectoryFilters.vue'
+import { NConfigProvider, NDropdown, NButton, NIcon, useMessage } from 'naive-ui'
+import { Download } from '@vicons/tabler'
 import { useBookmarkStore } from '@/stores/bookmark.store'
 import type { AllCandidates } from '@/models/Table'
 import { fetchAiModeStatus } from '@/services/system-setting'
-import { useAdminCandidateDirectory } from '@/composables/useAdminCandidateDirectory'
+import {
+  useAdminCandidateDirectory
+} from '@/composables/useAdminCandidateDirectory'
+import {
+  exportCandidatesApi,
+  exportCandidateRecruitmentApi,
+  exportCandidateBookmarkedApi,
+} from '@/services/user.service'
+import {
+  exportActiveOnboardingApi,
+  exportArchiveOnboardingApi,
+} from '@/services/onboarding.service'
+import { format } from 'date-fns'
 
 const router = useRouter()
 const isAiEnabled = ref(true)
@@ -53,21 +67,52 @@ const pageSize = ref(10)
 // Tabs
 const activeTab = ref<'semua' | 'rekrutmen' | 'onboarding' | 'archive' | 'disimpan'>('semua')
 
-// Search
+// Search & Filters
 const searchQuery = ref('')
+const showFilters = ref(false)
+const filters = ref({
+  bidang: undefined as string | undefined,
+  job_roles: undefined as string | undefined,
+  candidate_level: undefined as string | undefined,
+  job_role_name: undefined as string | undefined,
+  project_name: undefined as string | undefined,
+  employee_user: undefined as string | undefined,
+})
 
 // Fetch users with query params
-const queryParams = computed(() => ({
-  page: currentPage.value,
-  limit: pageSize.value,
-  search: searchQuery.value,
-  tab: activeTab.value === 'semua' ? undefined : activeTab.value,
-}))
+const queryParams = computed(() => {
+  const baseParams: any = {
+    page: currentPage.value,
+    limit: pageSize.value,
+    search: searchQuery.value || undefined,
+  }
+
+  if (activeTab.value !== 'semua') {
+    baseParams.tab = activeTab.value
+  }
+
+  // Add active filters based on tab
+  if (['semua', 'disimpan'].includes(activeTab.value)) {
+    if (filters.value.bidang) baseParams.bidang = filters.value.bidang
+    if (filters.value.job_roles) baseParams.job_roles = filters.value.job_roles
+    if (filters.value.candidate_level) baseParams.candidate_level = filters.value.candidate_level
+  } else if (activeTab.value === 'rekrutmen') {
+    if (filters.value.job_role_name) baseParams.job_role_name = filters.value.job_role_name
+    if (filters.value.project_name) baseParams.project_name = filters.value.project_name
+    if (filters.value.candidate_level) baseParams.candidate_level = filters.value.candidate_level
+  } else if (['onboarding', 'archive'].includes(activeTab.value)) {
+    if (filters.value.job_role_name) baseParams.job_role_name = filters.value.job_role_name
+    if (filters.value.project_name) baseParams.project_name = filters.value.project_name
+    if (filters.value.employee_user) baseParams.employee_user = filters.value.employee_user
+  }
+
+  return baseParams
+})
 
 const { rows, pageCount, isLoading } = useAdminCandidateDirectory(queryParams, activeTab)
 const bookmarkStore = useBookmarkStore()
 
-// Initialize bookmarks when users data changes
+// Watch filters and tabs
 watch(
   [rows, activeTab],
   ([newRows, tab]) => {
@@ -82,6 +127,25 @@ watch(
 watch(activeTab, () => {
   currentPage.value = 1
 })
+
+watch(
+  filters,
+  () => {
+    currentPage.value = 1
+  },
+  { deep: true },
+)
+
+const handleClearFilters = () => {
+  filters.value = {
+    bidang: undefined,
+    job_roles: undefined,
+    candidate_level: undefined,
+    job_role_name: undefined,
+    project_name: undefined,
+    employee_user: undefined,
+  }
+}
 
 // Transform API data to table data format
 const tableData = computed<AllCandidates[]>(() => {
@@ -132,6 +196,63 @@ const handleSearch = (value: string) => {
   searchQuery.value = value
   currentPage.value = 1
 }
+
+// Export logic
+const message = useMessage()
+const exportOptions = [
+  { label: 'Export to PDF (.pdf)', key: 'pdf' },
+  { label: 'Export to Excel (.xlsx)', key: 'xlsx' },
+  { label: 'Export to CSV (.csv)', key: 'csv' },
+]
+
+const handleExportSelect = async (formatType: string) => {
+  const exportParams = { ...queryParams.value, format: formatType }
+  delete exportParams.page
+  delete exportParams.limit
+
+  const msg = message.loading(`Generating ${formatType.toUpperCase()} export...`, { duration: 0 })
+  try {
+    let blob: Blob
+    switch (activeTab.value) {
+      case 'rekrutmen':
+        blob = await exportCandidateRecruitmentApi(exportParams)
+        break
+      case 'disimpan':
+        blob = await exportCandidateBookmarkedApi(exportParams)
+        break
+      case 'onboarding':
+        blob = await exportActiveOnboardingApi(exportParams)
+        break
+      case 'archive':
+        blob = await exportArchiveOnboardingApi(exportParams)
+        break
+      case 'semua':
+      default:
+        blob = await exportCandidatesApi(exportParams)
+        break
+    }
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+
+    const timestamp = format(new Date(), 'yyyyMMdd_HHmmss')
+    link.setAttribute('download', `daftar_kandidat_${activeTab.value}_${timestamp}.${formatType}`)
+
+    document.body.appendChild(link)
+    link.click()
+
+    // Cleanup
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    message.success('Download started')
+  } catch (err: any) {
+    message.error(err.message || 'Gagal export data')
+  } finally {
+    msg.destroy()
+  }
+}
 </script>
 
 <template>
@@ -139,32 +260,78 @@ const handleSearch = (value: string) => {
     <n-config-provider :theme-overrides="themeOverride">
       <div class="space-y-6">
         <!-- Top Section -->
-        <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-gray-700">Daftar Kandidat</h1>
-          <CandidateSearch @search="handleSearch" :is-ai-enabled="isAiEnabled" />
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-700">Daftar Kandidat</h1>
+          </div>
+          <div class="flex items-center gap-2">
+            <CandidateSearch
+              @search="handleSearch"
+              @toggle-filter="showFilters = !showFilters"
+              :is-ai-enabled="isAiEnabled"
+            />
+
+            <n-dropdown trigger="click" :options="exportOptions" @select="handleExportSelect">
+              <n-button type="primary" color="#0014B2">
+                <template #icon>
+                  <n-icon :component="Download" />
+                </template>
+                Export
+              </n-button>
+            </n-dropdown>
+          </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="rounded-lg p-2 py-3 space-y-4">
-          <!-- Tabs -->
-          <CandidateTabs v-model="activeTab" />
+        <!-- Main Content Layout -->
+        <div class="flex gap-6 items-start relative">
+          <!-- Filter Sidebar -->
+          <transition name="slide-fade">
+            <div v-if="showFilters" class="w-72 shrink-0 sticky top-6">
+              <CandidateDirectoryFilters
+                v-model:filters="filters"
+                :active-tab="activeTab"
+                @clear="handleClearFilters"
+              />
+            </div>
+          </transition>
 
-          <!-- Data Table -->
-          <CandidateTable :data="tableData" :variant="tableVariant" @action="handleAction" />
+          <!-- Main Content Data -->
+          <div class="flex-1 min-w-0 rounded-lg space-y-4">
+            <!-- Tabs -->
+            <CandidateTabs v-model="activeTab" />
 
-          <!-- Loading State -->
-          <div v-if="isLoading" class="text-center py-8">
-            <p class="text-gray-500">Loading...</p>
+            <!-- Data Table -->
+            <CandidateTable :data="tableData" :variant="tableVariant" @action="handleAction" />
+
+            <!-- Loading State -->
+            <div v-if="isLoading" class="text-center py-8">
+              <p class="text-gray-500">Loading...</p>
+            </div>
+
+            <!-- Table Controls -->
+            <CandidatePagination
+              v-model:page="currentPage"
+              v-model:page-size="pageSize"
+              :page-count="pageCount"
+            />
           </div>
-
-          <!-- Table Controls -->
-          <CandidatePagination
-            v-model:page="currentPage"
-            v-model:page-size="pageSize"
-            :page-count="pageCount"
-          />
         </div>
       </div>
     </n-config-provider>
   </AdminLayout>
 </template>
+
+<style scoped>
+/* Transitions */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
+}
+</style>

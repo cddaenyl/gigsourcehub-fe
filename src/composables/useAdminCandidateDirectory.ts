@@ -102,14 +102,15 @@ export function useAdminCandidateDirectory(
 
     const page = response.data.page || 1
     const limit = response.data.limit || 10
+    const list = response.data.list ?? []
 
     if (currentTab === 'onboarding' || currentTab === 'archive') {
-      return response.data.list.map((item, index) =>
+      return list.map((item, index) =>
         mapOnboardingRow(item as OnboardingItem, formatRowNumber(page, limit, index)),
       )
     }
 
-    return response.data.list.map((user, index) =>
+    return list.map((user, index) =>
       mapUserRow(user as CandidateDirectoryUser, formatRowNumber(page, limit, index)),
     )
   })

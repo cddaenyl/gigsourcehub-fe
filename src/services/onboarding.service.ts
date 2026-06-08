@@ -71,3 +71,27 @@ export const getOnboardingHistoryApi = async (
     throw error
   }
 }
+
+export const exportActiveOnboardingApi = async (params: OnboardingQueryParams = {}): Promise<Blob> => {
+  try {
+    const response = await axios.get('/onboarding/active/export', { params, responseType: 'blob' })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const exportArchiveOnboardingApi = async (params: OnboardingQueryParams = {}): Promise<Blob> => {
+  try {
+    const response = await axios.get('/onboarding/archive/export', { params, responseType: 'blob' })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

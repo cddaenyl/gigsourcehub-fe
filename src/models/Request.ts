@@ -72,6 +72,11 @@ export interface RequestQueryParams {
   page?: number
   limit?: number
   search?: string
+  status?: string
+  urgency?: string
+  proposed_by?: string
+  admin_name?: string
+  format?: string
 }
 
 export interface GetRequestsResponse {

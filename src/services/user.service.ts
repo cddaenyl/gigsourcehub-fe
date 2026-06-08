@@ -336,3 +336,48 @@ export const deleteAccountApi = async (data: { password: string }): Promise<void
   }
 }
 
+export const exportCandidatesApi = async (params: UsersQueryParams = {}): Promise<Blob> => {
+  try {
+    const response = await axios.get('/users/candidates/export', { params, responseType: 'blob' })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const exportCandidateRecruitmentApi = async (
+  params: UsersQueryParams = {},
+): Promise<Blob> => {
+  try {
+    const response = await axios.get('/users/candidate-recruitment/export', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const exportCandidateBookmarkedApi = async (
+  params: UsersQueryParams = {},
+): Promise<Blob> => {
+  try {
+    const response = await axios.get('/users/candidate-bookmarked/export', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

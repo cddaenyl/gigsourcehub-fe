@@ -100,6 +100,12 @@ export interface UsersQueryParams {
   search?: string
   tab?: string
   role?: string
+  bidang?: string
+  job_roles?: string
+  candidate_level?: string
+  job_role_name?: string
+  project_name?: string
+  format?: string
 }
 
 export interface PaginatedListData<T> {

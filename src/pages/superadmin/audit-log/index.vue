@@ -156,7 +156,7 @@ const handleExportSelect = async (key: string) => {
   
   if (!formatType || !range) return
 
-  let params: any = { ...filters.value, search: searchQuery.value, format: formatType }
+  const params: any = { ...filters.value, search: searchQuery.value, format: formatType }
   const now = new Date()
 
   if (range === 'today') {

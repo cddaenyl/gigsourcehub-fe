@@ -32,23 +32,17 @@ const unreadNotifCount = computed(() => unreadNotifData.value?.data.unread_count
 
 const defaultAvatarSeed = 'HumanResource'
 
-const getThumbUrl = (url: string | null | undefined): string | undefined => {
-  if (!url) return undefined
-  const lastDotIndex = url.lastIndexOf('.')
-  if (lastDotIndex === -1) return url
-  const filename = url.substring(0, lastDotIndex)
-  const extension = url.substring(lastDotIndex)
-  return `${filename}_thumb${extension}`
-}
+import { getProfilePictureThumbnail } from '@/utils/image'
 
 const userInfo = computed(() => {
   const user = profile.value || me.value || authStore.user
   const role = user?.system_role_name
   const name = user?.name || 'Human Resource'
   const email = user?.email || 'human.resource@gigsource.com'
-  const avatar =
-    getThumbUrl(user?.profile_picture) ||
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || defaultAvatarSeed)}`
+  const rawAvatar = profile.value?.profile_picture || authStore.user?.profile_picture
+  const avatar = rawAvatar
+    ? getProfilePictureThumbnail(rawAvatar)
+    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || defaultAvatarSeed)}`
 
   return {
     name,
@@ -148,7 +142,12 @@ watch(
       >
         <div class="p-2 rounded-xl group-hover:bg-[#F0F2FD] border border-transparent group-hover:border-[#C7D0F3] transition-all">
           <n-space align="center" :wrap="false">
-            <n-avatar round :size="40" :src="userInfo.avatar" class="shadow-sm border border-gray-100" />
+            <img
+              v-if="userInfo.avatar"
+              :src="userInfo.avatar"
+              class="w-[40px] h-[40px] rounded-full object-cover shadow-sm border border-gray-100"
+            />
+            <n-avatar v-else round :size="40" class="shadow-sm border border-gray-100" />
             <div class="flex-1 min-w-0 pb-1">
               <div class="text-sm font-semibold text-gray-800 truncate group-hover:text-primary transition-colors">
                 {{ userInfo.name }}

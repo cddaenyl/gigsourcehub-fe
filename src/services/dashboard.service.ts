@@ -6,7 +6,7 @@ export interface AdminDashboardSummary {
     offer_acceptance_rate: number
     active_job_vacancies: number
     interview_attendance_rate: number
-    quality_of_hire: number
+    avg_review_score: number
   }
   upcoming_interviews: Array<{
     id: string
@@ -61,16 +61,6 @@ export interface AdminDashboardSummaryResponse {
 }
 
 export interface DashboardAnalytics {
-  funnel: Array<{
-    stage_name: string
-    count: number
-    conversion_rate: number
-  }>
-  status_distribution: Array<{
-    status_name: string
-    hex_code: string
-    count: number
-  }>
   trends: Array<{
     period: string
     applicants: number

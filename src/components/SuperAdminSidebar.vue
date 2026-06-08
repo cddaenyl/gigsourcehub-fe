@@ -47,7 +47,7 @@ const menuOptions: MenuOption[] = [
         key: 'status-rekrutmen',
       },
       {
-        label: 'Tahap Interview',
+        label: 'Jenis Interview',
         key: 'interview-stages',
       },
     ],

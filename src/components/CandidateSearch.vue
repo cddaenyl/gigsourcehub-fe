@@ -9,19 +9,19 @@ import { useAICandidateSearch } from '../composables/useAICandidateSearch'
 import { useAIChatHistory } from '../composables/useAIChatHistory'
 import { useAuthStore } from '../stores/auth.store'
 import { getUserProfilePictureApi } from '../services/user.service'
+import { getProfilePictureThumbnail } from '@/utils/image'
 import type { ChatMessage } from '../models/CandidateSearch'
 import CandidateLevelChip from './CandidateLevelChip.vue'
 
-const props = withDefaults(
-  defineProps<{
-    placeholder?: string
-    isAiEnabled?: boolean
-  }>(),
-  {
-    placeholder: 'Cari kandidat',
-    isAiEnabled: true,
-  },
-)
+interface Props {
+  placeholder?: string
+  isAiEnabled?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  placeholder: 'Cari kandidat',
+  isAiEnabled: true,
+})
 
 const authStore = useAuthStore()
 const currentUser = computed(() => authStore.user)
@@ -167,7 +167,7 @@ const fetchProfilePic = async (id: string) => {
 
   try {
     const res = await getUserProfilePictureApi(id)
-    profilePics.value[id] = res.profile_picture_url
+    profilePics.value[id] = getProfilePictureThumbnail(res.profile_picture_url) || null
   } catch (err) {
     console.error(`Failed to fetch profile pic for candidate ${id}`, err)
     profilePics.value[id] = null
@@ -450,27 +450,18 @@ defineExpose({
             <div v-for="msg in chatHistory" :key="msg.id" class="flex flex-col w-full">
               <!-- User Message Bubbles -->
               <div v-if="msg.role === 'user'" class="flex flex-col items-end w-full mb-1">
-                <div class="flex items-center justify-end space-x-2.5 mb-2 w-full pr-1">
-                  <span class="font-bold text-[14px] text-slate-800">You</span>
-                  <span class="text-xs text-slate-400">{{ msg.timestamp }}</span>
-                  <div
-                    class="w-8 h-8 rounded-full bg-slate-100 overflow-hidden shrink-0 shadow-sm ml-1 border border-slate-200 flex items-center justify-center text-slate-500"
-                  >
-                    <img
-                      v-if="currentUser?.profile_picture"
-                      :src="currentUser.profile_picture"
-                      alt="User avatar"
-                      class="w-full h-full object-cover"
-                    />
-                    <n-icon v-else :component="User" size="18" />
-                  </div>
-                </div>
-
-                <div
-                  class="bg-[#F8FAFC] text-slate-600 px-6 py-4 rounded-[20px] rounded-tr-sm text-[15px] shadow-sm leading-relaxed max-w-[90%] border border-slate-100 whitespace-pre-wrap"
-                >
-                  {{ msg.text }}
-                </div>
+                 <div class="flex items-center justify-end space-x-2.5 mb-2 w-full pr-1">
+                   <span class="font-bold text-[14px] text-slate-800">You</span>
+                   <span class="text-xs text-slate-400">{{ msg.timestamp }}</span>
+                   <div class="w-8 h-8 rounded-full bg-slate-100 overflow-hidden shrink-0 shadow-sm ml-1 border border-slate-200 flex items-center justify-center text-slate-500">
+                      <img v-if="currentUser?.profile_picture" :src="getProfilePictureThumbnail(currentUser.profile_picture)" alt="User avatar" class="w-full h-full object-cover" />
+                      <n-icon v-else :component="User" size="18" />
+                   </div>
+                 </div>
+                 
+                 <div class="bg-[#F8FAFC] text-slate-600 px-6 py-4 rounded-[20px] rounded-tr-sm text-[15px] shadow-sm leading-relaxed max-w-[90%] border border-slate-100 whitespace-pre-wrap">
+                   {{ msg.text }}
+                 </div>
               </div>
 
               <!-- AI Message Bubble & Containers -->

@@ -20,6 +20,7 @@ export interface JobVacancySubrequest {
   is_filled: boolean
   overview?: string | null
   project_duration?: string | null
+  project_name?: string | null
 }
 
 export interface JobVacancy {

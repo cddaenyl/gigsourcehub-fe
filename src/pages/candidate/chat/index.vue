@@ -4,7 +4,7 @@ import CandidateLayout from '@/layouts/CandidateLayout.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '@/composables/useChat'
 import { useChatWebSocket } from '@/composables/useChatWebSocket'
-import { NInput, NEmpty, NIcon, NModal, NButton } from 'naive-ui'
+import { NInput, NEmpty, NIcon, NModal, NButton, NSpin } from 'naive-ui'
 import {
   Send,
   Eye,
@@ -18,10 +18,17 @@ import {
   CalendarEvent,
   DeviceLaptop,
   Home,
+  Plane,
+  AlertTriangle,
+  Checkbox,
+  Alarm,
 } from '@vicons/tabler'
 import type { ConversationResp, MessageResp } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useInterviewById } from '@/composables/useInterviews'
+import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
+import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
+import { useProfile } from '@/composables/useProfile'
 
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
@@ -333,6 +340,29 @@ watch(showInterviewDetailModal, (visible) => {
     selectedInterviewId.value = null
   }
 })
+
+// Active subrequest, onboarding history, and profile for the candidate
+const userId = computed(() => authStore.user?.id || '')
+const {
+  activeSubrequest,
+  isLoading: isActiveSubrequestLoading,
+} = useActiveSubrequest(userId)
+const { history: onboardingHistory } = useCandidateOnboardingHistory(userId)
+const currentOnboarding = computed(() => onboardingHistory.value?.[0] ?? null)
+const { profile } = useProfile()
+
+const formatOnboardingDate = (value: string | null | undefined): string => {
+  if (!value) return '-'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return date.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
 </script>
 
 <template>
@@ -358,6 +388,62 @@ watch(showInterviewDetailModal, (visible) => {
           <div>
               <h2 class="text-xl font-bold text-primary">{{ activeConversation.admin_user_name || 'Human Resource' }}</h2>
           </div>
+        </div>
+
+        <!-- Recruitment Status Info Banner -->
+        <div
+          v-if="isActiveSubrequestLoading"
+          class="flex items-center justify-center px-6 py-2 bg-slate-50 border-b border-gray-100 shrink-0"
+        >
+          <n-spin size="small" />
+        </div>
+        <div
+          v-else-if="activeSubrequest && profile?.recruitment_status_name === 'Accepted'"
+          class="flex text-emerald-700 border-l-[3px] border-emerald-500 bg-emerald-50/50 items-center px-6 py-2 border-b border-gray-100 gap-2 shrink-0 animate-in fade-in duration-200"
+        >
+          <n-icon size="15" :component="Plane" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            Onboarding sebagai
+            <span class="font-semibold"
+              >{{ currentOnboarding?.job_role_name || '-' }} - {{ currentOnboarding?.project_name || '-' }} ({{
+                formatOnboardingDate(currentOnboarding?.start_date)
+              }}
+              - {{ formatOnboardingDate(currentOnboarding?.end_date) }})</span
+            >
+          </h2>
+        </div>
+        <div
+          v-else-if="activeSubrequest && profile?.recruitment_status_name === 'Decline'"
+          class="flex text-red-500 border-l-[3px] border-red-500 bg-red-50/50 items-center px-6 py-2 border-b border-gray-100 gap-2 shrink-0 animate-in fade-in duration-200"
+        >
+          <n-icon size="15" :component="AlertTriangle" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            Anda menolak proses rekrutmen
+            <span class="font-semibold"
+              >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
+            >
+          </h2>
+        </div>
+        <div
+          v-else-if="activeSubrequest"
+          class="flex text-primary border-primary bg-blue-50/40 items-center px-6 py-2 border-b border-gray-100 gap-2 shrink-0 animate-in fade-in duration-200"
+        >
+          <n-icon size="15" :component="Checkbox" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            You are currently being considered as
+            <span class="font-semibold"
+              >{{ activeSubrequest?.project_name }}  {{ activeSubrequest?.job_role }}</span
+            >
+          </h2>
+        </div>
+        <div
+          v-else-if="!isActiveSubrequestLoading && !activeSubrequest"
+          class="flex text-slate-500 border-slate-400 bg-slate-50 items-center px-6 py-2 border-b border-gray-100 gap-2 shrink-0 animate-in fade-in duration-200"
+        >
+          <n-icon size="15" :component="Alarm" style="font-weight: bold" />
+          <h2 class="text-xs italic font-normal">
+            No recruitment process in progress
+          </h2>
         </div>
 
         <!-- Messages -->
@@ -493,6 +579,7 @@ watch(showInterviewDetailModal, (visible) => {
 
                         <div class="pt-1">
                           <n-button
+                            color="#1122a9"
                             type="primary"
                             block
                             @click="

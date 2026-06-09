@@ -10,6 +10,7 @@ import {
   getRequestsApi,
   rejectAdminRequestApi,
   validateAdminRequestApi,
+  getActiveAdminMyRequestsApi,
 } from '@/services/request.service'
 import type {
   AssignCandidatePayload,
@@ -74,6 +75,28 @@ export function useAdminMyRequests(params: MaybeRefOrGetter<RequestQueryParams> 
   const query = useQuery({
     queryKey: computed(() => ['admin-my-requests', toValue(params)]),
     queryFn: () => getAdminMyRequestsApi(toValue(params)),
+  })
+
+  const requests = computed(() => query.data.value?.data.list || [])
+  const pagination = computed(() => ({
+    page: query.data.value?.data.page || 1,
+    limit: query.data.value?.data.limit || 10,
+    total: query.data.value?.data.total || 0,
+  }))
+  const pageCount = computed(() => Math.ceil(pagination.value.total / pagination.value.limit))
+
+  return {
+    ...query,
+    requests,
+    pagination,
+    pageCount,
+  }
+}
+
+export function useActiveAdminMyRequests(params: MaybeRefOrGetter<RequestQueryParams> = {}) {
+  const query = useQuery({
+    queryKey: computed(() => ['admin-active-my-requests', toValue(params)]),
+    queryFn: () => getActiveAdminMyRequestsApi(toValue(params)),
   })
 
   const requests = computed(() => query.data.value?.data.list || [])

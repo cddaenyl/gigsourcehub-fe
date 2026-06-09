@@ -69,6 +69,22 @@ export const getAdminMyRequestsApi = async (
   }
 }
 
+export const getActiveAdminMyRequestsApi = async (
+  params: RequestQueryParams = {},
+): Promise<GetRequestsResponse> => {
+  try {
+    const response = await axios.get<GetRequestsResponse>('/admin/requests/active-my-request', {
+      params,
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
 export const assignCandidateToSubrequestApi = async (
   requestId: string,
   subrequestId: string,

@@ -34,14 +34,19 @@ const createActionOptions = (row: AllCandidates) => [
       onClick: () => handleAction('recruit', row),
     },
   },
-  {
-    label: 'Chat',
-    key: 'chat',
-    icon: renderIcon(MessageCircle2),
-    props: {
-      onClick: () => handleAction('chat', row),
-    },
-  },
+  // only show chat option when candidate has no recruitment status
+  ...(row.recruitmentStatusId == null
+    ? [
+        {
+          label: 'Chat',
+          key: 'chat',
+          icon: renderIcon(MessageCircle2),
+          props: {
+            onClick: () => handleAction('chat', row),
+          },
+        },
+      ]
+    : []),
 ]
 
 const handleAction = (action: string, row: AllCandidates) => {

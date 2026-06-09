@@ -217,6 +217,11 @@ const onboardingColumns = (): DataTableColumns<AllCandidates> => [
     key: 'nama',
   },
   {
+    title: 'Pengaju',
+    key: 'pengaju',
+    render: (row) => row.pengaju || '-',
+  },
+  {
     title: 'Posisi',
     key: 'jobRoleName',
     render: (row) => row.jobRoleName || '-',
@@ -267,6 +272,11 @@ const archiveColumns = (): DataTableColumns<AllCandidates> => [
   {
     title: 'Nama Kandidat',
     key: 'nama',
+  },
+  {
+    title: 'Pengaju',
+    key: 'pengaju',
+    render: (row) => row.pengaju || '-',
   },
   {
     title: 'Posisi',

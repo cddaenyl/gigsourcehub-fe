@@ -62,6 +62,7 @@ const mapOnboardingRow = (item: OnboardingItem, no: number): AllCandidates => {
     statusHexCode: candidate?.recruitment_status_hex_code || null,
     recruitmentStatusId: candidate?.recruitment_status_id,
     unavailableUntil: candidate?.unavailable_until || null,
+    pengaju: snapshot?.employee_name || '-',
     jobRoleName: item.job_role_name || snapshot?.job_role_name || '-',
     projectName: item.project_name || snapshot?.project_name || '-',
     contractStart: item.start_date,

@@ -203,6 +203,11 @@ const showCVPreviewModal = ref(false)
 const cvPreviewUrl = computed(() => cvLinkData.value?.data?.url || '')
 const cvPreviewName = computed(() => cvLinkData.value?.data?.name || 'Curriculum Vitae')
 
+const isAvailabilityEditable = computed(() => {
+  const name = profile.value?.recruitment_status_name
+  return !name || name === 'Available' || name === 'Unavailable'
+})
+
 const triggerPictureUpload = () => {
   pictureUploadRef.value?.$el?.querySelector('input')?.click()
 }
@@ -810,19 +815,6 @@ watch(
                           {{ profile?.years_experience || 0 }} Tahun
                         </p>
                       </div>
-                      <div class="col-span-1 md:col-span-2 space-y-3 pt-2">
-                        <p class="text-sm font-bold text-primary">Skills</p>
-                        <div class="flex flex-wrap gap-2">
-                          <n-tag
-                            v-for="skill in techStackList"
-                            :key="skill"
-                            round
-                            :color="{ borderColor: '#07229E', textColor: '#07229E' }"
-                          >
-                            {{ skill }}
-                          </n-tag>
-                        </div>
-                      </div>
                       <div class="space-y-1">
                         <p class="text-sm font-bold text-primary">Link Portofolio</p>
                         <div v-if="profile?.portofolio_link" class="flex items-center gap-2">
@@ -836,6 +828,25 @@ watch(
                           </a>
                         </div>
                         <p v-else class="text-[17px] font-bold text-gray-800">-</p>
+                      </div>
+                      <div class="col-span-1 md:col-span-2 space-y-1">
+                        <p class="text-sm font-bold text-primary">Summary</p>
+                        <p class="text-[17px] font-medium text-gray-800 whitespace-pre-wrap">
+                          {{ profile?.summary || '-' }}
+                        </p>
+                      </div>
+                      <div class="col-span-1 md:col-span-2 space-y-3 pt-2">
+                        <p class="text-sm font-bold text-primary">Skills</p>
+                        <div class="flex flex-wrap gap-2">
+                          <n-tag
+                            v-for="skill in techStackList"
+                            :key="skill"
+                            round
+                            :color="{ borderColor: '#07229E', textColor: '#07229E' }"
+                          >
+                            {{ skill }}
+                          </n-tag>
+                        </div>
                       </div>
                     </div>
                   </section>
@@ -1393,6 +1404,7 @@ watch(
                           v-model:value="formData.availability_status"
                           :options="availabilityOptions"
                           placeholder="Select your state of interest"
+                          :disabled="!isAvailabilityEditable"
                         />
                       </n-form-item>
                     </n-gi>
@@ -1404,12 +1416,15 @@ watch(
                           class="w-full"
                           clearable
                           placeholder="Select the date you will be available"
-                          :disabled="formData.availability_status === 'available'"
+                          :disabled="formData.availability_status === 'available' || !isAvailabilityEditable"
                           :is-date-disabled="(ts: number) => ts < Date.now()"
                         />
                       </n-form-item>
                     </n-gi>
                   </n-grid>
+                  <div v-if="!isAvailabilityEditable" class="text-xs text-amber-600 font-semibold italic bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg flex items-center gap-1.5">
+                    <span>Availability cannot be changed while recruitment is on process or still onboarding.</span>
+                  </div>
 
                   <!-- Summary -->
                   <n-form-item label="Summary">

@@ -54,6 +54,9 @@ const autoFillDuration = ref('')
 const autoFillLevel = ref('')
 const autoFillTechStack = ref<string[]>([])
 
+// Poin 4: batas atas untuk takedown_date (dari fulfillment_date / due_date request)
+const fulfillmentDateTs = ref<number | null>(null)
+
 // Tag fields
 const jobDescTags = ref<string[]>([])
 const qualificationsTags = ref<string[]>([])
@@ -118,6 +121,18 @@ const loadVacancy = async () => {
       autoFillDuration.value = (v.subrequest as any).project_duration ?? ''
     }
 
+    // Poin 4: set batas fulfillment_date dari data vacancy
+    if (v.fulfillment_date) {
+      const fd = new Date(v.fulfillment_date)
+      fd.setHours(23, 59, 59, 999)
+      fulfillmentDateTs.value = fd.getTime()
+    } else if (v.takedown_date) {
+      // fallback ke takedown_date jika fulfillment_date tidak ada
+      const td = new Date(v.takedown_date)
+      td.setHours(23, 59, 59, 999)
+      fulfillmentDateTs.value = td.getTime()
+    }
+
     // Parse description JSON
     const desc = parseJobVacancyDescription(v.description)
     jobDescTags.value = desc.job_desc
@@ -174,6 +189,16 @@ function handleBenefitsKeydown(e: KeyboardEvent) {
 }
 
 const isFormReady = computed(() => formData.name.trim() !== '')
+
+// Poin 4: disabledDate untuk NDatePicker - tidak bisa < hari ini, tidak bisa > fulfillment_date
+const disabledTakedownDate = (ts: number): boolean => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayTs = today.getTime()
+  if (ts < todayTs) return true
+  if (fulfillmentDateTs.value !== null && ts > fulfillmentDateTs.value) return true
+  return false
+}
 
 const schemaOptions = [
   { label: 'Onsite', value: 'ONSITE' },
@@ -407,6 +432,7 @@ const themeOverride = {
           <!-- Pengaturan Publikasi -->
           <n-card title="Pengaturan Publikasi" :bordered="false" class="rounded-xl shadow-sm mb-4">
             <n-form-item label="Tanggal Penutupan">
+              <!-- Poin 4: tidak bisa < hari ini, tidak bisa > fulfillment_date -->
               <n-date-picker
                 v-model:value="formData.takedown_date"
                 type="date"
@@ -414,6 +440,7 @@ const themeOverride = {
                 format="dd/MM/yyyy"
                 clearable
                 class="w-full"
+                :is-date-disabled="disabledTakedownDate"
               />
             </n-form-item>
           </n-card>

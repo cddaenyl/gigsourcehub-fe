@@ -7,7 +7,7 @@ import { declineRecruitmentApi } from '@/services/user.service'
 import { useAuthStore } from '@/stores/auth.store'
 import { useQueryClient } from '@tanstack/vue-query'
 import { Briefcase, Calendar } from '@vicons/tabler'
-import { NButton, NEmpty, NIcon, NSpin, useMessage } from 'naive-ui'
+import { NButton, NEmpty, NIcon, useMessage } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useProfile } from '@/composables/useProfile'
 
@@ -91,7 +91,11 @@ const confirmDecline = async () => {
       <div v-if="activeTab === 'in-progress'" class="flex-1 flex flex-col">
         <!-- Loading State -->
         <div v-if="isLoadingActiveSR" class="flex-1 flex items-center justify-center min-h-[300px]">
-          <n-spin size="large" />
+          <div class="flex gap-2 justify-center items-center">
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          </div>
         </div>
 
         <!-- Recruitment Details -->
@@ -129,7 +133,11 @@ const confirmDecline = async () => {
       <div v-else-if="activeTab === 'history'" class="flex-1 flex flex-col">
         <!-- Loading State -->
         <div v-if="isLoadingHistory" class="flex-1 flex items-center justify-center min-h-[300px]">
-          <n-spin size="large" />
+          <div class="flex gap-2 justify-center items-center">
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          </div>
         </div>
 
         <!-- History List -->

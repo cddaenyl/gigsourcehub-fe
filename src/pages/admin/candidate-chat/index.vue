@@ -35,7 +35,6 @@ import {
   Search,
   Send,
   Plus,
-  Copy,
   User,
   Eye,
   Message,
@@ -51,12 +50,18 @@ import {
   CalendarEvent,
   FileText,
   Download,
+  Plane,
+  AlertTriangle,
+  Checkbox,
+  Alarm,
 } from '@vicons/tabler'
 import type { ConversationResp, MessageResp, OfferingMessageContent } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useInterviewStages } from '@/composables/useInterviewStages'
 import { useCreateInterview, useInterviewById } from '@/composables/useInterviews'
 import type { CreateInterviewPayload } from '@/models/InterviewSchedule'
+import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
+import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
 
 type MessageQueryCache = {
   data?: {
@@ -149,6 +154,7 @@ const {
   refetch: refetchInterviewDetail,
 } = useInterviewById(selectedInterviewId)
 
+
 // Computed data
 const conversations = computed(() => conversationsData.value?.data.list || [])
 const messages = computed(() => {
@@ -179,6 +185,28 @@ const activeConversation = computed(() => {
     conversations.value.find((c: ConversationResp) => c.id === selectedConversationId.value) || null
   )
 })
+
+// Active subrequest and onboarding history for the active candidate
+const activeCandidateId = computed(() => activeConversation.value?.candidate_user_id || '')
+const {
+  activeSubrequest,
+  isLoading: isActiveSubrequestLoading,
+} = useActiveSubrequest(activeCandidateId)
+const { history: onboardingHistory } = useCandidateOnboardingHistory(activeCandidateId)
+const currentOnboarding = computed(() => onboardingHistory.value?.[0] ?? null)
+
+const formatOnboardingDate = (value: string | null | undefined): string => {
+  if (!value) return '-'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return date.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
 
 const filteredConversations = computed(() => {
   let list = conversations.value
@@ -339,16 +367,6 @@ watch(selectedConversationId, () => {
   showActionMenu.value = false
 })
 
-const copyName = async () => {
-  if (activeConversation.value?.candidate_user_name) {
-    try {
-      await navigator.clipboard.writeText(activeConversation.value.candidate_user_name)
-      naiveMessage.success('Candidate name copied to clipboard')
-    } catch {
-      naiveMessage.error('Failed to copy name')
-    }
-  }
-}
 
 const goToProfile = () => {
   if (activeConversation.value?.candidate_user_id) {
@@ -1079,13 +1097,66 @@ const isUnread = (c: ConversationResp) => {
               </div>
             </div>
             <div class="flex items-center gap-4 text-gray-400">
-              <n-icon size="20" class="hover:text-primary cursor-pointer" @click="copyName" title="Copy Name">
-                <Copy />
-              </n-icon>
               <n-icon size="20" class="hover:text-primary cursor-pointer" @click="goToProfile" title="View Profile">
                 <User />
               </n-icon>
             </div>
+          </div>
+
+          <!-- Recruitment Status Info Banner -->
+          <div
+            v-if="isActiveSubrequestLoading"
+            class="flex items-center justify-center px-6 py-2 bg-slate-50 border-b border-gray-200 shrink-0"
+          >
+            <n-spin size="small" />
+          </div>
+          <div
+            v-else-if="activeSubrequest && activeConversation.candidate_user_recruitment_status_name === 'Accepted'"
+            class="flex text-emerald-700 border-l-[3px] border-emerald-500 bg-emerald-50/50 items-center px-6 py-2 border-b border-gray-200 gap-2 shrink-0 animate-in fade-in duration-200"
+          >
+            <n-icon size="15" :component="Plane" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Onboarding sebagai
+              <span class="font-semibold"
+                >{{ currentOnboarding?.job_role_name || '-' }} - {{ currentOnboarding?.project_name || '-' }} ({{
+                  formatOnboardingDate(currentOnboarding?.start_date)
+                }}
+                - {{ formatOnboardingDate(currentOnboarding?.end_date) }})</span
+              >
+            </h2>
+          </div>
+          <div
+            v-else-if="activeSubrequest && activeConversation.candidate_user_recruitment_status_name === 'Decline'"
+            class="flex text-red-500 border-l-[3px] border-red-500 bg-red-50/50 items-center px-6 py-2 border-b border-gray-200 gap-2 shrink-0 animate-in fade-in duration-200"
+          >
+            <n-icon size="15" :component="AlertTriangle" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Kandidat menolak proses rekrutmen
+              <span class="font-semibold"
+                >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
+              >
+            </h2>
+          </div>
+          <div
+            v-else-if="activeSubrequest"
+            class="flex text-primary border-l-[3px] border-primary bg-blue-50/40 items-center px-6 py-2 border-b border-gray-200 gap-2 shrink-0 animate-in fade-in duration-200"
+          >
+            <n-icon size="15" :component="Checkbox" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Dalam Proses Rekrutmen
+              <span class="font-semibold"
+                >{{ activeSubrequest?.project_name }} - {{ activeSubrequest?.job_role }}</span
+              >
+            </h2>
+          </div>
+          <div
+            v-else-if="!isActiveSubrequestLoading && !activeSubrequest"
+            class="flex text-slate-500 border-l-[3px] border-slate-400 bg-slate-50 items-center px-6 py-2 border-b border-gray-200 gap-2 shrink-0 animate-in fade-in duration-200"
+          >
+            <n-icon size="15" :component="Alarm" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Belum direkrut untuk posisi atau proyek apa pun.
+            </h2>
           </div>
 
           <!-- Messages Area -->

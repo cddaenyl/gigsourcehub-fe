@@ -3,7 +3,7 @@ import { computed, ref, unref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
 import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
-import { useAdminMyRequests, useAssignCandidateToSubrequest } from '@/composables/useRequest'
+import { useActiveAdminMyRequests, useAssignCandidateToSubrequest } from '@/composables/useRequest'
 import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
 import { useStartChat } from '@/composables/useChat'
 import AdminLayout from '@/layouts/AdminLayout.vue'
@@ -142,7 +142,7 @@ const {
   requests: myRequests,
   isLoading: isMyRequestsLoading,
   refetch: refetchMyRequests,
-} = useAdminMyRequests(myRequestsParams)
+} = useActiveAdminMyRequests(myRequestsParams)
 const { mutateAsync: assignCandidateToSubrequest, isPending: isAssigningCandidate } =
   useAssignCandidateToSubrequest()
 const { mutateAsync: startChat, isPending: isStartingChat } = useStartChat()

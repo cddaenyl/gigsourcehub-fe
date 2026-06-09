@@ -282,6 +282,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/employee/talent-needs/edit/[id]': RouteRecordInfo<
+      '/employee/talent-needs/edit/[id]',
+      '/employee/talent-needs/edit/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/forgot-password/': RouteRecordInfo<
       '/forgot-password/',
       '/forgot-password',
@@ -759,6 +766,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/employee/talent-needs/ajukan-permintaan/index.vue': {
       routes:
         | '/employee/talent-needs/ajukan-permintaan/'
+      views:
+        | never
+    }
+    'src/pages/employee/talent-needs/edit/[id].vue': {
+      routes:
+        | '/employee/talent-needs/edit/[id]'
       views:
         | never
     }

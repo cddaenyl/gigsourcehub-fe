@@ -5,6 +5,7 @@ import {
   getInterviewByIdApi,
   getInterviewsApi,
   getScheduledInterviewsApi,
+  updateInterviewApi,
 } from '@/services/interview.service'
 import type {
   CreateInterviewPayload,
@@ -67,4 +68,18 @@ export function useInterviewById(id: MaybeRefOrGetter<string | null>) {
     ...query,
     interview,
   }
+}
+
+export function useUpdateInterview() {
+  return useMutation({
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: string
+      payload: Partial<{ scheduled_at: string }>
+    }) => {
+      return updateInterviewApi(id, payload)
+    },
+  })
 }

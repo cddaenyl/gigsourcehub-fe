@@ -54,7 +54,12 @@ const createActionOptions = (row: TalentNeed) => {
     .reduce((acc: any[], action) => {
       // only show "validate" when the request/talent need raw status is PENDING
       if (action === 'validate' && row.requestStatus?.toUpperCase() !== 'PENDING') return acc
-
+      // only show "edit" when status is PENDING or REJECTED
+      if (
+        action === 'edit' &&
+        !['PENDING', 'REJECTED'].includes(String(row.requestStatus || '').toUpperCase())
+      )
+        return acc
       acc.push({
         label: actionOptionMap[action].label,
         key: action,

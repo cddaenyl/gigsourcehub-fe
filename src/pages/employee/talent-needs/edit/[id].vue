@@ -7,7 +7,7 @@ import RequestForm from '@/components/talent-needs/RequestForm.vue'
 
 const router = useRouter()
 const route = useRoute()
-const id = String(route.params.id || '')
+const id = String((route.params as { id?: string }).id || '')
 
 const handleBack = () => router.push('/employee/talent-needs')
 </script>

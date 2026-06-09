@@ -12,7 +12,7 @@ import {
   type SelectOption,
   useMessage,
 } from 'naive-ui'
-import { ChevronLeft, Plus } from '@vicons/tabler'
+import { Plus } from '@vicons/tabler'
 import { useRouter } from 'vue-router'
 import { useField, useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -123,9 +123,9 @@ const isFormValid = computed(() => {
   return hasRequestInfo && hasValidSubRequests && meta.value.valid
 })
 
-const handleBack = () => {
-  router.push('/employee/talent-needs')
-}
+// const handleBack = () => {
+//   router.push('/employee/talent-needs')
+// }
 
 const handleAddSubRequest = () => {
   setFieldValue('subRequests', [...getSubRequestList(), createEmptySubRequest()])
@@ -223,10 +223,16 @@ if (requestQuery) {
                 if (Array.isArray(parsed)) techStack = parsed.map((t) => String(t))
               } catch (e) {
                 // fallback to comma split
-                techStack = raw.split(',').map((t) => t.trim()).filter(Boolean)
+                techStack = raw
+                  .split(',')
+                  .map((t) => t.trim())
+                  .filter(Boolean)
               }
             } else {
-              techStack = raw.split(',').map((t) => t.trim()).filter(Boolean)
+              techStack = raw
+                .split(',')
+                .map((t) => t.trim())
+                .filter(Boolean)
             }
           }
 

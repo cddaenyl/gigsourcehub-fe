@@ -156,7 +156,7 @@ const {
   isLoading: isLoadingInterviewDetail,
   refetch: refetchInterviewDetail,
 } = useInterviewById(selectedInterviewId)
-const { mutateAsync: updateInterview, isLoading: isUpdatingInterview } = useUpdateInterview()
+const { mutateAsync: updateInterview, isPending: isUpdatingInterview } = useUpdateInterview()
 
 // Computed data
 const conversations = computed(() => conversationsData.value?.data.list || [])

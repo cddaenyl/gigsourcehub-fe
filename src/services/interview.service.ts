@@ -90,3 +90,18 @@ export const getInterviewByIdApi = async (id: string): Promise<InterviewSchedule
     throw error
   }
 }
+
+export const updateInterviewApi = async (
+  id: string,
+  payload: Partial<{ scheduled_at: string }>,
+): Promise<InterviewScheduleDetailResponse> => {
+  try {
+    const response = await axios.put<InterviewScheduleDetailResponse>(`/interview/${id}`, payload)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

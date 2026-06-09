@@ -199,3 +199,14 @@ export function useAssignCandidateToSubrequest() {
     },
   })
 }
+
+export function useUpdateRequest() {
+  return useMutation({
+    mutationFn: async (variables: { id: string; payload: CreateRequestPayload }) => {
+      // import/update API function
+      // dynamic import to avoid circular issues
+      const { updateRequestApi } = await import('@/services/request.service')
+      return updateRequestApi(variables.id, variables.payload)
+    },
+  })
+}

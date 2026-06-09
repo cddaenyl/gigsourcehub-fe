@@ -86,6 +86,7 @@ const paginatedTalentNeeds = computed<TalentNeed[]>(() => {
     batasWaktu: formatDate(request.due_date),
     picHr: request.admin_name || '-',
     status: formatStatusLabel(request.status),
+    requestStatus: request.status,
     urgensi: formatUrgencyLabel(request.urgency),
   }))
 })
@@ -99,6 +100,9 @@ const handleAction = (action: string, item: TalentNeed) => {
   if (action === 'detail') {
     router.push(`/employee/talent-needs/${item.id}`)
   }
+  // if (action === 'edit') {
+  //   router.push(`/employee/talent-needs/edit/${item.id}`)
+  // }
 }
 const handleAjukanPermintaan = () => {
   router.push('/employee/talent-needs/ajukan-permintaan')

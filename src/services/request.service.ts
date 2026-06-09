@@ -160,6 +160,21 @@ export const createRequestApi = async (
   }
 }
 
+export const updateRequestApi = async (
+  id: string,
+  payload: CreateRequestPayload,
+): Promise<RequestActionResponse> => {
+  try {
+    const response = await axios.put<RequestActionResponse>(`/requests/${id}`, payload)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
 export const exportAdminRequestsApi = async (params: RequestQueryParams = {}): Promise<Blob> => {
   try {
     const response = await axios.get('/admin/requests/export', { params, responseType: 'blob' })

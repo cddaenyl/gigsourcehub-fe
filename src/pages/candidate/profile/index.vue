@@ -815,6 +815,19 @@ watch(
                           {{ profile?.years_experience || 0 }} Tahun
                         </p>
                       </div>
+                      <div class="col-span-1 md:col-span-2 space-y-3 pt-2">
+                        <p class="text-sm font-bold text-primary">Skills</p>
+                        <div class="flex flex-wrap gap-2">
+                          <n-tag
+                            v-for="skill in techStackList"
+                            :key="skill"
+                            round
+                            :color="{ borderColor: '#07229E', textColor: '#07229E' }"
+                          >
+                            {{ skill }}
+                          </n-tag>
+                        </div>
+                      </div>
                       <div class="space-y-1">
                         <p class="text-sm font-bold text-primary">Link Portofolio</p>
                         <div v-if="profile?.portofolio_link" class="flex items-center gap-2">
@@ -828,25 +841,6 @@ watch(
                           </a>
                         </div>
                         <p v-else class="text-[17px] font-bold text-gray-800">-</p>
-                      </div>
-                      <div class="col-span-1 md:col-span-2 space-y-1">
-                        <p class="text-sm font-bold text-primary">Summary</p>
-                        <p class="text-[17px] font-medium text-gray-800 whitespace-pre-wrap">
-                          {{ profile?.summary || '-' }}
-                        </p>
-                      </div>
-                      <div class="col-span-1 md:col-span-2 space-y-3 pt-2">
-                        <p class="text-sm font-bold text-primary">Skills</p>
-                        <div class="flex flex-wrap gap-2">
-                          <n-tag
-                            v-for="skill in techStackList"
-                            :key="skill"
-                            round
-                            :color="{ borderColor: '#07229E', textColor: '#07229E' }"
-                          >
-                            {{ skill }}
-                          </n-tag>
-                        </div>
                       </div>
                     </div>
                   </section>
@@ -1425,16 +1419,6 @@ watch(
                   <div v-if="!isAvailabilityEditable" class="text-xs text-amber-600 font-semibold italic bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg flex items-center gap-1.5">
                     <span>Availability cannot be changed while recruitment is on process or still onboarding.</span>
                   </div>
-
-                  <!-- Summary -->
-                  <n-form-item label="Summary">
-                    <n-input
-                      v-model:value="formData.summary"
-                      type="textarea"
-                      :rows="4"
-                      placeholder="Enter your summary"
-                    />
-                  </n-form-item>
 
                   <!-- Applied Role -->
                   <n-form-item label="Applied Role">

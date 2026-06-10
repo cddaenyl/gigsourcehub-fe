@@ -108,7 +108,20 @@ const candidateRole = computed(() => {
   return 'Candidate'
 })
 
-const recruitmentStatus = computed(() => profile.value?.recruitment_status_name || 'Avaliable')
+const recruitmentStatus = computed(() => {
+  const status = profile.value?.recruitment_status_name
+  if (!status) {
+    return 'Available'
+  }
+  const lowerStatus = status.toLowerCase()
+  if (lowerStatus === 'assigned' || lowerStatus === 'contacted') {
+    return 'InProgress'
+  }
+  if (lowerStatus === 'accepted') {
+    return 'onboarding'
+  }
+  return status
+})
 </script>
 
 <template>

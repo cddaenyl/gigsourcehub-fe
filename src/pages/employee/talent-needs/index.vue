@@ -8,8 +8,10 @@ import type { TalentNeed } from '@/models/Table'
 import { CalendarEvent, Plus, Search } from '@vicons/tabler'
 import { format } from 'date-fns'
 import { NButton, NConfigProvider, NIcon, NInput } from 'naive-ui'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useTableStateStore } from '@/stores/table-state.store'
 
 const router = useRouter()
 
@@ -26,9 +28,21 @@ const themeOverride = {
   },
 }
 
-const currentPage = ref(1)
-const pageSize = ref(10)
-const searchQuery = ref('')
+const tableStateStore = useTableStateStore()
+const { employeeTalentNeeds } = storeToRefs(tableStateStore)
+
+const currentPage = computed({
+  get: () => employeeTalentNeeds.value.page,
+  set: (val) => tableStateStore.setEmployeeTalentNeeds({ page: val }),
+})
+const pageSize = computed({
+  get: () => employeeTalentNeeds.value.pageSize,
+  set: (val) => tableStateStore.setEmployeeTalentNeeds({ pageSize: val }),
+})
+const searchQuery = computed({
+  get: () => employeeTalentNeeds.value.search,
+  set: (val) => tableStateStore.setEmployeeTalentNeeds({ search: val }),
+})
 
 const queryParams = computed<RequestQueryParams>(() => ({
   page: currentPage.value,
@@ -138,11 +152,12 @@ const handleAjukanPermintaan = () => {
         </div>
 
         <div class="rounded-lg p-2 py-3 space-y-4">
-          <TalentNeedsTable :data="paginatedTalentNeeds" :actions="['detail', 'edit']" @action="handleAction" />
-
-          <div v-if="isLoading" class="py-8 text-center">
-            <p class="text-gray-500">Loading...</p>
-          </div>
+          <TalentNeedsTable
+            :data="paginatedTalentNeeds"
+            :loading="isLoading"
+            :actions="['detail', 'edit']"
+            @action="handleAction"
+          />
 
           <CandidatePagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="pageCount" />
         </div>

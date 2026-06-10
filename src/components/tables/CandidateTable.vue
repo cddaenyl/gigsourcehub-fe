@@ -15,10 +15,12 @@ type CandidateTableVariant = 'all' | 'recruitment' | 'bookmarked' | 'onboarding'
 interface Props {
   data: AllCandidates[]
   variant?: CandidateTableVariant
+  loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'all',
+  loading: false,
 })
 
 const emit = defineEmits<{
@@ -333,7 +335,23 @@ const columns = computed<DataTableColumns<AllCandidates>>(() => {
 </script>
 
 <template>
-  <n-data-table :columns="columns" :data="data" :bordered="false" single-column single-row />
+  <div>
+    <div v-if="props.loading && (!props.data || props.data.length === 0)" class="space-y-3">
+      <!-- Skeleton Header -->
+      <div class="h-10 bg-slate-100/80 rounded-md animate-pulse w-full"></div>
+      <!-- Skeleton Rows -->
+      <div v-for="i in 5" :key="i" class="h-12 bg-slate-50/50 border border-slate-100/80 rounded-md animate-pulse w-full"></div>
+    </div>
+    <n-data-table
+      v-else
+      :columns="columns"
+      :data="data"
+      :loading="loading"
+      :bordered="false"
+      single-column
+      single-row
+    />
+  </div>
 </template>
 
 <style scoped>

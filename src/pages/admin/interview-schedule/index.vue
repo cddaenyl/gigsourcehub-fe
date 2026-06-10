@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, h, ref, watch } from 'vue'
+import CandidatePagination from '@/components/CandidatePagination.vue'
+import AdminLayout from '@/layouts/AdminLayout.vue'
+import { useTableStateStore } from '@/stores/table-state.store'
 import {
   NConfigProvider,
   NDataTable,
@@ -11,17 +13,16 @@ import {
   type DataTableColumns,
   type SelectOption,
 } from 'naive-ui'
-import AdminLayout from '@/layouts/AdminLayout.vue'
-import CandidatePagination from '@/components/CandidatePagination.vue'
+import { storeToRefs } from 'pinia'
+import { computed, h, watch } from 'vue'
 // import CandidateStatusChip from '@/components/CandidateStatusChip.vue'
 // import { useInterviewStages } from '@/composables/useInterviewStages'
 import { useInterviewsByTab } from '@/composables/useInterviews'
-import { patchInterviewStatusApi } from '@/services/interview.service'
 import type {
   InterviewScheduleItem,
-  InterviewScheduleTab,
   InterviewStatus,
 } from '@/models/InterviewSchedule'
+import { patchInterviewStatusApi } from '@/services/interview.service'
 
 const themeOverride = {
   DataTable: {
@@ -37,9 +38,22 @@ const themeOverride = {
 }
 
 const message = useMessage()
-const currentPage = ref(1)
-const pageSize = ref(10)
-const activeTab = ref<InterviewScheduleTab>('semua')
+
+const tableStateStore = useTableStateStore()
+const { adminInterviewSchedule } = storeToRefs(tableStateStore)
+
+const currentPage = computed({
+  get: () => adminInterviewSchedule.value.page,
+  set: (val) => tableStateStore.setAdminInterviewSchedule({ page: val }),
+})
+const pageSize = computed({
+  get: () => adminInterviewSchedule.value.pageSize,
+  set: (val) => tableStateStore.setAdminInterviewSchedule({ pageSize: val }),
+})
+const activeTab = computed({
+  get: () => adminInterviewSchedule.value.tab,
+  set: (val: any) => tableStateStore.setAdminInterviewSchedule({ tab: val }),
+})
 
 const queryParams = computed(() => ({
   page: currentPage.value,
@@ -187,18 +201,18 @@ const buildChip = (
           h('span', {}, label),
           showChevron
             ? h(
-                'svg',
-                {
-                  xmlns: 'http://www.w3.org/2000/svg',
-                  viewBox: '0 0 24 24',
-                  width: '20',
-                  height: '20',
-                  fill: 'none',
-                  stroke: 'currentColor',
-                  'stroke-width': '2',
-                },
-                [h('path', { d: 'M6 9l6 6 6-6' })],
-              )
+              'svg',
+              {
+                xmlns: 'http://www.w3.org/2000/svg',
+                viewBox: '0 0 24 24',
+                width: '20',
+                height: '20',
+                fill: 'none',
+                stroke: 'currentColor',
+                'stroke-width': '2',
+              },
+              [h('path', { d: 'M6 9l6 6 6-6' })],
+            )
             : null,
         ]),
     },
@@ -366,24 +380,17 @@ const columns: DataTableColumns<InterviewScheduleItem> = [
             <n-tab-pane name="scheduled" tab="Scheduled" />
           </n-tabs>
 
-          <n-data-table
-            :columns="columns"
-            :data="interviews"
-            :bordered="false"
-            :loading="isLoading"
-            single-column
-            single-row
-          />
-
-          <div v-if="isLoading" class="py-8 text-center">
-            <p class="text-gray-500">Loading...</p>
+          <div v-if="isLoading && (!interviews || interviews.length === 0)" class="space-y-3">
+            <!-- Skeleton Header -->
+            <div class="h-10 bg-slate-100/80 rounded-md animate-pulse w-full"></div>
+            <!-- Skeleton Rows -->
+            <div v-for="i in 5" :key="i"
+              class="h-12 bg-slate-50/50 border border-slate-100/80 rounded-md animate-pulse w-full"></div>
           </div>
+          <n-data-table v-else :columns="columns" :data="interviews" :bordered="false" :loading="isLoading"
+            single-column single-row />
 
-          <CandidatePagination
-            v-model:page="currentPage"
-            v-model:page-size="pageSize"
-            :page-count="pageCount"
-          />
+          <CandidatePagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="pageCount" />
         </div>
       </div>
     </n-config-provider>

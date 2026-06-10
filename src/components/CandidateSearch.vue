@@ -16,17 +16,26 @@ import CandidateLevelChip from './CandidateLevelChip.vue'
 interface Props {
   placeholder?: string
   isAiEnabled?: boolean
+  initialSearchValue?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Cari kandidat',
   isAiEnabled: true,
+  initialSearchValue: '',
 })
 
 const authStore = useAuthStore()
 const currentUser = computed(() => authStore.user)
 const router = useRouter()
-const searchValue = ref('')
+const searchValue = ref(props.initialSearchValue || '')
+
+watch(
+  () => props.initialSearchValue,
+  (val) => {
+    searchValue.value = val || ''
+  },
+)
 const active = ref(false)
 const showHistory = ref(false)
 const placement = ref<DrawerPlacement>('right')

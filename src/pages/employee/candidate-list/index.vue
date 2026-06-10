@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useTableStateStore } from '@/stores/table-state.store'
 import CandidateTable from '@/components/tables/CandidateTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import { NConfigProvider } from 'naive-ui'
@@ -12,7 +14,7 @@ import SearchInput from '@/components/shared/SearchInput.vue'
 import { useAdminCandidateDirectory } from '@/composables/useAdminCandidateDirectory'
 
 const router = useRouter()
-const searchValue = ref('')
+
 const themeOverride = {
   DataTable: {
     thColor: '#F1F5F9',
@@ -35,15 +37,27 @@ const themeOverride = {
   },
 }
 
-// Pagination
-const currentPage = ref(1)
-const pageSize = ref(10)
+const tableStateStore = useTableStateStore()
+const { employeeCandidateList } = storeToRefs(tableStateStore)
 
-// Tabs
-const activeTab = ref<'semua' | 'disimpan'>('semua')
+const currentPage = computed({
+  get: () => employeeCandidateList.value.page,
+  set: (val) => tableStateStore.setEmployeeCandidateList({ page: val }),
+})
+const pageSize = computed({
+  get: () => employeeCandidateList.value.pageSize,
+  set: (val) => tableStateStore.setEmployeeCandidateList({ pageSize: val }),
+})
+const activeTab = computed({
+  get: () => employeeCandidateList.value.tab,
+  set: (val) => tableStateStore.setEmployeeCandidateList({ tab: val }),
+})
+const searchQuery = computed({
+  get: () => employeeCandidateList.value.search,
+  set: (val) => tableStateStore.setEmployeeCandidateList({ search: val }),
+})
 
-// Search
-const searchQuery = ref('')
+const searchValue = ref(employeeCandidateList.value.search)
 
 // Fetch users with query params
 const queryParams = computed(() => ({
@@ -121,12 +135,12 @@ const handleSearch = (value: string) => {
           <EmployeeTabs v-model="activeTab" />
 
           <!-- Data Table -->
-          <CandidateTable :data="tableData" :variant="'bookmarked'" @action="handleAction" />
-
-          <!-- Loading State -->
-          <div v-if="isLoading" class="text-center py-8">
-            <p class="text-gray-500">Loading...</p>
-          </div>
+          <CandidateTable
+            :data="tableData"
+            :loading="isLoading"
+            :variant="'bookmarked'"
+            @action="handleAction"
+          />
 
           <!-- Table Controls -->
           <CandidatePagination

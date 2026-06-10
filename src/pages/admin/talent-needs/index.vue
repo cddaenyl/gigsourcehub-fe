@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useTableStateStore } from '@/stores/table-state.store'
 import { NButton, NConfigProvider, NIcon, NInput, NModal, NDropdown, useMessage } from 'naive-ui'
 import { Check, Filter, Search, Download } from '@vicons/tabler'
 import AdminLayout from '@/layouts/AdminLayout.vue'
@@ -30,10 +32,26 @@ const themeOverride = {
 
 const router = useRouter()
 const message = useMessage()
-const currentPage = ref(1)
-const pageSize = ref(10)
-const searchQuery = ref('')
-const activeTab = ref<'semua' | 'menunggu validasi' | 'tugas saya'>('semua')
+
+const tableStateStore = useTableStateStore()
+const { adminTalentNeeds } = storeToRefs(tableStateStore)
+
+const currentPage = computed({
+  get: () => adminTalentNeeds.value.page,
+  set: (val) => tableStateStore.setAdminTalentNeeds({ page: val }),
+})
+const pageSize = computed({
+  get: () => adminTalentNeeds.value.pageSize,
+  set: (val) => tableStateStore.setAdminTalentNeeds({ pageSize: val }),
+})
+const searchQuery = computed({
+  get: () => adminTalentNeeds.value.search,
+  set: (val) => tableStateStore.setAdminTalentNeeds({ search: val }),
+})
+const activeTab = computed({
+  get: () => adminTalentNeeds.value.tab,
+  set: (val) => tableStateStore.setAdminTalentNeeds({ tab: val }),
+})
 const selectedRequest = ref<TalentNeed | null>(null)
 const showValidateModal = ref(false)
 const showFilters = ref(false)
@@ -275,20 +293,12 @@ const handleExportSelect = async (formatType: string) => {
 
           <div class="flex-1 min-w-0 rounded-lg space-y-4">
             <TalentNeedsTabs v-model="activeTab" />
-            <!-- <TalentNeedsTable
-              :data="paginatedTalentNeeds"
-              :actions="['detail', 'validate']"
-              @action="handleAction"
-            /> -->
             <TalentNeedsTable
               :data="paginatedTalentNeeds"
+              :loading="isLoading"
               :actions="['detail', 'validate']"
               @action="handleAction"
             />
-
-            <div v-if="isLoading" class="py-8 text-center">
-              <p class="text-gray-500">Loading...</p>
-            </div>
 
             <CandidatePagination
               v-model:page="currentPage"

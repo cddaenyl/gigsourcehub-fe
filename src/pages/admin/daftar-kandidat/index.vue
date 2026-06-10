@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useTableStateStore } from '@/stores/table-state.store'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidateSearch from '@/components/CandidateSearch.vue'
 import CandidateTabs from '@/components/CandidateTabs.vue'
@@ -134,15 +136,26 @@ const subrequestOptions = computed<SelectOption[]>(() => {
   })
 })
 
-// Pagination
-const currentPage = ref(1)
-const pageSize = ref(10)
+const tableStateStore = useTableStateStore()
+const { adminCandidateList } = storeToRefs(tableStateStore)
 
-// Tabs
-const activeTab = ref<'semua' | 'rekrutmen' | 'onboarding' | 'archive' | 'disimpan'>('semua')
+const currentPage = computed({
+  get: () => adminCandidateList.value.page,
+  set: (val) => tableStateStore.setAdminCandidateList({ page: val }),
+})
+const pageSize = computed({
+  get: () => adminCandidateList.value.pageSize,
+  set: (val) => tableStateStore.setAdminCandidateList({ pageSize: val }),
+})
+const activeTab = computed({
+  get: () => adminCandidateList.value.tab,
+  set: (val) => tableStateStore.setAdminCandidateList({ tab: val }),
+})
+const searchQuery = computed({
+  get: () => adminCandidateList.value.search,
+  set: (val) => tableStateStore.setAdminCandidateList({ search: val }),
+})
 
-// Search & Filters
-const searchQuery = ref('')
 const showFilters = ref(false)
 const filters = ref({
   bidang: undefined as string | undefined,
@@ -443,6 +456,7 @@ const handleStartChatConfirm = async (): Promise<void> => {
               @search="handleSearch"
               @toggle-filter="showFilters = !showFilters"
               :is-ai-enabled="isAiEnabled"
+              :initial-search-value="searchQuery"
             />
           </div>
         </div>
@@ -467,12 +481,12 @@ const handleStartChatConfirm = async (): Promise<void> => {
             <CandidateTabs v-model="activeTab" />
 
             <!-- Data Table -->
-            <CandidateTable :data="tableData" :variant="tableVariant" @action="handleAction" />
-
-            <!-- Loading State -->
-            <div v-if="isLoading" class="text-center py-8">
-              <p class="text-gray-500">Loading...</p>
-            </div>
+            <CandidateTable
+              :data="tableData"
+              :loading="isLoading"
+              :variant="tableVariant"
+              @action="handleAction"
+            />
 
             <!-- Table Controls -->
             <CandidatePagination

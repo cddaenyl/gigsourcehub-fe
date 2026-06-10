@@ -9,16 +9,13 @@ import CandidatePagination from '@/components/CandidatePagination.vue'
 import CandidateDirectoryFilters from '@/components/CandidateDirectoryFilters.vue'
 import {
   NConfigProvider,
-  NDropdown,
   NButton,
-  NIcon,
   NModal,
   NSelect,
   NSpace,
   useMessage,
   type SelectOption,
 } from 'naive-ui'
-import { Download } from '@vicons/tabler'
 import { useBookmarkStore } from '@/stores/bookmark.store'
 import type { AllCandidates } from '@/models/Table'
 import { fetchAiModeStatus } from '@/services/system-setting'
@@ -275,11 +272,6 @@ const handleSearch = (value: string) => {
 
 // Export logic
 const message = useMessage()
-const exportOptions = [
-  { label: 'Export to PDF (.pdf)', key: 'pdf' },
-  { label: 'Export to Excel (.xlsx)', key: 'xlsx' },
-  { label: 'Export to CSV (.csv)', key: 'csv' },
-]
 
 const handleExportSelect = async (formatType: string) => {
   const exportParams = { ...queryParams.value, format: formatType }
@@ -452,15 +444,6 @@ const handleStartChatConfirm = async (): Promise<void> => {
               @toggle-filter="showFilters = !showFilters"
               :is-ai-enabled="isAiEnabled"
             />
-
-            <n-dropdown trigger="click" :options="exportOptions" @select="handleExportSelect">
-              <n-button type="primary" color="#0014B2">
-                <template #icon>
-                  <n-icon :component="Download" />
-                </template>
-                Export
-              </n-button>
-            </n-dropdown>
           </div>
         </div>
 
@@ -473,6 +456,7 @@ const handleStartChatConfirm = async (): Promise<void> => {
                 v-model:filters="filters"
                 :active-tab="activeTab"
                 @clear="handleClearFilters"
+                @export="handleExportSelect"
               />
             </div>
           </transition>

@@ -3,7 +3,7 @@ import { ref, watch, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton, NIcon, NDrawer, NSpin, NEmpty, NPopconfirm } from 'naive-ui'
 import type { DrawerPlacement } from 'naive-ui'
-import { ApiApp, Send, X, ChevronRight, User, History, MessagePlus, Trash } from '@vicons/tabler'
+import { ApiApp, Send, X, ChevronRight, User, History, MessagePlus, Trash, Filter } from '@vicons/tabler'
 import SearchInput from './shared/SearchInput.vue'
 import { useAICandidateSearch } from '../composables/useAICandidateSearch'
 import { useAIChatHistory } from '../composables/useAIChatHistory'
@@ -241,13 +241,13 @@ defineExpose({
     <!-- Existing external search bar -->
     <SearchInput v-model="searchValue" :placeholder="props.placeholder" @search="handleSearch" />
 
-    <!-- <div class="border border-gray-300 rounded-xs hover:border-gray-600 transition-colors">
+    <div class="border border-gray-300 rounded-xs hover:border-gray-600 transition-colors">
       <n-button color="#FFFFFF" :bordered="true" @click="emit('toggle-filter')">
         <template #icon>
           <n-icon color="#64748B" :component="Filter" />
         </template>
       </n-button>
-    </div> -->
+    </div>
 
     <n-button type="primary" @click="activate('right')" :disabled="!props.isAiEnabled">
       <template #icon>

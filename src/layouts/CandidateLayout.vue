@@ -6,14 +6,7 @@ import { useProfile } from '@/composables/useProfile'
 import { useLogout } from '@/composables/useAuth'
 import { onMounted, onUnmounted, ref } from 'vue'
 import Footer from '@/components/Footer.vue'
-import { 
-  User, 
-  Message, 
-  Briefcase, 
-  Bell, 
-  Settings, 
-  Logout
-} from '@vicons/tabler'
+import { User, Message, Briefcase, Bell, Settings, Logout } from '@vicons/tabler'
 import { NIcon, NAvatar, NBadge } from 'naive-ui'
 import logoSrc from '@/assets/LogoGigSource.svg'
 
@@ -66,7 +59,12 @@ const menuItems = computed(() => [
   { label: 'Profile', icon: User, path: '/candidate/profile' },
   { label: 'Message', icon: Message, path: '/candidate/chat', badge: unreadMessagesCount.value },
   { label: 'Recruitment', icon: Briefcase, path: '/candidate/recruitment' },
-  { label: 'Notifications', icon: Bell, path: '/candidate/notifications', badge: unreadNotifCount.value },
+  {
+    label: 'Notifications',
+    icon: Bell,
+    path: '/candidate/notifications',
+    badge: unreadNotifCount.value,
+  },
   { label: 'Account', icon: Settings, path: '/candidate/account' },
 ])
 
@@ -96,10 +94,14 @@ const profilePictureUrl = computed(() => {
   return getProfilePictureThumbnail(profile.value?.profile_picture)
 })
 
-watch(profile, (newVal) => {
-  console.log('Profile updated in CandidateLayout.vue:', newVal)
-  console.log('Profile picture in CandidateLayout.vue:', newVal?.profile_picture)
-}, { immediate: true })
+watch(
+  profile,
+  (newVal) => {
+    console.log('Profile updated in CandidateLayout.vue:', newVal)
+    console.log('Profile picture in CandidateLayout.vue:', newVal?.profile_picture)
+  },
+  { immediate: true },
+)
 
 const candidateRole = computed(() => {
   if (profile.value?.job_roles?.length) {
@@ -118,7 +120,7 @@ const recruitmentStatus = computed(() => {
     return 'InProgress'
   }
   if (lowerStatus === 'accepted') {
-    return 'onboarding'
+    return 'Onboarding'
   }
   return status
 })
@@ -127,34 +129,42 @@ const recruitmentStatus = computed(() => {
 <template>
   <div class="min-h-screen flex flex-col bg-gray-50">
     <!-- Header/Navigation -->
-    <header 
+    <header
       class="sticky top-0 z-50 transition-all duration-300 backdrop-blur-xl"
-      :class="isScrolled ? 'bg-white/65 border-b border-slate-200/80' : 'bg-linear-to-r from-violet-950 to-black to-60%'"
+      :class="
+        isScrolled
+          ? 'bg-white/65 border-b border-slate-200/80'
+          : 'bg-linear-to-r from-violet-950 to-black to-60%'
+      "
     >
       <div class="max-w-7xl mx-auto px-8 h-18 flex items-center justify-between">
         <RouterLink to="/" class="flex items-center gap-2">
-          <img 
-            :src="logoSrc" 
-            alt="Logo" 
+          <img
+            :src="logoSrc"
+            alt="Logo"
             class="h-9 transition-all duration-300"
             :class="!isScrolled ? 'brightness-0 invert' : ''"
           />
         </RouterLink>
-        
+
         <div class="flex items-center gap-6">
-          <RouterLink 
-            to="/" 
+          <RouterLink
+            to="/"
             class="text-sm font-medium transition-colors"
-            :class="isScrolled ? 'text-slate-900 hover:text-primary' : 'text-white hover:text-white/80'"
+            :class="
+              isScrolled ? 'text-slate-900 hover:text-primary' : 'text-white hover:text-white/80'
+            "
           >
             Home
           </RouterLink>
-          <button 
+          <button
             @click="handleLogout"
             class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold outline -outline-offset-1 transition-all duration-200"
-            :class="isScrolled 
-              ? 'bg-slate-900/5 text-slate-900 outline-slate-900/10 hover:bg-slate-900/10 hover:scale-105' 
-              : 'bg-white/10 text-white outline-white/10 hover:bg-white/20 hover:scale-105'"
+            :class="
+              isScrolled
+                ? 'bg-slate-900/5 text-slate-900 outline-slate-900/10 hover:bg-slate-900/10 hover:scale-105'
+                : 'bg-white/10 text-white outline-white/10 hover:bg-white/20 hover:scale-105'
+            "
           >
             Logout
             <n-icon :size="18"><Logout /></n-icon>
@@ -164,10 +174,15 @@ const recruitmentStatus = computed(() => {
     </header>
 
     <!-- Hero Section (Always shown on candidate pages) -->
-    <section v-if="route.path.startsWith('/candidate')" class="bg-linear-to-r from-violet-950 to-black to-60% text-white overflow-hidden relative">
+    <section
+      v-if="route.path.startsWith('/candidate')"
+      class="bg-linear-to-r from-violet-950 to-black to-60% text-white overflow-hidden relative"
+    >
       <!-- Background elements -->
-      <div class="absolute top-0 right-0 w-1/3 h-full bg-[radial-gradient(circle_at_top_right,rgba(var(--color-primary-rgb),0.15),transparent_70%)] pointer-events-none"></div>
-      
+      <div
+        class="absolute top-0 right-0 w-1/3 h-full bg-[radial-gradient(circle_at_top_right,rgba(var(--color-primary-rgb),0.15),transparent_70%)] pointer-events-none"
+      ></div>
+
       <div class="max-w-7xl mx-auto px-8 py-4 pb-12 relative z-10">
         <div class="flex items-center gap-10">
           <div class="relative group">
@@ -185,13 +200,17 @@ const recruitmentStatus = computed(() => {
               {{ userInitials }}
             </n-avatar>
           </div>
-          
+
           <div class="space-y-2">
             <h1 class="text-3xl font-extrabold text-white tracking-tight">{{ candidateName }}</h1>
             <p class="text-white/60 text-lg font-medium">{{ candidateRole }}</p>
-            
-            <div class="inline-flex items-center gap-2 px-2.5 py-1 bg-white/5 text-white/80 rounded-full text-[10px] font-semibold border border-white/10">
-              <div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+
+            <div
+              class="inline-flex items-center gap-2 px-2.5 py-1 bg-white/5 text-white/80 rounded-full text-[10px] font-semibold border border-white/10"
+            >
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+              ></div>
               {{ recruitmentStatus }}
             </div>
           </div>
@@ -205,24 +224,32 @@ const recruitmentStatus = computed(() => {
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <!-- Sidebar -->
           <div class="lg:col-span-3">
-            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden sticky top-26">
+            <div
+              class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden sticky top-26"
+            >
               <div class="p-6">
                 <h3 class="text-lg font-bold text-slate-800 mb-2">Menu</h3>
                 <nav class="space-y-1.5">
-                  <RouterLink 
-                    v-for="item in menuItems" 
+                  <RouterLink
+                    v-for="item in menuItems"
                     :key="item.path"
                     :to="item.path"
                     class="flex items-center justify-between px-3 py-2 rounded-3xl transition-all duration-200 group"
-                    :class="isActive(item.path) 
-                      ? 'bg-primary/5 text-primary border border-primary shadow-xs font-semibold' 
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border border-transparent'"
+                    :class="
+                      isActive(item.path)
+                        ? 'bg-primary/5 text-primary border border-primary shadow-xs font-semibold'
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
+                    "
                   >
                     <div class="flex items-center gap-3">
-                      <n-icon 
-                        :size="20" 
-                        :component="item.icon" 
-                        :class="isActive(item.path) ? 'text-primary' : 'text-slate-400 group-hover:text-slate-600'"
+                      <n-icon
+                        :size="20"
+                        :component="item.icon"
+                        :class="
+                          isActive(item.path)
+                            ? 'text-primary'
+                            : 'text-slate-400 group-hover:text-slate-600'
+                        "
                       />
                       <span>{{ item.label }}</span>
                     </div>
@@ -235,7 +262,12 @@ const recruitmentStatus = computed(() => {
 
           <!-- Page Content -->
           <div class="lg:col-span-9 flex flex-col">
-            <div :class="containerClass || 'bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex flex-col'">
+            <div
+              :class="
+                containerClass ||
+                'bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex flex-col'
+              "
+            >
               <slot />
             </div>
           </div>

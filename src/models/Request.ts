@@ -95,6 +95,7 @@ export interface CreateRequestPayload {
 }
 
 export interface RequestSubrequestPayload {
+  id?: string
   job_role_id: string
   level: RequestLevel
   overview: string | null
@@ -112,6 +113,7 @@ export interface CreateRequestResponse {
 }
 
 export interface TalentRequestSubrequestForm {
+  id?: string
   overview: string | null
   jobRoleId: string | null
   level: RequestLevel | null

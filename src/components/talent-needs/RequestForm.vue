@@ -57,6 +57,7 @@ const requestSchema = z.object({
   subRequests: z
     .array(
       z.object({
+        id: z.string().optional(),
         jobRoleId: z.string().min(1, 'Nama posisi wajib dipilih'),
         level: z.enum(['Junior', 'Middle', 'Senior'], {
           message: 'Level senioritas wajib dipilih',
@@ -156,6 +157,7 @@ const toRequestPayload = (values: TalentRequestFormValues): CreateRequestPayload
     project_name: values.projectName.trim(),
     project_duration: values.projectDuration.trim(),
     subrequests: values.subRequests.map((subrequest) => ({
+      id: subrequest.id,
       job_role_id: subrequest.jobRoleId as string,
       level: subrequest.level as RequestLevel,
       overview: subrequest.overview?.trim() || null,
@@ -237,6 +239,7 @@ if (requestQuery) {
           }
 
           return {
+            id: s.id,
             jobRoleId: s.job_role_id,
             level: s.level,
             overview: s.overview,

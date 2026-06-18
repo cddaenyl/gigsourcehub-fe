@@ -8,7 +8,7 @@ import {
   finalizeRecruitmentApi,
 } from '@/services/user.service'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
-import type { FinalizeRecruitmentPayload, UserRecruitmentStatusPayload } from '@/models/User'
+import type { FinalizeRecruitmentPayload, UserRecruitmentStatusPayload, StopOnboardingPayload } from '@/models/User'
 
 export function useUser(id: MaybeRefOrGetter<string>) {
   const queryClient = useQueryClient()
@@ -41,7 +41,7 @@ export function useUser(id: MaybeRefOrGetter<string>) {
   })
 
   const stopOnboardingMutation = useMutation({
-    mutationFn: () => stopOnboardingApi(toValue(id)),
+    mutationFn: (payload: StopOnboardingPayload) => stopOnboardingApi(toValue(id), payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', toValue(id)] })
       queryClient.invalidateQueries({ queryKey: ['active-subrequest', toValue(id)] })

@@ -22,6 +22,7 @@ import {
   NDatePicker,
   NSpace,
   NIcon,
+  NInput,
   useMessage,
   type SelectOption,
 } from 'naive-ui'
@@ -97,6 +98,7 @@ const recruitModalVisible = ref(false)
 const chatModalVisible = ref(false)
 const cancelRecruitmentModalVisible = ref(false)
 const stopOnboardingModalVisible = ref(false)
+const cancelledReason = ref('')
 const declineConfirmationModalVisible = ref(false)
 const finalizeModalVisible = ref(false)
 const finalizeStartDate = ref<string | null>(null)
@@ -324,15 +326,17 @@ const handleStopOnboardingClick = (): void => {
 
 const closeStopOnboardingModal = (): void => {
   stopOnboardingModalVisible.value = false
+  cancelledReason.value = ''
 }
 
 const handleConfirmStopOnboarding = async (): Promise<void> => {
   if (!user.value?.id) return
 
   try {
-    await stopOnboarding()
+    await stopOnboarding({ cancelled_reason: cancelledReason.value })
     message.success('Onboarding kandidat berhasil dihentikan.', { duration: 2000 })
     stopOnboardingModalVisible.value = false
+    cancelledReason.value = ''
     await Promise.all([refetchUser(), refetchMyRequests(), refetchActiveSubrequest()])
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal menghentikan onboarding.'
@@ -589,20 +593,29 @@ const handleAssignCandidate = async (): Promise<void> => {
         </div>
         <div
           v-else-if="activeSubrequest && user.recruitment_status_name === 'Decline'"
-          class="flex text-red-500 border-l-3 bg-red-50 items-center px-2 py-1.5 rounded-sm gap-1 justify-between"
+          class="flex text-red-500 border-l-3 bg-red-50 px-2 py-2 rounded-sm gap-2"
         >
-          <div class="flex space-x-1">
-            <n-icon size="14" :component="AlertTriangle" style="font-weight: bold" />
-            <h2 class="text-xs italic font-normal">
-              Kandidat menolak proses rekrutmen
-              <span class="font-semibold"
-                >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
-              >
-            </h2>
+          <div class="flex flex-col justify-between gap-1 w-full">
+            <div class="flex space-x-1 items-center">
+              <n-icon size="14" :component="AlertTriangle" style="font-weight: bold" />
+              <h2 class="text-xs italic font-normal">
+                Kandidat menolak proses rekrutmen
+                <span class="font-semibold"
+                  >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
+                >
+              </h2>
+            </div>
+            <div v-if="activeSubrequest?.declined_reason" class="text-xs pl-5 text-slate-600">
+            <span class="font-semibold text-red-500">Alasan Penolakan: </span>
+            {{ activeSubrequest.declined_reason }}
           </div>
-          <n-button type="error" size="tiny" @click="handleDeclineConfirmationClick">
-            Konfirmasi
-          </n-button>
+
+          </div>
+          <div class="flex justify-end items-center w-full mr-1">
+            <n-button type="error" size="tiny" @click="handleDeclineConfirmationClick">
+              Konfirmasi
+            </n-button>
+          </div>
         </div>
         <div
           v-else-if="activeSubrequest"
@@ -729,6 +742,18 @@ const handleAssignCandidate = async (): Promise<void> => {
           Tindakan ini akan menghentikan status onboarding kandidat dan tidak bisa dibatalkan.
         </p>
 
+        <!-- Reason Textarea -->
+        <div class="w-full mt-4 text-left">
+          <label class="text-xs font-semibold text-slate-500">Alasan Pemberhentian <span class="text-red-500">*</span></label>
+          <n-input
+            v-model:value="cancelledReason"
+            type="textarea"
+            placeholder="Masukkan alasan pemberhentian..."
+            :rows="3"
+            class="mt-1"
+          />
+        </div>
+
         <div class="mt-8 flex justify-center gap-3">
           <n-button secondary :disabled="isStoppingOnboarding" @click="closeStopOnboardingModal">
             Tutup
@@ -736,7 +761,7 @@ const handleAssignCandidate = async (): Promise<void> => {
           <n-button
             type="error"
             :loading="isStoppingOnboarding"
-            :disabled="isStoppingOnboarding"
+            :disabled="isStoppingOnboarding || !cancelledReason.trim()"
             @click="handleConfirmStopOnboarding"
           >
             Berhentikan

@@ -8,6 +8,8 @@ import type {
   FinalizeRecruitmentPayload,
   CandidateDirectoryUser,
   PaginatedListResponse,
+  StopOnboardingPayload,
+  DeclineRecruitmentPayload,
 } from '@/models/User'
 
 export const getUsersApi = async (params: UsersQueryParams = {}): Promise<UsersResponse> => {
@@ -287,9 +289,12 @@ export const confirmDeclineConfirmationApi = async (id: string): Promise<UserRes
   }
 }
 
-export const stopOnboardingApi = async (id: string): Promise<UserResponse> => {
+export const stopOnboardingApi = async (
+  id: string,
+  payload: StopOnboardingPayload,
+): Promise<UserResponse> => {
   try {
-    const response = await axios.patch<UserResponse>(`/users/${id}/stop-onboarding`)
+    const response = await axios.patch<UserResponse>(`/users/${id}/stop-onboarding`, payload)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {
@@ -313,9 +318,12 @@ export const finalizeRecruitmentApi = async (
   }
 }
 
-export const declineRecruitmentApi = async (id: string): Promise<UserResponse> => {
+export const declineRecruitmentApi = async (
+  id: string,
+  payload: DeclineRecruitmentPayload,
+): Promise<UserResponse> => {
   try {
-    const response = await axios.patch<UserResponse>(`/users/${id}/decline`)
+    const response = await axios.patch<UserResponse>(`/users/${id}/decline`, payload)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {

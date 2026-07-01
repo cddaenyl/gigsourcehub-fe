@@ -176,7 +176,14 @@ const fetchProfilePic = async (id: string) => {
 
   try {
     const res = await getUserProfilePictureApi(id)
-    profilePics.value[id] = getProfilePictureThumbnail(res.profile_picture_url) || null
+    let url = res.profile_picture_url || null
+    if (url) {
+      if (url.includes('_thumb_thumb')) {
+        url = url.replace('_thumb_thumb', '_thumb')
+      }
+      url = url.replace('/gigsourcehub/profile-pictures/', '/profile-pictures/')
+    }
+    profilePics.value[id] = url
   } catch (err) {
     console.error(`Failed to fetch profile pic for candidate ${id}`, err)
     profilePics.value[id] = null

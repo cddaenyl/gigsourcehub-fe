@@ -22,8 +22,10 @@ import {
   AlertTriangle,
   Checkbox,
   Alarm,
+  FileText,
+  Download,
 } from '@vicons/tabler'
-import type { ConversationResp, MessageResp } from '@/models/Chat'
+import type { ConversationResp, MessageResp, OfferingMessageContent } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useInterviewById } from '@/composables/useInterviews'
 import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
@@ -40,6 +42,10 @@ const selectedConversationId = ref<string | null>(null)
 const messageInput = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 const replyingTo = ref<MessageResp | null>(null)
+const OFFERING_MESSAGE_PREFIX = '__offering_chat__:'
+const showOfferingPreviewModal = ref(false)
+const offeringPreviewUrl = ref<string | null>(null)
+const offeringPreviewName = ref<string | null>(null)
 
 // Composables
 const { data: conversationsData, isLoading: isLoadingConversations } = useConversations(page, limit)
@@ -291,9 +297,93 @@ const parseInterviewMessageContent = (content: string) => {
   }
 }
 
+const parseOfferingMessageContent = (content: string) => {
+  const trimmed = content.trim()
+  const raw = trimmed.startsWith(OFFERING_MESSAGE_PREFIX)
+    ? trimmed.slice(OFFERING_MESSAGE_PREFIX.length)
+    : trimmed.startsWith('{')
+      ? trimmed
+      : null
+
+  if (!raw) return null
+
+  try {
+    const parsed = JSON.parse(raw) as OfferingMessageContent
+    if (!parsed?.url || !parsed?.content_type) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const getOfferingFileName = (payload: OfferingMessageContent | null) => {
+  if (!payload) return 'Dokumen'
+  if (payload.filename?.trim()) return payload.filename
+  const source = payload.key || payload.url
+  const fileName = source?.split('/').pop()
+  if (!fileName) return 'Dokumen'
+  try {
+    return decodeURIComponent(fileName)
+  } catch {
+    return fileName
+  }
+}
+
+const formatFileSize = (value?: number) => {
+  if (!value || Number.isNaN(value)) return null
+  if (value < 1024) return `${value} B`
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(0)} KB`
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`
+}
+
+const formatOfferingDate = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
+const openOfferingPreview = (payload: OfferingMessageContent | null) => {
+  if (!payload?.url) return
+  offeringPreviewUrl.value = payload.url
+  offeringPreviewName.value = getOfferingFileName(payload)
+  showOfferingPreviewModal.value = true
+}
+
+const downloadOffering = (payload: OfferingMessageContent | null) => {
+  if (!payload?.url) return
+  const link = document.createElement('a')
+  link.href = payload.url
+  link.download = getOfferingFileName(payload)
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+watch(showOfferingPreviewModal, (visible) => {
+  if (!visible) {
+    offeringPreviewUrl.value = null
+    offeringPreviewName.value = null
+  }
+})
+
 const getMessagePreviewText = (content: string) => {
   const interviewMessage = parseInterviewMessageContent(content)
-  return interviewMessage?.title || content
+  if (interviewMessage?.title) return interviewMessage.title
+
+  const offeringMessage = parseOfferingMessageContent(content)
+  if (offeringMessage) {
+    return `${getOfferingFileName(offeringMessage)} `
+  }
+
+  return content
 }
 
 const formatInterviewDate = (value: string) => {
@@ -485,7 +575,7 @@ const formatOnboardingDate = (value: string | null | undefined): string => {
                 <div class="relative overflow-hidden"
                       :class="[
                         msg.sender_user_id === authStore.user?.id ? 'order-2' : 'order-1',
-                        parseInterviewMessageContent(msg.content)
+                        parseInterviewMessageContent(msg.content) || parseOfferingMessageContent(msg.content)
                           ? ''
                           : msg.sender_user_id === authStore.user?.id
                             ? 'rounded-md px-5 py-3 shadow-sm bg-gray-200 text-gray-900'
@@ -504,14 +594,83 @@ const formatOnboardingDate = (value: string | null | undefined): string => {
                           {{ getMessagePreviewText(msg.reply_to.content) }}
                         </span>
                       </template>
+                      <template v-else-if="parseOfferingMessageContent(msg.reply_to.content)">
+                        <span class="inline-flex items-center gap-1 text-rose-600 font-medium">
+                          <n-icon size="12"><FileText /></n-icon>
+                          {{ getMessagePreviewText(msg.reply_to.content) }}
+                        </span>
+                      </template>
                       <template v-else>
                         {{ msg.reply_to.content }}
                       </template>
                     </div>
                   </div>
 
+                  <!-- Offering Message Content -->
+                  <template v-if="parseOfferingMessageContent(msg.content)">
+                    <div
+                      class="w-85 max-w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xs"
+                    >
+                      <div class="flex items-center gap-4">
+                        <div
+                          class="flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50"
+                        >
+                          <div
+                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500 text-[10px] font-bold text-white"
+                          >
+                            PDF
+                          </div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <div class="text-sm font-semibold text-slate-800 truncate">
+                            {{ getOfferingFileName(parseOfferingMessageContent(msg.content)) }}
+                          </div>
+                          <div class="text-xs text-slate-500">
+                            <span>{{ formatOfferingDate(msg.created_at) }}</span>
+                            <template
+                              v-if="
+                                formatFileSize(
+                                  parseOfferingMessageContent(msg.content)?.file_size,
+                                )
+                              "
+                            >
+                              <span class="px-1">•</span>
+                              {{
+                                formatFileSize(
+                                  parseOfferingMessageContent(msg.content)?.file_size,
+                                )
+                              }}
+                            </template>
+                          </div>
+                        </div>
+                        <div class="flex gap-2">
+                          <button
+                            class="flex h-9 w-9 justify-center items-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700 cursor-pointer"
+                            @click="
+                              openOfferingPreview(parseOfferingMessageContent(msg.content))
+                            "
+                            type="button"
+                          >
+                            <n-icon size="16">
+                              <Eye />
+                            </n-icon>
+                          </button>
+                          <button
+                            class="flex h-9 w-9 justify-center items-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700 cursor-pointer"
+                            @click="downloadOffering(parseOfferingMessageContent(msg.content))"
+                            type="button"
+                          >
+                            <n-icon size="16">
+                              <Download />
+                            </n-icon>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
                   <!-- Interview Message Content -->
-                  <template v-if="parseInterviewMessageContent(msg.content)">
+                  <template v-else-if="parseInterviewMessageContent(msg.content)">
                     <div
                       class="w-85 max-w-full rounded-2xl border border-blue-100 bg-white p-4 pb-6 shadow-xs"
                     >
@@ -636,6 +795,12 @@ const formatOnboardingDate = (value: string | null | undefined): string => {
                     {{ getMessagePreviewText(replyingTo.content) }}
                   </span>
                 </template>
+                <template v-else-if="parseOfferingMessageContent(replyingTo.content)">
+                  <span class="inline-flex items-center gap-1 text-rose-600 font-medium">
+                    <n-icon size="12"><FileText /></n-icon>
+                    {{ getMessagePreviewText(replyingTo.content) }}
+                  </span>
+                </template>
                 <template v-else>
                   {{ replyingTo.content }}
                 </template>
@@ -755,6 +920,36 @@ const formatOnboardingDate = (value: string | null | undefined): string => {
           <n-button type="default" @click="showInterviewDetailModal = false" style="width: 25%"
             >Tutup</n-button
           >
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="showOfferingPreviewModal"
+      preset="card"
+      :bordered="false"
+      style="width: 52rem"
+    >
+      <div class="-mt-8">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold">Preview Dokumen</h3>
+            <p class="text-sm text-gray-500">
+              {{ offeringPreviewName || 'Dokumen' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <iframe
+            v-if="offeringPreviewUrl"
+            :src="offeringPreviewUrl"
+            title="Offering Preview"
+            class="h-[70vh] w-full"
+          ></iframe>
+          <div v-else class="flex items-center justify-center py-16 text-sm text-slate-400">
+            Preview tidak tersedia.
+          </div>
         </div>
       </div>
     </n-modal>

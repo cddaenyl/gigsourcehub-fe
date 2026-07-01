@@ -2,10 +2,12 @@
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import { NIcon, NButton, NSpace } from 'naive-ui'
 import { ChevronLeft } from '@vicons/tabler'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import RequestForm from '@/components/talent-needs/RequestForm.vue'
 
 const router = useRouter()
+const route = useRoute()
+const id = String((route.params as { id?: string }).id || '')
 
 const handleBack = () => router.push('/employee/talent-needs')
 </script>
@@ -21,35 +23,10 @@ const handleBack = () => router.push('/employee/talent-needs')
             </template>
           </n-button>
         </div>
-        <h1 class="text-xl font-semibold text-gray-700">Ajukan Kebutuhan Talenta</h1>
+        <h1 class="text-xl font-semibold text-gray-700">Edit Kebutuhan Talenta</h1>
       </n-space>
 
-      <RequestForm />
+      <RequestForm mode="edit" :requestId="id" />
     </n-space>
   </EmployeeLayout>
 </template>
-
-<style scoped>
-/* :deep(.n-base-selection .n-base-selection-label) {
-  min-height: 36px;
-} */
-
-:deep(.n-input .n-input__input-el),
-:deep(.n-base-selection .n-base-selection-label .n-base-selection-input),
-:deep(.n-date-picker .n-input__input-el),
-:deep(.n-base-selection .n-base-selection-label .n-base-selection-input) {
-  font-size: 12px;
-}
-
-:deep(.n-input .n-input__placeholder),
-:deep(.n-base-selection-label__placeholder),
-:deep(.n-date-picker .n-input__placeholder),
-:deep(.n-base-selection .n-base-selection-label .n-base-selection-placeholder) {
-  color: #cbd5e1;
-}
-
-.n-card {
-  box-shadow: 0 0px 1px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-}
-</style>

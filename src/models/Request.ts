@@ -72,6 +72,11 @@ export interface RequestQueryParams {
   page?: number
   limit?: number
   search?: string
+  status?: string
+  urgency?: string
+  proposed_by?: string
+  admin_name?: string
+  format?: string
 }
 
 export interface GetRequestsResponse {
@@ -90,6 +95,7 @@ export interface CreateRequestPayload {
 }
 
 export interface RequestSubrequestPayload {
+  id?: string
   job_role_id: string
   level: RequestLevel
   overview: string | null
@@ -107,6 +113,7 @@ export interface CreateRequestResponse {
 }
 
 export interface TalentRequestSubrequestForm {
+  id?: string
   overview: string | null
   jobRoleId: string | null
   level: RequestLevel | null

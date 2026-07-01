@@ -8,6 +8,8 @@ import type {
   FinalizeRecruitmentPayload,
   CandidateDirectoryUser,
   PaginatedListResponse,
+  StopOnboardingPayload,
+  DeclineRecruitmentPayload,
 } from '@/models/User'
 
 export const getUsersApi = async (params: UsersQueryParams = {}): Promise<UsersResponse> => {
@@ -287,9 +289,12 @@ export const confirmDeclineConfirmationApi = async (id: string): Promise<UserRes
   }
 }
 
-export const stopOnboardingApi = async (id: string): Promise<UserResponse> => {
+export const stopOnboardingApi = async (
+  id: string,
+  payload: StopOnboardingPayload,
+): Promise<UserResponse> => {
   try {
-    const response = await axios.patch<UserResponse>(`/users/${id}/stop-onboarding`)
+    const response = await axios.patch<UserResponse>(`/users/${id}/stop-onboarding`, payload)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {
@@ -313,9 +318,12 @@ export const finalizeRecruitmentApi = async (
   }
 }
 
-export const declineRecruitmentApi = async (id: string): Promise<UserResponse> => {
+export const declineRecruitmentApi = async (
+  id: string,
+  payload: DeclineRecruitmentPayload,
+): Promise<UserResponse> => {
   try {
-    const response = await axios.patch<UserResponse>(`/users/${id}/decline`)
+    const response = await axios.patch<UserResponse>(`/users/${id}/decline`, payload)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError && error.response?.data?.message) {
@@ -336,3 +344,48 @@ export const deleteAccountApi = async (data: { password: string }): Promise<void
   }
 }
 
+export const exportCandidatesApi = async (params: UsersQueryParams = {}): Promise<Blob> => {
+  try {
+    const response = await axios.get('/users/candidates/export', { params, responseType: 'blob' })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const exportCandidateRecruitmentApi = async (
+  params: UsersQueryParams = {},
+): Promise<Blob> => {
+  try {
+    const response = await axios.get('/users/candidate-recruitment/export', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}
+
+export const exportCandidateBookmarkedApi = async (
+  params: UsersQueryParams = {},
+): Promise<Blob> => {
+  try {
+    const response = await axios.get('/users/candidate-bookmarked/export', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw error
+  }
+}

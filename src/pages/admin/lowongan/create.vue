@@ -17,7 +17,7 @@ import {
 } from 'naive-ui'
 import { ChevronLeft } from '@vicons/tabler'
 import AdminLayout from '@/layouts/AdminLayout.vue'
-import { createJobVacancyApi } from '@/services/job-vacancy.service'
+import { createJobVacancyApi, getJobVacanciesApi } from '@/services/job-vacancy.service'
 import type { JobVacancySchema } from '@/models/JobVacancy'
 import { stringifyJobVacancyDescription } from '@/models/JobVacancy'
 import { getAdminRequestsApi } from '@/services/request.service'
@@ -31,6 +31,8 @@ const isLoading = ref(false)
 // --- Data ---
 const requests = ref<RequestItem[]>([])
 const selectedRequestId = ref<string | null>(null)
+// Kumpulkan subrequest_id yang sudah memiliki lowongan DRAFT atau PUBLISHED
+const occupiedSubrequestIds = ref<Set<string>>(new Set())
 
 // --- Form Data ---
 const formData = reactive({
@@ -57,6 +59,9 @@ const autoFillDuration = ref('')
 const autoFillLevel = ref('')
 const autoFillTechStack = ref<string[]>([])
 
+// Poin 4: fulfillment_date dari request terpilih, untuk batasan takedown_date
+const fulfillmentDateTs = ref<number | null>(null)
+
 const rules: FormRules = {
   subrequest_id: { required: true, message: 'Posisi wajib dipilih', trigger: 'blur' },
   name: { required: true, message: 'Judul lowongan wajib diisi', trigger: 'blur' },
@@ -64,14 +69,26 @@ const rules: FormRules = {
 
 onMounted(async () => {
   try {
-    const requestsData = await getAdminRequestsApi({ limit: 1000 })
+    // Poin 3: hanya request dengan status ACCEPTED (sudah divalidasi admin)
+    const requestsData = await getAdminRequestsApi({ limit: 1000, status: 'ACCEPTED' })
     requests.value = requestsData.data.list
+
+    // Poin 2: ambil semua lowongan DRAFT & PUBLISHED untuk tahu subrequest yang sudah terpakai
+    const vacanciesData = await getJobVacanciesApi({ limit: 1000 })
+    const occupied = new Set<string>()
+    for (const v of vacanciesData.data.list) {
+      if (v.status === 'DRAFT' || v.status === 'PUBLISHED') {
+        occupied.add(v.subrequest_id)
+      }
+    }
+    occupiedSubrequestIds.value = occupied
   } catch (err: unknown) {
     message.error(err instanceof Error ? err.message : 'Gagal mengambil data')
   }
 })
 
 // --- Options ---
+// Poin 2: filter request yang due_date-nya belum lewat
 const activeRequests = computed(() => {
   const todayStr = new Date().toISOString().substring(0, 10)
   return requests.value.filter((req) => {
@@ -95,14 +112,28 @@ const selectedRequest = computed(() =>
   requests.value.find((req) => req.id === selectedRequestId.value),
 )
 
+// Poin 2: subrequest yang tampil hanya yang belum is_filled DAN belum punya lowongan aktif
 const subrequestOptions = computed(() => {
   if (!selectedRequest.value) return []
-  return selectedRequest.value.subrequests.map((sub) => {
-    const roleAndLevel = sub.level ? `${sub.job_role} - ${sub.level}` : sub.job_role
-    const label = sub.is_filled ? `${roleAndLevel} (Terpenuhi)` : roleAndLevel
-    return { label, value: sub.id, disabled: sub.is_filled === true }
-  })
+  return selectedRequest.value.subrequests
+    .filter((sub) => !sub.is_filled && !occupiedSubrequestIds.value.has(sub.id))
+    .map((sub) => {
+      const roleAndLevel = sub.level ? `${sub.job_role} - ${sub.level}` : sub.job_role
+      return { label: roleAndLevel, value: sub.id }
+    })
 })
+
+// Poin 4: fungsi disabledDate untuk NDatePicker
+// Tidak boleh < hari ini, tidak boleh > due_date (fulfillment_date) dari request
+const disabledTakedownDate = (ts: number): boolean => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayTs = today.getTime()
+
+  if (ts < todayTs) return true
+  if (fulfillmentDateTs.value !== null && ts > fulfillmentDateTs.value) return true
+  return false
+}
 
 // --- Watchers ---
 watch(selectedRequestId, () => {
@@ -121,7 +152,7 @@ watch(
       autoFillLevel.value = sub.level || ''
       autoFillBidang.value = sub.bidang || ''
       autoFillTechStack.value = parseTechStack(sub.tech_stack)
-      
+
       // Clear tag fields because description, qualifications, and benefits are manually filled by Admin
       jobDescTags.value = []
       qualificationsTags.value = []
@@ -130,8 +161,16 @@ watch(
       if (selectedRequest.value?.project_duration) {
         autoFillDuration.value = selectedRequest.value.project_duration
       }
+      // Poin 4: set fulfillment_date dari due_date request sebagai batas atas takedown_date
       if (selectedRequest.value?.due_date) {
-        formData.takedown_date = new Date(selectedRequest.value.due_date).getTime()
+        const due = new Date(selectedRequest.value.due_date)
+        due.setHours(23, 59, 59, 999)
+        fulfillmentDateTs.value = due.getTime()
+        // set default takedown_date = due_date
+        formData.takedown_date = new Date(selectedRequest.value.due_date).setHours(0, 0, 0, 0)
+      } else {
+        fulfillmentDateTs.value = null
+        formData.takedown_date = null
       }
     }
   },
@@ -148,6 +187,7 @@ function clearAutoFill() {
   qualificationsTags.value = []
   benefitsTags.value = []
   formData.takedown_date = null
+  fulfillmentDateTs.value = null
 }
 
 function parseTechStack(techStack: string | null | undefined): string[] {
@@ -290,7 +330,7 @@ const themeOverride = {
                 <n-select
                   v-model:value="selectedRequestId"
                   :options="requestOptions"
-                  placeholder="Pilih Project / Kegiatan"
+                  placeholder="Pilih Project / Kegiatan (hanya Request yang telah divalidasi)"
                   filterable
                   clearable
                 />
@@ -301,7 +341,7 @@ const themeOverride = {
                 <n-select
                   v-model:value="formData.subrequest_id"
                   :options="subrequestOptions"
-                  placeholder="Pilih posisi"
+                  placeholder="Pilih posisi (hanya posisi yang belum memiliki lowongan aktif)"
                   filterable
                   clearable
                   :disabled="!selectedRequestId"
@@ -466,6 +506,7 @@ const themeOverride = {
           <!-- Pengaturan Publikasi -->
           <n-card title="Pengaturan Publikasi" :bordered="false" class="rounded-xl shadow-sm mb-4">
             <n-form-item label="Tanggal Penutupan">
+              <!-- Poin 4: tidak bisa < hari ini, tidak bisa > due_date request -->
               <n-date-picker
                 v-model:value="formData.takedown_date"
                 type="date"
@@ -473,7 +514,13 @@ const themeOverride = {
                 format="dd/MM/yyyy"
                 clearable
                 class="w-full"
+                :is-date-disabled="disabledTakedownDate"
               />
+              <template v-if="fulfillmentDateTs" #feedback>
+                <span class="text-xs text-slate-400">
+                  Batas: {{ new Date(fulfillmentDateTs).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) }}
+                </span>
+              </template>
             </n-form-item>
           </n-card>
 

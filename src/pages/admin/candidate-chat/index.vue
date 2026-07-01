@@ -35,7 +35,6 @@ import {
   Search,
   Send,
   Plus,
-  Copy,
   User,
   Eye,
   Message,
@@ -51,12 +50,19 @@ import {
   CalendarEvent,
   FileText,
   Download,
+  Plane,
+  AlertTriangle,
+  Checkbox,
+  Alarm,
 } from '@vicons/tabler'
 import type { ConversationResp, MessageResp, OfferingMessageContent } from '@/models/Chat'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useInterviewStages } from '@/composables/useInterviewStages'
 import { useCreateInterview, useInterviewById } from '@/composables/useInterviews'
+import { useUpdateInterview } from '@/composables/useInterviews'
 import type { CreateInterviewPayload } from '@/models/InterviewSchedule'
+import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
+import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
 
 type MessageQueryCache = {
   data?: {
@@ -117,6 +123,8 @@ const isOfferingUploading = ref(false)
 const showOfferingPreviewModal = ref(false)
 const offeringPreviewUrl = ref<string | null>(null)
 const offeringPreviewName = ref<string | null>(null)
+const showEditInterviewModal = ref(false)
+const editInterviewScheduledAt = ref<number | null>(null)
 const interviewForm = reactive({
   stage_id: '',
   title: '',
@@ -148,6 +156,7 @@ const {
   isLoading: isLoadingInterviewDetail,
   refetch: refetchInterviewDetail,
 } = useInterviewById(selectedInterviewId)
+const { mutateAsync: updateInterview, isPending: isUpdatingInterview } = useUpdateInterview()
 
 // Computed data
 const conversations = computed(() => conversationsData.value?.data.list || [])
@@ -180,6 +189,26 @@ const activeConversation = computed(() => {
   )
 })
 
+// Active subrequest and onboarding history for the active candidate
+const activeCandidateId = computed(() => activeConversation.value?.candidate_user_id || '')
+const { activeSubrequest, isLoading: isActiveSubrequestLoading } =
+  useActiveSubrequest(activeCandidateId)
+const { history: onboardingHistory } = useCandidateOnboardingHistory(activeCandidateId)
+const currentOnboarding = computed(() => onboardingHistory.value?.[0] ?? null)
+
+const formatOnboardingDate = (value: string | null | undefined): string => {
+  if (!value) return '-'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return date.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
 const filteredConversations = computed(() => {
   let list = conversations.value
 
@@ -198,7 +227,6 @@ const filteredConversations = computed(() => {
 
   return list
 })
-
 
 // Scroll to bottom helper
 const scrollToBottom = async () => {
@@ -338,17 +366,6 @@ watch(
 watch(selectedConversationId, () => {
   showActionMenu.value = false
 })
-
-const copyName = async () => {
-  if (activeConversation.value?.candidate_user_name) {
-    try {
-      await navigator.clipboard.writeText(activeConversation.value.candidate_user_name)
-      naiveMessage.success('Candidate name copied to clipboard')
-    } catch {
-      naiveMessage.error('Failed to copy name')
-    }
-  }
-}
 
 const goToProfile = () => {
   if (activeConversation.value?.candidate_user_id) {
@@ -868,6 +885,84 @@ const toIsoDatetime = (value: number | null) => {
   return new Date(value).toISOString()
 }
 
+const openEditInterviewModal = () => {
+  if (!selectedInterview.value) return
+  const ts = selectedInterview.value.scheduled_at
+    ? new Date(selectedInterview.value.scheduled_at).getTime()
+    : null
+  editInterviewScheduledAt.value = ts
+  showEditInterviewModal.value = true
+}
+
+const handleSubmitEditInterview = async () => {
+  if (!selectedInterview.value) return
+  if (!editInterviewScheduledAt.value) {
+    naiveMessage.error('Pilih tanggal dan waktu untuk jadwal interview.')
+    return
+  }
+
+  try {
+    await updateInterview({
+      id: selectedInterview.value.id,
+      payload: { scheduled_at: toIsoDatetime(editInterviewScheduledAt.value) },
+    })
+    naiveMessage.success('Jadwal interview berhasil diperbarui.')
+    showEditInterviewModal.value = false
+    await refetchInterviewDetail()
+  } catch (err: any) {
+    naiveMessage.error(err?.message || 'Gagal memperbarui jadwal interview.')
+  }
+}
+
+// Keep chat in sync when interview time changes
+watch(
+  selectedInterview,
+  (newInterview, oldInterview) => {
+    if (!newInterview) return
+    if (oldInterview && newInterview.scheduled_at === oldInterview.scheduled_at) return
+
+    const convId = selectedConversationId.value
+
+    // Update messages cache for active conversation
+    if (convId) {
+      queryClient.setQueryData<MessageQueryCache>(['messages', convId, 1, 100], (oldData) => {
+        if (!oldData?.data?.list) return oldData
+        const newList = oldData.data.list.map((m) => {
+          const parsed = parseInterviewMessageContent(m.content || '')
+          if (parsed && parsed.interview_id === newInterview.id) {
+            const updated = { ...parsed, scheduled_at: newInterview.scheduled_at }
+            return { ...m, content: buildInterviewMessageContent(updated) }
+          }
+          return m
+        })
+        return { ...oldData, data: { ...oldData.data, list: newList } }
+      })
+
+      // Update conversation list's last message preview
+      queryClient.setQueryData<ConversationQueryCache>(
+        ['conversations', page.value, limit.value],
+        (oldData) => {
+          if (!oldData?.data?.list) return oldData
+          const newList = oldData.data.list.map((c) => {
+            if (!c.last_message) return c
+            const parsed = parseInterviewMessageContent(c.last_message.content || '')
+            if (parsed && parsed.interview_id === newInterview.id) {
+              const updated = { ...parsed, scheduled_at: newInterview.scheduled_at }
+              return {
+                ...c,
+                last_message: { ...c.last_message, content: buildInterviewMessageContent(updated) },
+              }
+            }
+            return c
+          })
+          return { ...oldData, data: { ...oldData.data, list: newList } }
+        },
+      )
+    }
+  },
+  { deep: false },
+)
+
 const handleSubmitInterview = () => {
   interviewFormRef.value?.validate(async (errors) => {
     if (errors) return
@@ -970,22 +1065,40 @@ const isUnread = (c: ConversationResp) => {
             </n-icon>
             <h2 class="text-xl font-semibold">Chats</h2>
           </div>
-          <n-input v-model:value="searchQuery" placeholder="Cari Kandidat..." round class="bg-white/10 text-white">
+          <n-input
+            v-model:value="searchQuery"
+            placeholder="Cari Kandidat..."
+            round
+            class="bg-white/10 text-white"
+          >
             <template #prefix>
               <n-icon :component="Search" class="text-white/60" />
             </template>
           </n-input>
 
           <div class="flex gap-2">
-            <n-tag :color="{
-              color: activeTab === 'All' ? 'white' : 'transparent',
-              textColor: activeTab === 'All' ? '#0A1A5C' : 'white',
-            }" round class="cursor-pointer font-medium" :bordered="false" @click="activeTab = 'All'">All</n-tag>
-            <n-tag :color="{
-              color: activeTab === 'Unread' ? 'white' : 'transparent',
-              textColor: activeTab === 'Unread' ? '#0A1A5C' : 'white',
-            }" round class="cursor-pointer font-medium" :bordered="false"
-              @click="activeTab = 'Unread'">Unread</n-tag>
+            <n-tag
+              :color="{
+                color: activeTab === 'All' ? 'white' : 'transparent',
+                textColor: activeTab === 'All' ? '#0A1A5C' : 'white',
+              }"
+              round
+              class="cursor-pointer font-medium"
+              :bordered="false"
+              @click="activeTab = 'All'"
+              >All</n-tag
+            >
+            <n-tag
+              :color="{
+                color: activeTab === 'Unread' ? 'white' : 'transparent',
+                textColor: activeTab === 'Unread' ? '#0A1A5C' : 'white',
+              }"
+              round
+              class="cursor-pointer font-medium"
+              :bordered="false"
+              @click="activeTab = 'Unread'"
+              >Unread</n-tag
+            >
           </div>
         </div>
 
@@ -998,13 +1111,19 @@ const isUnread = (c: ConversationResp) => {
             No conversations found.
           </div>
           <div v-else class="divide-y divide-gray-100">
-            <div v-for="conv in filteredConversations" :key="conv.id"
+            <div
+              v-for="conv in filteredConversations"
+              :key="conv.id"
               class="p-4 hover:bg-gray-100 cursor-pointer transition-colors"
-              :class="{ 'bg-blue-50/50': selectedConversationId === conv.id }" @click="selectConversation(conv.id)">
+              :class="{ 'bg-blue-50/50': selectedConversationId === conv.id }"
+              @click="selectConversation(conv.id)"
+            >
               <div class="flex items-start gap-3">
-                <img v-if="conv.candidate_user_profile_picture"
+                <img
+                  v-if="conv.candidate_user_profile_picture"
                   :src="getProfilePictureThumbnail(conv.candidate_user_profile_picture)"
-                  class="w-[48px] h-[48px] rounded-full object-cover" />
+                  class="w-[48px] h-[48px] rounded-full object-cover"
+                />
                 <n-avatar v-else round :size="48" class="bg-blue-600 text-white font-bold">
                   <span>{{ conv.candidate_user_name?.substring(0, 2).toUpperCase() || '?' }}</span>
                 </n-avatar>
@@ -1015,19 +1134,28 @@ const isUnread = (c: ConversationResp) => {
                     </h4>
                     <span class="text-xs text-gray-500 shrink-0" v-if="conv.last_message">{{
                       formatTime(conv.last_message.created_at)
-                      }}</span>
+                    }}</span>
                   </div>
                   <div class="flex justify-between items-center">
-                    <p class="text-sm text-gray-600 truncate pr-2"
-                      :class="{ 'font-semibold text-gray-900': isUnread(conv) }">
-                      <span v-if="typingStatus[conv.id]" class="text-blue-500 italic">typing...</span>
+                    <p
+                      class="text-sm text-gray-600 truncate pr-2"
+                      :class="{ 'font-semibold text-gray-900': isUnread(conv) }"
+                    >
+                      <span v-if="typingStatus[conv.id]" class="text-blue-500 italic"
+                        >typing...</span
+                      >
                       <template v-else>
-                        <span v-if="conv.last_message?.sender_user_id === authStore.user?.id" class="text-gray-400">You:
+                        <span
+                          v-if="conv.last_message?.sender_user_id === authStore.user?.id"
+                          class="text-gray-400"
+                          >You:
                         </span>
-                        <template v-if="
-                          conv.last_message?.content &&
-                          parseInterviewMessageContent(conv.last_message.content)
-                        ">
+                        <template
+                          v-if="
+                            conv.last_message?.content &&
+                            parseInterviewMessageContent(conv.last_message.content)
+                          "
+                        >
                           <span class="inline-flex items-center gap-1 text-blue-600 font-medium">
                             <n-icon size="14">
                               <CalendarEvent />
@@ -1035,10 +1163,12 @@ const isUnread = (c: ConversationResp) => {
                             {{ getMessagePreviewText(conv.last_message.content) }}
                           </span>
                         </template>
-                        <template v-else-if="
-                          conv.last_message?.content &&
-                          parseOfferingMessageContent(conv.last_message.content)
-                        ">
+                        <template
+                          v-else-if="
+                            conv.last_message?.content &&
+                            parseOfferingMessageContent(conv.last_message.content)
+                          "
+                        >
                           <span class="inline-flex items-center gap-1 text-rose-600 font-medium">
                             <n-icon size="14">
                               <FileText />
@@ -1064,13 +1194,19 @@ const isUnread = (c: ConversationResp) => {
       <div class="w-2/3 flex flex-col bg-white">
         <template v-if="activeConversation">
           <!-- Chat Header -->
-          <div class="h-16 border-b border-gray-200 px-6 flex justify-between items-center bg-white shrink-0">
+          <div
+            class="h-16 border-b border-gray-200 px-6 flex justify-between items-center bg-white shrink-0"
+          >
             <div class="flex items-center gap-4">
-              <img v-if="activeConversation.candidate_user_profile_picture"
+              <img
+                v-if="activeConversation.candidate_user_profile_picture"
                 :src="getProfilePictureThumbnail(activeConversation.candidate_user_profile_picture)"
-                class="w-[40px] h-[40px] rounded-full object-cover" />
+                class="w-[40px] h-[40px] rounded-full object-cover"
+              />
               <n-avatar v-else round :size="40" class="bg-blue-600 text-white font-bold">
-                <span>{{ activeConversation.candidate_user_name?.substring(0, 2).toUpperCase() || '?' }}</span>
+                <span>{{
+                  activeConversation.candidate_user_name?.substring(0, 2).toUpperCase() || '?'
+                }}</span>
               </n-avatar>
               <div>
                 <h3 class="font-semibold text-gray-900">
@@ -1079,13 +1215,78 @@ const isUnread = (c: ConversationResp) => {
               </div>
             </div>
             <div class="flex items-center gap-4 text-gray-400">
-              <n-icon size="20" class="hover:text-primary cursor-pointer" @click="copyName" title="Copy Name">
-                <Copy />
-              </n-icon>
-              <n-icon size="20" class="hover:text-primary cursor-pointer" @click="goToProfile" title="View Profile">
+              <n-icon
+                size="20"
+                class="hover:text-primary cursor-pointer"
+                @click="goToProfile"
+                title="View Profile"
+              >
                 <User />
               </n-icon>
             </div>
+          </div>
+
+          <!-- Recruitment Status Info Banner -->
+          <div
+            v-if="isActiveSubrequestLoading"
+            class="flex items-center justify-center px-6 py-2 bg-slate-50 border-b border-gray-200 shrink-0"
+          >
+            <n-spin size="small" />
+          </div>
+          <div
+            v-else-if="
+              activeSubrequest &&
+              activeConversation.candidate_user_recruitment_status_name === 'Accepted'
+            "
+            class="flex text-emerald-700 border-l-[3px] border-emerald-500 bg-emerald-50/50 items-center px-6 py-2 border-b border-gray-200 gap-2 shrink-0 animate-in fade-in duration-200"
+          >
+            <n-icon size="15" :component="Plane" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Onboarding sebagai
+              <span class="font-semibold"
+                >{{ currentOnboarding?.job_role_name || '-' }} -
+                {{ currentOnboarding?.project_name || '-' }} ({{
+                  formatOnboardingDate(currentOnboarding?.start_date)
+                }}
+                - {{ formatOnboardingDate(currentOnboarding?.end_date) }})</span
+              >
+            </h2>
+          </div>
+          <div
+            v-else-if="
+              activeSubrequest &&
+              activeConversation.candidate_user_recruitment_status_name === 'Decline'
+            "
+            class="flex text-red-500 border-l-[3px] border-red-500 bg-red-50/50 items-center px-6 py-2 border-b border-gray-200 gap-2 shrink-0 animate-in fade-in duration-200"
+          >
+            <n-icon size="15" :component="AlertTriangle" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Kandidat menolak proses rekrutmen
+              <span class="font-semibold"
+                >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
+              >
+            </h2>
+          </div>
+          <div
+            v-else-if="activeSubrequest"
+            class="flex text-primary border-l-[3px] border-primary bg-blue-50/40 items-center px-6 py-2 border-b border-gray-200 gap-2 shrink-0 animate-in fade-in duration-200"
+          >
+            <n-icon size="15" :component="Checkbox" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Dalam Proses Rekrutmen
+              <span class="font-semibold"
+                >{{ activeSubrequest?.project_name }} - {{ activeSubrequest?.job_role }}</span
+              >
+            </h2>
+          </div>
+          <div
+            v-else-if="!isActiveSubrequestLoading && !activeSubrequest"
+            class="flex text-slate-500 border-l-[3px] border-slate-400 bg-slate-50 items-center px-6 py-2 border-b border-gray-200 gap-2 shrink-0 animate-in fade-in duration-200"
+          >
+            <n-icon size="15" :component="Alarm" style="font-weight: bold" />
+            <h2 class="text-xs italic font-normal">
+              Belum direkrut untuk posisi atau proyek apa pun.
+            </h2>
           </div>
 
           <!-- Messages Area -->
@@ -1096,15 +1297,19 @@ const isUnread = (c: ConversationResp) => {
             <div v-else class="space-y-6">
               <template v-for="(msg, index) in messages" :key="msg.id">
                 <!-- Date Divider -->
-                <div v-if="
-                  index === 0 ||
-                  new Date(msg.created_at).toDateString() !==
-                  new Date(messages[index - 1]?.created_at || '').toDateString()
-                " class="flex items-center gap-4 my-8">
+                <div
+                  v-if="
+                    index === 0 ||
+                    new Date(msg.created_at).toDateString() !==
+                      new Date(messages[index - 1]?.created_at || '').toDateString()
+                  "
+                  class="flex items-center gap-4 my-8"
+                >
                   <div class="flex-1 h-px bg-gray-200"></div>
                   <span
-                    class="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm">{{
-                      formatDateDivider(msg.created_at) }}</span>
+                    class="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm"
+                    >{{ formatDateDivider(msg.created_at) }}</span
+                  >
                   <div class="flex-1 h-px bg-gray-200"></div>
                 </div>
 
@@ -1112,36 +1317,47 @@ const isUnread = (c: ConversationResp) => {
                 <div v-if="msg.id === firstUnreadId" class="flex items-center gap-4 my-8">
                   <div class="flex-1 h-px bg-gray-200"></div>
                   <span
-                    class="text-xs font-bold text-primary/60 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm">New
-                    Messages</span>
+                    class="text-xs font-bold text-primary/60 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm"
+                    >New Messages</span
+                  >
                   <div class="flex-1 h-px bg-gray-200"></div>
                 </div>
 
-                <div :id="'msg-' + msg.id" class="flex flex-col group"
-                  :class="msg.sender_user_id === authStore.user?.id ? 'items-end' : 'items-start'">
+                <div
+                  :id="'msg-' + msg.id"
+                  class="flex flex-col group"
+                  :class="msg.sender_user_id === authStore.user?.id ? 'items-end' : 'items-start'"
+                >
                   <div class="flex items-center gap-2 max-w-[75%]">
                     <!-- Reply Button for Received Messages -->
-                    <div v-if="msg.sender_user_id !== authStore.user?.id"
+                    <div
+                      v-if="msg.sender_user_id !== authStore.user?.id"
                       class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 hover:text-gray-700 order-2 shrink-0"
-                      @click="handleReply(msg)">
+                      @click="handleReply(msg)"
+                    >
                       <n-icon size="16">
                         <ArrowBackUp />
                       </n-icon>
                     </div>
 
-                    <div class="relative" :class="[
-                      msg.sender_user_id === authStore.user?.id ? 'order-2' : 'order-1',
-                      parseInterviewMessageContent(msg.content) ||
+                    <div
+                      class="relative"
+                      :class="[
+                        msg.sender_user_id === authStore.user?.id ? 'order-2' : 'order-1',
+                        parseInterviewMessageContent(msg.content) ||
                         parseOfferingMessageContent(msg.content)
-                        ? ''
-                        : msg.sender_user_id === authStore.user?.id
-                          ? 'rounded-md px-4 py-2.5 shadow-sm overflow-hidden bg-gray-200 text-gray-900'
-                          : 'rounded-md px-4 py-2.5 shadow-sm overflow-hidden bg-gray-100 text-gray-800 border border-gray-100',
-                    ]">
+                          ? ''
+                          : msg.sender_user_id === authStore.user?.id
+                            ? 'rounded-md px-4 py-2.5 shadow-sm overflow-hidden bg-gray-200 text-gray-900'
+                            : 'rounded-md px-4 py-2.5 shadow-sm overflow-hidden bg-gray-100 text-gray-800 border border-gray-100',
+                      ]"
+                    >
                       <!-- Reply Context -->
-                      <div v-if="msg.reply_to"
+                      <div
+                        v-if="msg.reply_to"
                         class="mb-2 p-2 rounded bg-black/5 border-l-4 border-primary text-xs cursor-pointer hover:bg-black/10 transition-colors"
-                        @click="scrollToMessage(msg.reply_to.id)">
+                        @click="scrollToMessage(msg.reply_to.id)"
+                      >
                         <div class="font-bold opacity-70 mb-0.5">
                           {{ msg.reply_to.sender_name }}
                         </div>
@@ -1170,12 +1386,16 @@ const isUnread = (c: ConversationResp) => {
 
                       <!-- Offering Message Content -->
                       <template v-if="parseOfferingMessageContent(msg.content)">
-                        <div class="w-85 max-w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
+                        <div
+                          class="w-85 max-w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xs"
+                        >
                           <div class="flex items-center gap-4">
                             <div
-                              class="flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50">
+                              class="flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50"
+                            >
                               <div
-                                class="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500 text-[10px] font-bold text-white">
+                                class="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500 text-[10px] font-bold text-white"
+                              >
                                 PDF
                               </div>
                             </div>
@@ -1185,11 +1405,13 @@ const isUnread = (c: ConversationResp) => {
                               </div>
                               <div class="text-xs text-slate-500">
                                 <span>{{ formatOfferingDate(msg.created_at) }}</span>
-                                <template v-if="
-                                  formatFileSize(
-                                    parseOfferingMessageContent(msg.content)?.file_size,
-                                  )
-                                ">
+                                <template
+                                  v-if="
+                                    formatFileSize(
+                                      parseOfferingMessageContent(msg.content)?.file_size,
+                                    )
+                                  "
+                                >
                                   <span class="px-1">•</span>
                                   {{
                                     formatFileSize(
@@ -1198,7 +1420,10 @@ const isUnread = (c: ConversationResp) => {
                                   }}
                                 </template>
                               </div>
-                              <div v-if="(msg as PendingMessage)._pending" class="pt-1 text-xs text-slate-400">
+                              <div
+                                v-if="(msg as PendingMessage)._pending"
+                                class="pt-1 text-xs text-slate-400"
+                              >
                                 Mengunggah dokumen...
                               </div>
                             </div>
@@ -1208,9 +1433,12 @@ const isUnread = (c: ConversationResp) => {
                                 :class="{
                                   'pointer-events-none opacity-50': (msg as PendingMessage)
                                     ._pending,
-                                }" @click="
+                                }"
+                                @click="
                                   openOfferingPreview(parseOfferingMessageContent(msg.content))
-                                  " type="button">
+                                "
+                                type="button"
+                              >
                                 <n-icon size="16">
                                   <Eye />
                                 </n-icon>
@@ -1220,7 +1448,10 @@ const isUnread = (c: ConversationResp) => {
                                 :class="{
                                   'pointer-events-none opacity-50': (msg as PendingMessage)
                                     ._pending,
-                                }" @click="downloadOffering(parseOfferingMessageContent(msg.content))" type="button">
+                                }"
+                                @click="downloadOffering(parseOfferingMessageContent(msg.content))"
+                                type="button"
+                              >
                                 <n-icon size="16">
                                   <Download />
                                 </n-icon>
@@ -1232,7 +1463,9 @@ const isUnread = (c: ConversationResp) => {
 
                       <!-- Interview Message Content -->
                       <template v-else-if="parseInterviewMessageContent(msg.content)">
-                        <div class="w-85 max-w-full rounded-2xl border border-blue-100 bg-white p-4 pb-6 shadow-xs">
+                        <div
+                          class="w-85 max-w-full rounded-2xl border border-blue-100 bg-white p-4 pb-6 shadow-xs"
+                        >
                           <div class="space-y-3">
                             <div>
                               <h4 class="text-[15px] font-semibold text-slate-800">
@@ -1245,12 +1478,14 @@ const isUnread = (c: ConversationResp) => {
                                 <n-icon size="16" class="text-slate-400">
                                   <Clock />
                                 </n-icon>
-                                <span>{{
-                                  formatInterviewTime(
-                                    parseInterviewMessageContent(msg.content)?.scheduled_at || '',
-                                  )
-                                }}
-                                  WIB</span>
+                                <span
+                                  >{{
+                                    formatInterviewTime(
+                                      parseInterviewMessageContent(msg.content)?.scheduled_at || '',
+                                    )
+                                  }}
+                                  WIB</span
+                                >
                               </div>
                               <div class="flex items-center gap-2">
                                 <n-icon size="16" class="text-slate-400">
@@ -1273,13 +1508,20 @@ const isUnread = (c: ConversationResp) => {
                               </div> -->
 
                               <div class="flex items-start gap-2">
-                                <template v-if="
-                                  parseInterviewMessageContent(msg.content)?.method === 'Online'
-                                ">
+                                <template
+                                  v-if="
+                                    parseInterviewMessageContent(msg.content)?.method === 'Online'
+                                  "
+                                >
                                   <n-icon size="16" class="mt-0.5 text-slate-400"><Video /></n-icon>
-                                  <a :href="parseInterviewMessageContent(msg.content)?.meeting_link || '#'
-                                    " target="_blank" rel="noopener noreferrer"
-                                    class="wrap-break-word text-blue-600 underline flex items-center">
+                                  <a
+                                    :href="
+                                      parseInterviewMessageContent(msg.content)?.meeting_link || '#'
+                                    "
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="wrap-break-word text-blue-600 underline flex items-center"
+                                  >
                                     Online Meeting<span class="ml-1">
                                       <n-icon size="16" class="text-blue-500">
                                         <ExternalLink />
@@ -1294,17 +1536,21 @@ const isUnread = (c: ConversationResp) => {
                                   <span class="wrap-break-word">{{
                                     parseInterviewMessageContent(msg.content)?.meeting_location ||
                                     '-'
-                                    }}</span>
+                                  }}</span>
                                 </template>
                               </div>
                             </div>
 
                             <div class="pt-1">
-                              <n-button type="primary" block @click="
-                                openInterviewDetail(
-                                  parseInterviewMessageContent(msg.content)?.interview_id || '',
-                                )
-                                ">
+                              <n-button
+                                type="primary"
+                                block
+                                @click="
+                                  openInterviewDetail(
+                                    parseInterviewMessageContent(msg.content)?.interview_id || '',
+                                  )
+                                "
+                              >
                                 Lihat Detail
                               </n-button>
                             </div>
@@ -1313,8 +1559,10 @@ const isUnread = (c: ConversationResp) => {
                       </template>
 
                       <div v-else class="flex flex-col">
-                        <p class="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed pb-3"
-                          v-html="formatMessage(msg.content)"></p>
+                        <p
+                          class="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed pb-3"
+                          v-html="formatMessage(msg.content)"
+                        ></p>
                       </div>
 
                       <!-- Inline Timestamp -->
@@ -1333,9 +1581,11 @@ const isUnread = (c: ConversationResp) => {
                     </div>
 
                     <!-- Reply Button for Sent Messages (on the left of bubble) -->
-                    <div v-if="msg.sender_user_id === authStore.user?.id"
+                    <div
+                      v-if="msg.sender_user_id === authStore.user?.id"
                       class="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 hover:text-gray-700 order-1 shrink-0"
-                      @click="handleReply(msg)">
+                      @click="handleReply(msg)"
+                    >
                       <n-icon size="16">
                         <ArrowBackUp />
                       </n-icon>
@@ -1343,7 +1593,10 @@ const isUnread = (c: ConversationResp) => {
                   </div>
 
                   <!-- Read Status Icon (External) -->
-                  <div v-if="msg.sender_user_id === authStore.user?.id && msg.id === lastReadMsgId" class="mt-0.5 px-1">
+                  <div
+                    v-if="msg.sender_user_id === authStore.user?.id && msg.id === lastReadMsgId"
+                    class="mt-0.5 px-1"
+                  >
                     <n-icon size="14" class="text-blue-500" title="Read">
                       <Eye />
                     </n-icon>
@@ -1356,8 +1609,10 @@ const isUnread = (c: ConversationResp) => {
           <!-- Typing Indicator & Input Area -->
           <div class="shrink-0 bg-white border-gray-200">
             <!-- Reply Preview Bar -->
-            <div v-if="replyingTo"
-              class="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center gap-3 animate-in slide-in-from-bottom-2">
+            <div
+              v-if="replyingTo"
+              class="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center gap-3 animate-in slide-in-from-bottom-2"
+            >
               <div class="w-1 h-8 bg-primary rounded-full"></div>
               <div class="flex-1 min-w-0">
                 <div class="text-xs font-bold text-primary">
@@ -1385,7 +1640,10 @@ const isUnread = (c: ConversationResp) => {
                   </template>
                 </div>
               </div>
-              <div class="p-1 hover:bg-gray-200 rounded-full cursor-pointer text-gray-400" @click="replyingTo = null">
+              <div
+                class="p-1 hover:bg-gray-200 rounded-full cursor-pointer text-gray-400"
+                @click="replyingTo = null"
+              >
                 <n-icon size="16">
                   <X />
                 </n-icon>
@@ -1407,22 +1665,36 @@ const isUnread = (c: ConversationResp) => {
                 <div class="relative shrink-0" ref="actionMenuRef">
                   <div
                     class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer hover:bg-blue-800 transition-colors shrink-0"
-                    :class="{ 'opacity-50 pointer-events-none': !isChatAvailable }" @click.stop="toggleActionMenu">
+                    :class="{ 'opacity-50 pointer-events-none': !isChatAvailable }"
+                    @click.stop="toggleActionMenu"
+                  >
                     <n-icon size="24">
                       <Plus />
                     </n-icon>
                   </div>
 
-                  <input ref="offeringInputRef" type="file" class="hidden" accept="application/pdf"
-                    @change="handleOfferingFileChange" />
+                  <input
+                    ref="offeringInputRef"
+                    type="file"
+                    class="hidden"
+                    accept="application/pdf"
+                    @change="handleOfferingFileChange"
+                  />
 
-                  <div v-if="showActionMenu && isChatAvailable"
-                    class="absolute bottom-14 left-0 z-30 w-[20rem] rounded-xl border border-slate-200 bg-white py-2 shadow-lg">
-                    <div v-for="action in interviewActions" :key="action.key"
+                  <div
+                    v-if="showActionMenu && isChatAvailable"
+                    class="absolute bottom-14 left-0 z-30 w-[20rem] rounded-xl border border-slate-200 bg-white py-2 shadow-lg"
+                  >
+                    <div
+                      v-for="action in interviewActions"
+                      :key="action.key"
                       class="flex cursor-pointer items-center gap-3 px-3 py-1.5 transition-colors hover:bg-slate-50"
-                      @click="handleInterviewActionClick(action.key)">
-                      <div class="flex h-10 w-10 items-center justify-center rounded-full"
-                        :style="{ backgroundColor: action.iconBackgroundColor }">
+                      @click="handleInterviewActionClick(action.key)"
+                    >
+                      <div
+                        class="flex h-10 w-10 items-center justify-center rounded-full"
+                        :style="{ backgroundColor: action.iconBackgroundColor }"
+                      >
                         <n-icon :size="24" :color="action.iconColor">
                           <component :is="action.icon" />
                         </n-icon>
@@ -1439,15 +1711,26 @@ const isUnread = (c: ConversationResp) => {
                     </div>
                   </div>
                 </div>
-                <n-input v-model:value="messageInput" type="textarea" :autosize="{ minRows: 1, maxRows: 5 }"
-                  :placeholder="'Type here...'" :disabled="!isChatAvailable" size="large"
-                  class="flex-1 bg-gray-50 text-base rounded-xl!" @input="handleTyping" @keydown.enter="handleEnter" />
+                <n-input
+                  v-model:value="messageInput"
+                  type="textarea"
+                  :autosize="{ minRows: 1, maxRows: 5 }"
+                  :placeholder="'Type here...'"
+                  :disabled="!isChatAvailable"
+                  size="large"
+                  class="flex-1 bg-gray-50 text-base rounded-xl!"
+                  @input="handleTyping"
+                  @keydown.enter="handleEnter"
+                />
                 <div
                   class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-sm shrink-0"
-                  :class="messageInput.trim() && isChatAvailable
+                  :class="
+                    messageInput.trim() && isChatAvailable
                       ? 'bg-primary text-white hover:opacity-90'
                       : 'bg-gray-200 text-gray-400 pointer-events-none'
-                    " @click="sendMessage">
+                  "
+                  @click="sendMessage"
+                >
                   <n-icon size="20">
                     <Send />
                   </n-icon>
@@ -1475,31 +1758,56 @@ const isUnread = (c: ConversationResp) => {
         <h3 class="text-lg font-semibold">Jadwalkan Interview</h3>
         <h4 class="text-sm text-gray-500 mb-6">Buat jadwal interview untuk kandidat ini</h4>
         <div class="space-y-1">
-          <n-form ref="interviewFormRef" :model="interviewForm" :rules="interviewRules" label-placement="top">
+          <n-form
+            ref="interviewFormRef"
+            :model="interviewForm"
+            :rules="interviewRules"
+            label-placement="top"
+          >
             <n-form-item label="Jenis Interview" path="stage_id">
-              <n-select v-model:value="interviewForm.stage_id" :options="interviewStageOptions"
-                placeholder="Pilih Jenis Interview" :loading="isLoadingInterviewStages" clearable />
+              <n-select
+                v-model:value="interviewForm.stage_id"
+                :options="interviewStageOptions"
+                placeholder="Pilih Jenis Interview"
+                :loading="isLoadingInterviewStages"
+                clearable
+              />
             </n-form-item>
 
             <n-form-item label="Judul Interview" path="title">
-              <n-input v-model:value="interviewForm.title" placeholder="Contoh: Interview HR - Front End Developer" />
+              <n-input
+                v-model:value="interviewForm.title"
+                placeholder="Contoh: Interview HR - Front End Developer"
+              />
             </n-form-item>
 
             <n-form-item label="Deskripsi" path="description">
-              <n-input v-model:value="interviewForm.description" type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
-                placeholder="Tambahkan catatan atau detail tambahan (opsional)" />
+              <n-input
+                v-model:value="interviewForm.description"
+                type="textarea"
+                :autosize="{ minRows: 3, maxRows: 6 }"
+                placeholder="Tambahkan catatan atau detail tambahan (opsional)"
+              />
             </n-form-item>
 
             <n-form-item label="Waktu Interview" path="scheduled_at">
-              <n-date-picker v-model:value="interviewForm.scheduled_at" type="datetime" clearable
-                placeholder="Pilih tanggal dan waktu" :is-date-disabled="disablePreviousDate" class="w-full"
-                :default-time="'09:00:00'" />
+              <n-date-picker
+                v-model:value="interviewForm.scheduled_at"
+                type="datetime"
+                clearable
+                placeholder="Pilih tanggal dan waktu"
+                :is-date-disabled="disablePreviousDate"
+                class="w-full"
+                :default-time="'09:00:00'"
+              />
             </n-form-item>
 
             <n-form-item label="Metode" path="method">
               <div class="grid grid-cols-2 gap-3 w-full">
-                <n-button :type="interviewForm.method === 'Online' ? 'primary' : 'default'"
-                  @click="interviewForm.method = 'Online'">
+                <n-button
+                  :type="interviewForm.method === 'Online' ? 'primary' : 'default'"
+                  @click="interviewForm.method = 'Online'"
+                >
                   <template #icon>
                     <n-icon>
                       <DeviceLaptop />
@@ -1507,8 +1815,10 @@ const isUnread = (c: ConversationResp) => {
                   </template>
                   Interview Online
                 </n-button>
-                <n-button :type="interviewForm.method === 'Offline' ? 'primary' : 'default'"
-                  @click="interviewForm.method = 'Offline'">
+                <n-button
+                  :type="interviewForm.method === 'Offline' ? 'primary' : 'default'"
+                  @click="interviewForm.method = 'Offline'"
+                >
                   <n-icon>
                     <MapPin />
                   </n-icon>
@@ -1524,15 +1834,21 @@ const isUnread = (c: ConversationResp) => {
             </template>
             <template v-if="interviewForm.method === 'Offline'">
               <n-form-item label="Lokasi" path="meeting_location">
-                <n-input v-model:value="interviewForm.meeting_location"
-                  placeholder="Lokasi interview (misal: Kantor Pusat, Ruang Meeting 2)" />
+                <n-input
+                  v-model:value="interviewForm.meeting_location"
+                  placeholder="Lokasi interview (misal: Kantor Pusat, Ruang Meeting 2)"
+                />
               </n-form-item>
             </template>
           </n-form>
 
           <div class="flex justify-end gap-3 pt-2 w-full">
             <n-button secondary @click="showInterviewModal = false">Batal</n-button>
-            <n-button type="primary" :loading="isInterviewSubmitting" @click="handleSubmitInterview">
+            <n-button
+              type="primary"
+              :loading="isInterviewSubmitting"
+              @click="handleSubmitInterview"
+            >
               Simpan Jadwal
             </n-button>
           </div>
@@ -1540,7 +1856,12 @@ const isUnread = (c: ConversationResp) => {
       </div>
     </n-modal>
 
-    <n-modal v-model:show="showInterviewDetailModal" preset="card" :bordered="false" style="width: 40rem">
+    <n-modal
+      v-model:show="showInterviewDetailModal"
+      preset="card"
+      :bordered="false"
+      style="width: 40rem"
+    >
       <div class="-mt-8">
         <div v-if="isLoadingInterviewDetail" class="flex justify-center py-10">
           <n-spin size="medium" />
@@ -1558,7 +1879,9 @@ const isUnread = (c: ConversationResp) => {
                   <n-icon size="16" class="mt-0.5 text-slate-500">
                     <Clock />
                   </n-icon>
-                  <span class="text-gray-800">{{ formatInterviewTime(selectedInterview.scheduled_at) }} WIB</span>
+                  <span class="text-gray-800"
+                    >{{ formatInterviewTime(selectedInterview.scheduled_at) }} WIB</span
+                  >
                 </div>
                 <div class="flex items-start gap-2">
                   <n-icon size="16" class="mt-0.5 text-slate-500">
@@ -1566,14 +1889,18 @@ const isUnread = (c: ConversationResp) => {
                   </n-icon>
                   <span class="text-gray-800">{{
                     formatInterviewDate(selectedInterview.scheduled_at)
-                    }}</span>
+                  }}</span>
                 </div>
                 <!-- <div class="flex items-start gap-2">
                   <n-icon size="16" class="mt-0.5 text-slate-400"><Message /></n-icon>
                   <span>{{ selectedInterview.stage?.name || '-' }}</span>
                 </div> -->
                 <div class="flex items-start gap-2">
-                  <n-icon v-if="selectedInterview.method === 'Online'" size="16" class="mt-0.5 text-slate-500">
+                  <n-icon
+                    v-if="selectedInterview.method === 'Online'"
+                    size="16"
+                    class="mt-0.5 text-slate-500"
+                  >
                     <DeviceLaptop />
                   </n-icon>
                   <n-icon v-else size="16" class="mt-0.5 text-slate-500">
@@ -1581,12 +1908,16 @@ const isUnread = (c: ConversationResp) => {
                   </n-icon>
                   <span class="text-gray-800">{{
                     selectedInterview.method === 'Online' ? 'Interview Online' : 'Interview Offline'
-                    }}</span>
+                  }}</span>
                 </div>
                 <div v-if="selectedInterview.method === 'Online'" class="flex items-start gap-2">
                   <n-icon size="16" class="mt-0.5 text-slate-500"><Video /></n-icon>
-                  <a :href="selectedInterview.meeting_link" target="_blank" rel="noopener noreferrer"
-                    class="text-blue-500 hover:text-blue-600 underline break-all">
+                  <a
+                    :href="selectedInterview.meeting_link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-blue-500 hover:text-blue-600 underline break-all"
+                  >
                     {{ selectedInterview.meeting_link }}
                   </a>
                 </div>
@@ -1604,12 +1935,51 @@ const isUnread = (c: ConversationResp) => {
         <div v-else class="py-10 text-center text-gray-500">Detail interview tidak ditemukan.</div>
 
         <div class="flex justify-center gap-3 pt-4 w-full">
-          <n-button type="error" @click="showInterviewDetailModal = false" style="width: 25%">Batalkan Jadwal</n-button>
+          <n-button type="primary" style="width: 25%" @click="openEditInterviewModal"
+            >Edit Jadwal</n-button
+          >
         </div>
       </div>
     </n-modal>
 
-    <n-modal v-model:show="showOfferingPreviewModal" preset="card" :bordered="false" style="width: 52rem">
+    <n-modal
+      v-model:show="showEditInterviewModal"
+      preset="card"
+      :bordered="false"
+      style="width: 32rem"
+    >
+      <div class="-mt-8">
+        <h3 class="text-lg font-semibold">Ubah Jadwal Interview</h3>
+        <h4 class="text-sm text-gray-500 mb-4">Pilih tanggal dan waktu baru untuk interview</h4>
+
+        <n-form>
+          <n-form-item label="Waktu Interview">
+            <n-date-picker
+              v-model:value="editInterviewScheduledAt"
+              type="datetime"
+              clearable
+              placeholder="Pilih tanggal dan waktu"
+              :is-date-disabled="disablePreviousDate"
+              class="w-full"
+            />
+          </n-form-item>
+        </n-form>
+
+        <div class="flex justify-end gap-3 pt-2 w-full">
+          <n-button secondary @click="showEditInterviewModal = false">Batal</n-button>
+          <n-button :loading="isUpdatingInterview" type="primary" @click="handleSubmitEditInterview"
+            >Simpan Perubahan</n-button
+          >
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal
+      v-model:show="showOfferingPreviewModal"
+      preset="card"
+      :bordered="false"
+      style="width: 52rem"
+    >
       <div class="-mt-8">
         <div class="flex items-center justify-between gap-4">
           <div>
@@ -1621,8 +1991,12 @@ const isUnread = (c: ConversationResp) => {
         </div>
 
         <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          <iframe v-if="offeringPreviewUrl" :src="offeringPreviewUrl" title="Offering Preview"
-            class="h-[70vh] w-full"></iframe>
+          <iframe
+            v-if="offeringPreviewUrl"
+            :src="offeringPreviewUrl"
+            title="Offering Preview"
+            class="h-[70vh] w-full"
+          ></iframe>
           <div v-else class="flex items-center justify-center py-16 text-sm text-slate-400">
             Preview tidak tersedia.
           </div>
@@ -1670,7 +2044,6 @@ const isUnread = (c: ConversationResp) => {
 }
 
 @keyframes typing-bounce {
-
   0%,
   80%,
   100% {

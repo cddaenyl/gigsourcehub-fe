@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { NConfigProvider, NInput, NIcon, NButton } from 'naive-ui'
-import { CalendarEvent, Plus, Search } from '@vicons/tabler'
-import { format } from 'date-fns'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import TalentNeedsTable from '@/components/tables/TalentNeedsTable.vue'
-import type { TalentNeed } from '@/models/Table'
 import { useRequests } from '@/composables/useRequest'
-import type { RequestItem, RequestQueryParams } from '@/models/Request'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
+import type { RequestItem, RequestQueryParams } from '@/models/Request'
+import type { TalentNeed } from '@/models/Table'
+import { CalendarEvent, Plus, Search } from '@vicons/tabler'
+import { format } from 'date-fns'
+import { NButton, NConfigProvider, NIcon, NInput } from 'naive-ui'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useTableStateStore } from '@/stores/table-state.store'
 
 const router = useRouter()
 
@@ -26,9 +28,21 @@ const themeOverride = {
   },
 }
 
-const currentPage = ref(1)
-const pageSize = ref(10)
-const searchQuery = ref('')
+const tableStateStore = useTableStateStore()
+const { employeeTalentNeeds } = storeToRefs(tableStateStore)
+
+const currentPage = computed({
+  get: () => employeeTalentNeeds.value.page,
+  set: (val) => tableStateStore.setEmployeeTalentNeeds({ page: val }),
+})
+const pageSize = computed({
+  get: () => employeeTalentNeeds.value.pageSize,
+  set: (val) => tableStateStore.setEmployeeTalentNeeds({ pageSize: val }),
+})
+const searchQuery = computed({
+  get: () => employeeTalentNeeds.value.search,
+  set: (val) => tableStateStore.setEmployeeTalentNeeds({ search: val }),
+})
 
 const queryParams = computed<RequestQueryParams>(() => ({
   page: currentPage.value,
@@ -86,6 +100,7 @@ const paginatedTalentNeeds = computed<TalentNeed[]>(() => {
     batasWaktu: formatDate(request.due_date),
     picHr: request.admin_name || '-',
     status: formatStatusLabel(request.status),
+    requestStatus: request.status,
     urgensi: formatUrgencyLabel(request.urgency),
   }))
 })
@@ -98,6 +113,9 @@ const handleSearch = (value: string) => {
 const handleAction = (action: string, item: TalentNeed) => {
   if (action === 'detail') {
     router.push(`/employee/talent-needs/${item.id}`)
+  }
+  if (action === 'edit') {
+    router.push(`/employee/talent-needs/edit/${item.id}`)
   }
 }
 const handleAjukanPermintaan = () => {
@@ -112,11 +130,7 @@ const handleAjukanPermintaan = () => {
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold text-gray-700">Kebutuhan Talenta</h1>
           <div class="flex items-center gap-3">
-            <n-input
-              :value="searchQuery"
-              placeholder="Search by Project"
-              @update:value="handleSearch"
-            >
+            <n-input :value="searchQuery" placeholder="Search by Project" @update:value="handleSearch">
               <template #prefix>
                 <n-icon :component="Search" />
               </template>
@@ -140,19 +154,12 @@ const handleAjukanPermintaan = () => {
         <div class="rounded-lg p-2 py-3 space-y-4">
           <TalentNeedsTable
             :data="paginatedTalentNeeds"
-            :actions="['detail']"
+            :loading="isLoading"
+            :actions="['detail', 'edit']"
             @action="handleAction"
           />
 
-          <div v-if="isLoading" class="py-8 text-center">
-            <p class="text-gray-500">Loading...</p>
-          </div>
-
-          <CandidatePagination
-            v-model:page="currentPage"
-            v-model:page-size="pageSize"
-            :page-count="pageCount"
-          />
+          <CandidatePagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="pageCount" />
         </div>
       </div>
     </n-config-provider>

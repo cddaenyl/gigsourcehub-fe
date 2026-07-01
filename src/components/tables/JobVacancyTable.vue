@@ -13,7 +13,7 @@ interface Props {
 defineProps<Props>()
 
 const emit = defineEmits<{
-  action: [action: 'view' | 'edit' | 'delete', vacancy: JobVacancy]
+  action: [action: 'view' | 'edit' | 'delete' | 'archive', vacancy: JobVacancy]
 }>()
 
 function formatDate(dateStr: string | null | undefined): string {
@@ -64,24 +64,30 @@ const columns: DataTableColumns<JobVacancy> = [
   {
     title: 'Posisi',
     key: 'position',
+    width: 160,
     render: (row) =>
       h('span', { class: 'text-slate-600 text-sm' }, row.subrequest?.job_role ?? '—'),
   },
   {
+    // Poin 1: tampilkan project_name dari request (bukan overview subrequest)
     title: 'Project / Kegiatan',
     key: 'project',
-    ellipsis: { tooltip: true },
     render: (row) => {
-      const text = row.subrequest?.overview ?? row.subrequest?.notes ?? '—'
+      const text = row.subrequest?.project_name ?? row.project_name ?? '—'
       return h('span', { class: 'text-slate-500 text-sm' }, text)
     },
   },
   {
+    // Poin 5: Published At hanya tampil jika status != DRAFT
     title: 'Published At',
     key: 'created_at',
-    width: 180,
-    render: (row) =>
-      h('span', { class: 'text-slate-500 text-sm' }, formatDate(row.created_at)),
+    width: 160,
+    render: (row) => {
+      if (row.status === 'DRAFT') {
+        return h('span', { class: 'text-slate-400 text-sm' }, '—')
+      }
+      return h('span', { class: 'text-slate-500 text-sm' }, formatDate(row.created_at))
+    },
   },
   {
     title: 'Expiry',
@@ -111,12 +117,16 @@ const columns: DataTableColumns<JobVacancy> = [
   {
     title: '',
     key: 'actions',
-    width: 56,
+    width: 60,
     className: 'action-column',
     render: (row) => {
+      // Poin 6: Tambah aksi Arsipkan, sembunyikan jika sudah ARCHIVED
       const options: DropdownOption[] = [
         { label: 'Lihat Detail', key: 'view' },
         { label: 'Edit', key: 'edit' },
+        ...(row.status !== 'ARCHIVED'
+          ? [{ label: 'Arsipkan', key: 'archive', props: { style: { color: '#64748B' } } }]
+          : []),
         { label: 'Hapus', key: 'delete', props: { style: { color: '#EF4444' } } },
       ]
 
@@ -126,7 +136,7 @@ const columns: DataTableColumns<JobVacancy> = [
           options,
           trigger: 'click',
           onSelect: (key: string) => {
-            if (key === 'view' || key === 'edit' || key === 'delete') {
+            if (key === 'view' || key === 'edit' || key === 'delete' || key === 'archive') {
               emit('action', key, row)
             }
           },

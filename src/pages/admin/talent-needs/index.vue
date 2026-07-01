@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { NButton, NConfigProvider, NIcon, NInput, NModal, useMessage } from 'naive-ui'
-import { CalendarEvent, Check, Search } from '@vicons/tabler'
+import { storeToRefs } from 'pinia'
+import { useTableStateStore } from '@/stores/table-state.store'
+import { NButton, NConfigProvider, NIcon, NInput, NModal, NDropdown, useMessage } from 'naive-ui'
+import { Check, Filter, Search, Download } from '@vicons/tabler'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import TalentNeedsTable from '@/components/tables/TalentNeedsTable.vue'
 import TalentNeedsTabs from '@/components/TalentNeedsTabs.vue'
+import TalentNeedsFilters from '@/components/TalentNeedsFilters.vue'
 import type { TalentNeed } from '@/models/Table'
 import type { RequestItem, RequestQueryParams } from '@/models/Request'
 import { useAdminRequestsByTab, useValidateAdminRequest } from '@/composables/useRequest'
+import { exportAdminRequestsApi } from '@/services/request.service'
+import { format } from 'date-fns'
 
 const themeOverride = {
   DataTable: {
@@ -27,18 +32,50 @@ const themeOverride = {
 
 const router = useRouter()
 const message = useMessage()
-const currentPage = ref(1)
-const pageSize = ref(10)
-const searchQuery = ref('')
-const activeTab = ref<'semua' | 'menunggu validasi' | 'tugas saya'>('semua')
+
+const tableStateStore = useTableStateStore()
+const { adminTalentNeeds } = storeToRefs(tableStateStore)
+
+const currentPage = computed({
+  get: () => adminTalentNeeds.value.page,
+  set: (val) => tableStateStore.setAdminTalentNeeds({ page: val }),
+})
+const pageSize = computed({
+  get: () => adminTalentNeeds.value.pageSize,
+  set: (val) => tableStateStore.setAdminTalentNeeds({ pageSize: val }),
+})
+const searchQuery = computed({
+  get: () => adminTalentNeeds.value.search,
+  set: (val) => tableStateStore.setAdminTalentNeeds({ search: val }),
+})
+const activeTab = computed({
+  get: () => adminTalentNeeds.value.tab,
+  set: (val) => tableStateStore.setAdminTalentNeeds({ tab: val }),
+})
 const selectedRequest = ref<TalentNeed | null>(null)
 const showValidateModal = ref(false)
+const showFilters = ref(false)
+const filters = ref({
+  status: undefined as string | undefined,
+  urgency: undefined as string | undefined,
+  proposed_by: undefined as string | undefined,
+  admin_name: undefined as string | undefined,
+})
 
-const queryParams = computed<RequestQueryParams>(() => ({
-  page: currentPage.value,
-  limit: pageSize.value,
-  search: searchQuery.value.trim() || undefined,
-}))
+const queryParams = computed<RequestQueryParams>(() => {
+  const baseParams: any = {
+    page: currentPage.value,
+    limit: pageSize.value,
+    search: searchQuery.value.trim() || undefined,
+  }
+
+  if (filters.value.status) baseParams.status = filters.value.status
+  if (filters.value.urgency) baseParams.urgency = filters.value.urgency
+  if (filters.value.proposed_by) baseParams.proposed_by = filters.value.proposed_by
+  if (filters.value.admin_name) baseParams.admin_name = filters.value.admin_name
+
+  return baseParams
+})
 
 const { requests, pageCount, isLoading, refetch } = useAdminRequestsByTab(queryParams, activeTab)
 const { mutateAsync: validateRequest, isPending: isValidating } = useValidateAdminRequest()
@@ -46,6 +83,23 @@ const { mutateAsync: validateRequest, isPending: isValidating } = useValidateAdm
 watch(activeTab, () => {
   currentPage.value = 1
 })
+
+watch(
+  filters,
+  () => {
+    currentPage.value = 1
+  },
+  { deep: true },
+)
+
+const handleClearFilters = () => {
+  filters.value = {
+    status: undefined,
+    urgency: undefined,
+    proposed_by: undefined,
+    admin_name: undefined,
+  }
+}
 
 const formatDate = (value: string | null) => {
   if (!value) {
@@ -101,6 +155,7 @@ const paginatedTalentNeeds = computed<TalentNeed[]>(() => {
     batasWaktu: formatDate(request.due_date),
     picHr: request.admin_name || '-',
     status: formatStatusLabel(request.status),
+    requestStatus: request.status,
     urgensi: formatUrgencyLabel(request.urgency),
   }))
 })
@@ -137,6 +192,55 @@ const handleValidate = async () => {
     message.error(error instanceof Error ? error.message : 'Gagal memvalidasi permintaan.')
   }
 }
+
+// Export Logic
+const exportOptions = [
+  { label: 'Export to PDF (.pdf)', key: 'pdf' },
+  { label: 'Export to Excel (.xlsx)', key: 'xlsx' },
+  { label: 'Export to CSV (.csv)', key: 'csv' },
+]
+
+const handleExportSelect = async (formatType: string) => {
+  const exportParams = { ...queryParams.value, format: formatType }
+  delete exportParams.page
+  delete exportParams.limit
+
+  // pass the activeTab if BE needs it, though the filters might be enough.
+  // Wait, if activeTab is "menunggu validasi", maybe we need to force status="PENDING" if not already set.
+  // Actually, useAdminRequestsByTab already uses the specific pending/my-requests endpoints.
+  // However, export only has `/admin/requests/export`. So we should map the tab to appropriate filters manually if it's the single export endpoint.
+  if (activeTab.value === 'menunggu validasi' && !exportParams.status) {
+    exportParams.status = 'PENDING'
+  }
+  // For 'tugas saya', it usually depends on who is logged in, but we pass what we have.
+
+  const msg = message.loading(`Generating ${formatType.toUpperCase()} export...`, { duration: 0 })
+  try {
+    const blob = await exportAdminRequestsApi(exportParams)
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+
+    const timestamp = format(new Date(), 'yyyyMMdd_HHmmss')
+    link.setAttribute(
+      'download',
+      `talent_needs_${activeTab.value.replace(/\s+/g, '_')}_${timestamp}.${formatType}`,
+    )
+
+    document.body.appendChild(link)
+    link.click()
+
+    // Cleanup
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    message.success('Download started')
+  } catch (err: any) {
+    message.error(err.message || 'Gagal export data')
+  } finally {
+    msg.destroy()
+  }
+}
 </script>
 
 <template>
@@ -145,7 +249,7 @@ const handleValidate = async () => {
       <div class="space-y-6">
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold text-gray-700">Kebutuhan Talenta</h1>
-          <div class="flex space-x-2">
+          <div class="flex items-center gap-2">
             <n-input
               :value="searchQuery"
               placeholder="Search by Project"
@@ -156,33 +260,52 @@ const handleValidate = async () => {
                 <n-icon :component="Search" />
               </template>
             </n-input>
-            <div class="border border-gray-300 rounded-xs hover:border-gray-600 transition-colors">
-              <n-button color="#FFFFFF" :bordered="true">
+            <n-button
+              :secondary="!showFilters"
+              :type="showFilters ? 'primary' : 'default'"
+              :color="showFilters ? '#0014B2' : undefined"
+              @click="showFilters = !showFilters"
+            >
+              <template #icon>
+                <n-icon :component="Filter" />
+              </template>
+              Filter
+            </n-button>
+
+            <n-dropdown trigger="click" :options="exportOptions" @select="handleExportSelect">
+              <n-button type="primary" color="#0014B2">
                 <template #icon>
-                  <n-icon color="#64748B" :component="CalendarEvent" />
+                  <n-icon :component="Download" />
                 </template>
+                Export
               </n-button>
-            </div>
+            </n-dropdown>
           </div>
         </div>
 
-        <div class="rounded-lg p-2 py-3 space-y-4">
-          <TalentNeedsTabs v-model="activeTab" />
-          <TalentNeedsTable
-            :data="paginatedTalentNeeds"
-            :actions="['detail', 'validate']"
-            @action="handleAction"
-          />
+        <div class="flex gap-6 items-start relative">
+          <!-- Filter Sidebar -->
+          <transition name="slide-fade">
+            <div v-if="showFilters" class="w-72 shrink-0 sticky top-6">
+              <TalentNeedsFilters v-model:filters="filters" @clear="handleClearFilters" />
+            </div>
+          </transition>
 
-          <div v-if="isLoading" class="py-8 text-center">
-            <p class="text-gray-500">Loading...</p>
+          <div class="flex-1 min-w-0 rounded-lg space-y-4">
+            <TalentNeedsTabs v-model="activeTab" />
+            <TalentNeedsTable
+              :data="paginatedTalentNeeds"
+              :loading="isLoading"
+              :actions="['detail', 'validate']"
+              @action="handleAction"
+            />
+
+            <CandidatePagination
+              v-model:page="currentPage"
+              v-model:page-size="pageSize"
+              :page-count="pageCount"
+            />
           </div>
-
-          <CandidatePagination
-            v-model:page="currentPage"
-            v-model:page-size="pageSize"
-            :page-count="pageCount"
-          />
         </div>
       </div>
 
@@ -211,3 +334,18 @@ const handleValidate = async () => {
     </n-config-provider>
   </AdminLayout>
 </template>
+
+<style scoped>
+/* Transitions */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
+}
+</style>

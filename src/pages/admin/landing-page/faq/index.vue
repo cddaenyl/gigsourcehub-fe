@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
   NButton,
   NIcon,
@@ -11,13 +11,14 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { Plus, Calendar } from '@vicons/tabler'
+import { Plus, Filter } from '@vicons/tabler'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import SearchInput from '@/components/shared/SearchInput.vue'
 import FAQTable from '@/components/tables/FAQTable.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
 import BaseModal from '@/components/shared/BaseModal.vue'
+import FAQFilters from '@/components/FAQFilters.vue'
 import { useFAQs } from '@/composables/useFAQs'
 import { createFAQApi, updateFAQApi, deleteFAQApi } from '@/services/faq.service'
 import type { FAQ } from '@/models/FAQ'
@@ -39,6 +40,22 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const isSubmitting = ref(false)
 
+const showFilters = ref(false)
+
+const filters = ref({
+  published_at_range: null as [number, number] | null,
+  status: '',
+  author: '',
+})
+
+watch(
+  filters,
+  () => {
+    currentPage.value = 1
+  },
+  { deep: true }
+)
+
 // Modal state
 const showAddModal = ref(false)
 const showEditModal = ref(false)
@@ -49,11 +66,21 @@ const formQuestion = ref('')
 const formAnswer = ref('')
 
 // ── API Integration ──────────────────────────────────────────────────────────
-const queryParams = computed(() => ({
-  page: currentPage.value,
-  limit: pageSize.value,
-  search: searchQuery.value || undefined,
-}))
+const queryParams = computed(() => {
+  const params: Record<string, unknown> = {
+    page: currentPage.value,
+    limit: pageSize.value,
+    search: searchQuery.value || undefined,
+    status: filters.value.status || undefined,
+    author: filters.value.author || undefined,
+  }
+  if (filters.value.published_at_range) {
+    const [from, to] = filters.value.published_at_range
+    params.published_at_from = new Date(from).toISOString().substring(0, 10)
+    params.published_at_to = new Date(to).toISOString().substring(0, 10)
+  }
+  return params
+})
 
 const { faqs, pageCount, isLoading, refetch } = useFAQs(queryParams)
 
@@ -87,6 +114,14 @@ const closeAddModal = () => {
 const closeEditModal = () => {
   showEditModal.value = false
   editTarget.value = null
+}
+
+const handleClearFilters = () => {
+  filters.value = {
+    published_at_range: null,
+    status: '',
+    author: '',
+  }
 }
 
 const handleAdd = async () => {
@@ -183,58 +218,74 @@ const themeOverride = {
         <!-- Page Header -->
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold text-gray-700">Konten Landing Page</h1>
+          <div class="flex items-center gap-2">
+            <n-button 
+              :secondary="!showFilters" 
+              :type="showFilters ? 'primary' : 'default'"
+              :color="showFilters ? '#0014B2' : undefined"
+              @click="showFilters = !showFilters"
+            >
+              <template #icon>
+                <n-icon :component="Filter" />
+              </template>
+              Filter
+            </n-button>
+          </div>
         </div>
 
-        <!-- Content Card -->
-        <div class="bg-white rounded-lg shadow-sm p-2 py-3 space-y-4">
-          <!-- Tabs + Action bar -->
-          <div class="flex items-center justify-between">
-            <n-tabs
-              value="faq"
-              type="line"
-              @update:value="handleTabChange"
-            >
-              <n-tab name="faq">FAQ</n-tab>
-              <n-tab name="informasi-perusahaan">Informasi Perusahaan</n-tab>
-              <n-tab name="kategori-bidang">Kategori Bidang</n-tab>
-            </n-tabs>
-
-            <!-- Action bar (right side of tabs) -->
-            <div class="flex items-center gap-3 pb-1">
-              <n-button
-                text
-                size="medium"
-                class="text-slate-400 hover:text-slate-600 border border-slate-200 rounded px-2 py-1"
-              >
-                <n-icon :component="Calendar" size="18" />
-              </n-button>
-              <SearchInput
-                :model-value="searchQuery"
-                placeholder="Search"
-                @update:model-value="handleSearch"
-              />
-              <n-button type="primary" color="#0014B2" @click="openAddModal">
-                <template #icon>
-                  <n-icon :component="Plus" />
-                </template>
-                Tambah FAQ
-              </n-button>
+        <div class="flex gap-6 items-start relative">
+          <!-- Filter Sidebar - Only shown if toggled -->
+          <transition name="slide-fade">
+            <div v-if="showFilters" class="w-72 shrink-0 sticky top-6">
+              <FAQFilters v-model:filters="filters" @clear="handleClearFilters" />
             </div>
+          </transition>
+
+          <!-- Content Card -->
+          <div class="flex-1 min-w-0 bg-white rounded-lg shadow-sm p-6 space-y-4 border border-gray-100">
+            <!-- Tabs + Action bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-2">
+              <n-tabs
+                value="faq"
+                type="line"
+                @update:value="handleTabChange"
+                class="flex-1"
+              >
+                <n-tab name="faq">FAQ</n-tab>
+                <n-tab name="informasi-perusahaan">Informasi Perusahaan</n-tab>
+                <n-tab name="kategori-bidang">Kategori Bidang</n-tab>
+              </n-tabs>
+
+              <!-- Action bar (right side of tabs) -->
+              <div class="flex items-center gap-3 pb-1">
+                <SearchInput
+                  :model-value="searchQuery"
+                  placeholder="Search"
+                  @update:model-value="handleSearch"
+                />
+                <n-button type="primary" color="#0014B2" @click="openAddModal">
+                  <template #icon>
+                    <n-icon :component="Plus" />
+                  </template>
+                  Tambah FAQ
+                </n-button>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <FAQTable
+              :data="faqs"
+              :loading="isLoading"
+              @action="handleTableAction"
+            />
+
+            <!-- Pagination -->
+            <CandidatePagination
+              v-model:page="currentPage"
+              v-model:page-size="pageSize"
+              :page-count="pageCount"
+            />
           </div>
-
-          <!-- Table -->
-          <FAQTable
-            :data="faqs"
-            :loading="isLoading"
-            @action="handleTableAction"
-          />
-
-          <!-- Pagination -->
-          <CandidatePagination
-            v-model:page="currentPage"
-            v-model:page-size="pageSize"
-            :page-count="pageCount"
-          />
         </div>
       </div>
 
@@ -334,3 +385,19 @@ const themeOverride = {
     </n-config-provider>
   </AdminLayout>
 </template>
+
+<style scoped>
+/* Transitions */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
+}
+</style>
+

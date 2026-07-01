@@ -93,10 +93,6 @@ const formatNoteDate = (value: string) => {
     year: 'numeric',
   })
 }
-const disableRecruitmentSelect = computed(() => {
-  const status = recruitmentStatusName.value
-  return status === 'Available' || status === 'Assigned'
-})
 
 const getInitials = (name: string) => {
   const tokens = name.trim().split(/\s+/)
@@ -124,7 +120,7 @@ const handleCancelRecruitment = () => {
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-0.5">
           <h4 class="font-bold text-sm text-gray-500">Kontrol Rekrutmen</h4>
-          <p class="text-xs text-gray-400">Kelola level kandidat dan status Rekrutmen</p>
+          <p class="text-xs text-gray-400">Kelola Level Kandidat</p>
         </div>
         <div class="flex flex-col gap-1">
           <h4 class="font-bold text-xs text-gray-500">Level Kandidat</h4>
@@ -132,15 +128,6 @@ const handleCancelRecruitment = () => {
             v-model:value="level"
             placeholder="Pilih Level Kandidat"
             :options="levelOptions"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <h4 class="font-bold text-xs text-gray-500">Status Rekrutmen</h4>
-          <n-select
-            :disabled="disableRecruitmentSelect"
-            v-model:value="status"
-            placeholder="Pilih Status Rekrutmen"
-            :options="recruitmentOptions"
           />
         </div>
         <div class="flex justify-end">

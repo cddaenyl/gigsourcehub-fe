@@ -7,7 +7,7 @@ import { declineRecruitmentApi } from '@/services/user.service'
 import { useAuthStore } from '@/stores/auth.store'
 import { useQueryClient } from '@tanstack/vue-query'
 import { Briefcase, Calendar } from '@vicons/tabler'
-import { NButton, NEmpty, NIcon, NSpin, useMessage } from 'naive-ui'
+import { NButton, NEmpty, NIcon, useMessage } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useProfile } from '@/composables/useProfile'
 
@@ -49,10 +49,10 @@ const handleDecline = () => {
   showDeclineModal.value = true
 }
 
-const confirmDecline = async () => {
+const confirmDecline = async (reasonText: string) => {
   isDeclining.value = true
   try {
-    await declineRecruitmentApi(userId.value)
+    await declineRecruitmentApi(userId.value, { declined_reason: reasonText })
     message.success('Recruitment process declined successfully')
     // Invalidate active-subrequest query to refresh status card
     queryClient.invalidateQueries({ queryKey: ['active-subrequest', userId.value] })
@@ -91,11 +91,15 @@ const confirmDecline = async () => {
       <div v-if="activeTab === 'in-progress'" class="flex-1 flex flex-col">
         <!-- Loading State -->
         <div v-if="isLoadingActiveSR" class="flex-1 flex items-center justify-center min-h-[300px]">
-          <n-spin size="large" />
+          <div class="flex gap-2 justify-center items-center">
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          </div>
         </div>
 
         <!-- Recruitment Details -->
-        <div v-else-if="activeSubrequest"
+        <div v-else-if="activeSubrequest && profile?.recruitment_status_name !== 'Accepted'"
           class="border-l-4 border-[#0014B2] bg-slate-50/50 p-6 rounded-r-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div class="space-y-1">
             <h3 class="text-lg font-bold text-slate-800">{{ activeSubrequest.job_role }}</h3>
@@ -129,7 +133,11 @@ const confirmDecline = async () => {
       <div v-else-if="activeTab === 'history'" class="flex-1 flex flex-col">
         <!-- Loading State -->
         <div v-if="isLoadingHistory" class="flex-1 flex items-center justify-center min-h-[300px]">
-          <n-spin size="large" />
+          <div class="flex gap-2 justify-center items-center">
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          </div>
         </div>
 
         <!-- History List -->
@@ -161,6 +169,7 @@ const confirmDecline = async () => {
     <ConfirmationModal v-model:show="showDeclineModal" title="Confirm Recruitment Decline"
       message="Your status will be updated once confirmed by the admin. You can still access the chat feature while this process is ongoing."
       confirm-text="Decline Recruitment" cancel-text="Close" type="danger" :loading="isDeclining"
+      show-reason-textarea reason-placeholder="Tell us why you are declining this recruitment..."
       @confirm="confirmDecline" />
   </CandidateLayout>
 </template>

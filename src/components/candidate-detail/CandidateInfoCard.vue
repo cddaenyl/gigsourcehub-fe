@@ -2,12 +2,17 @@
 import { computed } from 'vue'
 import type { User } from '@/models/User'
 import { NCard, NTag, NIcon, NSpace, NGrid, NGi } from 'naive-ui'
-import { Download, Eye, Link } from '@vicons/tabler'
+import { Eye, Link } from '@vicons/tabler'
 import { useKabupaten, useProvinsi } from '@/composables/useRegion'
 import { format } from 'date-fns'
 
 const props = defineProps<{
   user: User
+}>()
+
+const emit = defineEmits<{
+  (e: 'preview-cv', payload: { url: string | null; name: string | null }): void
+  (e: 'download-cv', payload: { url: string | null; name: string | null }): void
 }>()
 
 const formatDate = (value: string | null) => {
@@ -213,8 +218,26 @@ const provinsiName = computed(() => {
             </div>
           </div>
           <div class="flex justify-end space-x-2 pr-2">
-            <n-icon :component="Eye" size="20" color="#64748B" />
-            <n-icon :component="Download" size="20" color="#64748B" />
+            <button
+              type="button"
+              class="p-1 rounded hover:cursor-pointer"
+              @click.prevent="
+                emit('preview-cv', { url: user.cv?.url || null, name: user.cv?.name || null })
+              "
+              :aria-label="user.cv?.url ? 'Preview CV' : 'No CV available'"
+            >
+              <n-icon :component="Eye" size="20" color="#64748B" />
+            </button>
+            <!-- <button
+              type="button"
+              class="p-1 rounded hover:cursor-pointer"
+              @click.prevent="
+                emit('download-cv', { url: user.cv?.url || null, name: user.cv?.name || null })
+              "
+              :aria-label="user.cv?.url ? 'Download CV' : 'No CV available'"
+            >
+              <n-icon :component="Download" size="20" color="#64748B" />
+            </button> -->
           </div>
         </div>
       </n-space>

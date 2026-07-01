@@ -9,10 +9,13 @@ import type { TalentNeed } from '@/models/Table'
 
 interface Props {
   data: TalentNeed[]
+  loading?: boolean
   actions?: Array<'detail' | 'edit' | 'delete' | 'validate'>
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+})
 
 const emit = defineEmits<{
   action: [action: string, item: TalentNeed]
@@ -89,6 +92,20 @@ const columns: DataTableColumns<TalentNeed> = [
 
 <template>
   <div>
-    <n-data-table :columns="columns" :data="data" :bordered="false" single-column single-row />
+    <div v-if="props.loading && (!props.data || props.data.length === 0)" class="space-y-3">
+      <!-- Skeleton Header -->
+      <div class="h-10 bg-slate-100/80 rounded-md animate-pulse w-full"></div>
+      <!-- Skeleton Rows -->
+      <div v-for="i in 5" :key="i" class="h-12 bg-slate-50/50 border border-slate-100/80 rounded-md animate-pulse w-full"></div>
+    </div>
+    <n-data-table
+      v-else
+      :columns="columns"
+      :data="data"
+      :loading="loading"
+      :bordered="false"
+      single-column
+      single-row
+    />
   </div>
 </template>

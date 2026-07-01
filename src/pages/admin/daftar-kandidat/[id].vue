@@ -3,7 +3,7 @@ import { computed, ref, unref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUser } from '@/composables/useUser'
 import { useActiveSubrequest } from '@/composables/useActiveSubrequest'
-import { useAdminMyRequests, useAssignCandidateToSubrequest } from '@/composables/useRequest'
+import { useActiveAdminMyRequests, useAssignCandidateToSubrequest } from '@/composables/useRequest'
 import { useCandidateOnboardingHistory } from '@/composables/useOnboarding'
 import { useStartChat } from '@/composables/useChat'
 import AdminLayout from '@/layouts/AdminLayout.vue'
@@ -22,6 +22,7 @@ import {
   NDatePicker,
   NSpace,
   NIcon,
+  NInput,
   useMessage,
   type SelectOption,
 } from 'naive-ui'
@@ -97,6 +98,7 @@ const recruitModalVisible = ref(false)
 const chatModalVisible = ref(false)
 const cancelRecruitmentModalVisible = ref(false)
 const stopOnboardingModalVisible = ref(false)
+const cancelledReason = ref('')
 const declineConfirmationModalVisible = ref(false)
 const finalizeModalVisible = ref(false)
 const finalizeStartDate = ref<string | null>(null)
@@ -107,6 +109,31 @@ const finalizeFeedbackDetail = ref('')
 const selectedRequestId = ref<string | null>(null)
 const selectedSubrequestId = ref<string | null>(null)
 const assignedPairKeys = ref<string[]>([])
+const showCVPreview = ref(false)
+const CVPreviewUrl = ref<string | null>(null)
+const CVPreviewName = ref<string | null>(null)
+
+const handlePreviewCV = (payload: { url: string | null; name: string | null }) => {
+  CVPreviewUrl.value = payload.url
+  CVPreviewName.value = payload.name
+  showCVPreview.value = true
+}
+
+// const handleDownloadCV = (payload: { url: string | null; name: string | null }) => {
+//   if (!payload.url) return
+//   // Try to force download if possible, otherwise open in new tab
+//   try {
+//     const a = document.createElement('a')
+//     a.href = payload.url
+//     a.target = '_blank'
+//     if (payload.name) a.download = payload.name
+//     document.body.appendChild(a)
+//     a.click()
+//     a.remove()
+//   } catch (err) {
+//     window.open(payload.url, '_blank')
+//   }
+// }
 
 const myRequestsParams = computed<RequestQueryParams>(() => ({
   page: 1,
@@ -117,7 +144,7 @@ const {
   requests: myRequests,
   isLoading: isMyRequestsLoading,
   refetch: refetchMyRequests,
-} = useAdminMyRequests(myRequestsParams)
+} = useActiveAdminMyRequests(myRequestsParams)
 const { mutateAsync: assignCandidateToSubrequest, isPending: isAssigningCandidate } =
   useAssignCandidateToSubrequest()
 const { mutateAsync: startChat, isPending: isStartingChat } = useStartChat()
@@ -299,15 +326,17 @@ const handleStopOnboardingClick = (): void => {
 
 const closeStopOnboardingModal = (): void => {
   stopOnboardingModalVisible.value = false
+  cancelledReason.value = ''
 }
 
 const handleConfirmStopOnboarding = async (): Promise<void> => {
   if (!user.value?.id) return
 
   try {
-    await stopOnboarding()
+    await stopOnboarding({ cancelled_reason: cancelledReason.value })
     message.success('Onboarding kandidat berhasil dihentikan.', { duration: 2000 })
     stopOnboardingModalVisible.value = false
+    cancelledReason.value = ''
     await Promise.all([refetchUser(), refetchMyRequests(), refetchActiveSubrequest()])
   } catch (err) {
     const messageText = err instanceof Error ? err.message : 'Gagal menghentikan onboarding.'
@@ -564,20 +593,29 @@ const handleAssignCandidate = async (): Promise<void> => {
         </div>
         <div
           v-else-if="activeSubrequest && user.recruitment_status_name === 'Decline'"
-          class="flex text-red-500 border-l-3 bg-red-50 items-center px-2 py-1.5 rounded-sm gap-1 justify-between"
+          class="flex text-red-500 border-l-3 bg-red-50 px-2 py-2 rounded-sm gap-2"
         >
-          <div class="flex space-x-1">
-            <n-icon size="14" :component="AlertTriangle" style="font-weight: bold" />
-            <h2 class="text-xs italic font-normal">
-              Kandidat menolak proses rekrutmen
-              <span class="font-semibold"
-                >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
-              >
-            </h2>
+          <div class="flex flex-col justify-between gap-1 w-full">
+            <div class="flex space-x-1 items-center">
+              <n-icon size="14" :component="AlertTriangle" style="font-weight: bold" />
+              <h2 class="text-xs italic font-normal">
+                Kandidat menolak proses rekrutmen
+                <span class="font-semibold"
+                  >{{ activeSubrequest?.job_role }} - {{ activeSubrequest?.project_name }}</span
+                >
+              </h2>
+            </div>
+            <div v-if="activeSubrequest?.declined_reason" class="text-xs pl-5 text-slate-600">
+            <span class="font-semibold text-red-500">Alasan Penolakan: </span>
+            {{ activeSubrequest.declined_reason }}
           </div>
-          <n-button type="error" size="tiny" @click="handleDeclineConfirmationClick">
-            Konfirmasi
-          </n-button>
+
+          </div>
+          <div class="flex justify-end items-center w-full mr-1">
+            <n-button type="error" size="tiny" @click="handleDeclineConfirmationClick">
+              Konfirmasi
+            </n-button>
+          </div>
         </div>
         <div
           v-else-if="activeSubrequest"
@@ -592,7 +630,7 @@ const handleAssignCandidate = async (): Promise<void> => {
           </h2>
         </div>
         <div
-          v-else-if="!activeSubrequest"
+          v-else-if="!isActiveSubrequestLoading && !activeSubrequest"
           class="flex text-slate-500 border-l-3 bg-slate-200 items-center px-2 py-1.5 rounded-sm gap-1"
         >
           <n-icon size="14" :component="Alarm" style="font-weight: bold" />
@@ -602,7 +640,7 @@ const handleAssignCandidate = async (): Promise<void> => {
         </div>
         <n-grid :x-gap="8" :cols="2" item-responsive>
           <n-gi>
-            <CandidateInfoCard :user="user" />
+            <CandidateInfoCard :user="user" @preview-cv="handlePreviewCV" />
           </n-gi>
 
           <n-gi>
@@ -704,6 +742,18 @@ const handleAssignCandidate = async (): Promise<void> => {
           Tindakan ini akan menghentikan status onboarding kandidat dan tidak bisa dibatalkan.
         </p>
 
+        <!-- Reason Textarea -->
+        <div class="w-full mt-4 text-left">
+          <label class="text-xs font-semibold text-slate-500">Alasan Pemberhentian <span class="text-red-500">*</span></label>
+          <n-input
+            v-model:value="cancelledReason"
+            type="textarea"
+            placeholder="Masukkan alasan pemberhentian..."
+            :rows="3"
+            class="mt-1"
+          />
+        </div>
+
         <div class="mt-8 flex justify-center gap-3">
           <n-button secondary :disabled="isStoppingOnboarding" @click="closeStopOnboardingModal">
             Tutup
@@ -711,7 +761,7 @@ const handleAssignCandidate = async (): Promise<void> => {
           <n-button
             type="error"
             :loading="isStoppingOnboarding"
-            :disabled="isStoppingOnboarding"
+            :disabled="isStoppingOnboarding || !cancelledReason.trim()"
             @click="handleConfirmStopOnboarding"
           >
             Berhentikan
@@ -902,6 +952,31 @@ const handleAssignCandidate = async (): Promise<void> => {
       @positive-click="closeFinalizeFeedback"
     >
       <p>{{ finalizeFeedbackDetail }}</p>
+    </n-modal>
+
+    <n-modal v-model:show="showCVPreview" preset="card" :bordered="false" style="width: 52rem">
+      <div class="-mt-8">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold">Preview Dokumen</h3>
+            <p class="text-sm text-gray-500">
+              {{ CVPreviewName || 'Dokumen' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <iframe
+            v-if="CVPreviewUrl"
+            :src="CVPreviewUrl"
+            title="CV Preview"
+            class="h-[70vh] w-full"
+          ></iframe>
+          <div v-else class="flex items-center justify-center py-16 text-sm text-slate-400">
+            Preview tidak tersedia.
+          </div>
+        </div>
+      </div>
     </n-modal>
   </AdminLayout>
 </template>

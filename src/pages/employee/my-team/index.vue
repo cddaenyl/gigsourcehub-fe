@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useTableStateStore } from '@/stores/table-state.store'
 import { NConfigProvider, NTabPane, NTabs } from 'naive-ui'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
 import CandidatePagination from '@/components/CandidatePagination.vue'
@@ -31,12 +33,28 @@ const themeOverride = {
   },
 }
 
-const currentPage = ref(1)
-const pageSize = ref(10)
-const activeTab = ref('aktif')
-const searchValue = ref('')
-const searchQuery = ref('')
 const router = useRouter()
+
+const tableStateStore = useTableStateStore()
+const { employeeMyTeam } = storeToRefs(tableStateStore)
+
+const currentPage = computed({
+  get: () => employeeMyTeam.value.page,
+  set: (val) => tableStateStore.setEmployeeMyTeam({ page: val }),
+})
+const pageSize = computed({
+  get: () => employeeMyTeam.value.pageSize,
+  set: (val) => tableStateStore.setEmployeeMyTeam({ pageSize: val }),
+})
+const activeTab = computed({
+  get: () => employeeMyTeam.value.tab,
+  set: (val: any) => tableStateStore.setEmployeeMyTeam({ tab: val }),
+})
+const searchQuery = computed({
+  get: () => employeeMyTeam.value.search,
+  set: (val) => tableStateStore.setEmployeeMyTeam({ search: val }),
+})
+const searchValue = ref(employeeMyTeam.value.search)
 
 const queryParams = computed(() => ({
   page: currentPage.value,
@@ -133,11 +151,11 @@ watch(activeTab, () => {
             <n-tab-pane name="history" tab="History" />
           </n-tabs>
 
-          <OnboardingTeamTable :data="tableData" @action="handleAction" />
-
-          <div v-if="isLoading" class="text-center py-8">
-            <p class="text-gray-500">Loading...</p>
-          </div>
+          <OnboardingTeamTable
+            :data="tableData"
+            :loading="isLoading"
+            @action="handleAction"
+          />
 
           <CandidatePagination
             v-model:page="currentPage"

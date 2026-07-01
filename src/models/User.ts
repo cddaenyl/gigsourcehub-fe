@@ -58,6 +58,14 @@ export interface FinalizeRecruitmentPayload {
   subrequest_id: string
 }
 
+export interface StopOnboardingPayload {
+  cancelled_reason: string
+}
+
+export interface DeclineRecruitmentPayload {
+  declined_reason: string
+}
+
 export interface UsersListData {
   list: User[]
   limit: number
@@ -85,6 +93,7 @@ export interface ActiveSubrequest {
   project_name: string
   job_role: string
   created_at?: string
+  declined_reason?: string | null
 }
 
 export interface ActiveSubrequestResponse {
@@ -100,6 +109,12 @@ export interface UsersQueryParams {
   search?: string
   tab?: string
   role?: string
+  bidang?: string
+  job_roles?: string
+  candidate_level?: string
+  job_role_name?: string
+  project_name?: string
+  format?: string
 }
 
 export interface PaginatedListData<T> {

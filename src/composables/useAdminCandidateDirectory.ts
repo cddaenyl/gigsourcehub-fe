@@ -62,6 +62,7 @@ const mapOnboardingRow = (item: OnboardingItem, no: number): AllCandidates => {
     statusHexCode: candidate?.recruitment_status_hex_code || null,
     recruitmentStatusId: candidate?.recruitment_status_id,
     unavailableUntil: candidate?.unavailable_until || null,
+    pengaju: snapshot?.employee_name || '-',
     jobRoleName: item.job_role_name || snapshot?.job_role_name || '-',
     projectName: item.project_name || snapshot?.project_name || '-',
     contractStart: item.start_date,
@@ -102,14 +103,15 @@ export function useAdminCandidateDirectory(
 
     const page = response.data.page || 1
     const limit = response.data.limit || 10
+    const list = response.data.list ?? []
 
     if (currentTab === 'onboarding' || currentTab === 'archive') {
-      return response.data.list.map((item, index) =>
+      return list.map((item, index) =>
         mapOnboardingRow(item as OnboardingItem, formatRowNumber(page, limit, index)),
       )
     }
 
-    return response.data.list.map((user, index) =>
+    return list.map((user, index) =>
       mapUserRow(user as CandidateDirectoryUser, formatRowNumber(page, limit, index)),
     )
   })

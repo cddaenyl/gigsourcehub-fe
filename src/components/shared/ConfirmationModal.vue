@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { NModal, NIcon } from 'naive-ui'
+import { computed, ref, watch } from 'vue'
+import { NModal, NIcon, NInput } from 'naive-ui'
 import { CircleX, CircleCheck, AlertCircle, InfoCircle } from '@vicons/tabler'
 
 interface Props {
@@ -11,15 +11,30 @@ interface Props {
   cancelText?: string
   loading?: boolean
   type?: 'danger' | 'warning' | 'info' | 'success'
+  showReasonTextarea?: boolean
+  reasonPlaceholder?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   cancelText: 'Batal',
   loading: false,
   type: 'danger',
+  showReasonTextarea: false,
+  reasonPlaceholder: 'Masukkan alasan...',
 })
 
 const emit = defineEmits(['update:show', 'confirm', 'cancel'])
+
+const reason = ref('')
+
+watch(
+  () => props.show,
+  (newVal) => {
+    if (newVal) {
+      reason.value = ''
+    }
+  },
+)
 
 const handleClose = () => {
   emit('update:show', false)
@@ -27,7 +42,7 @@ const handleClose = () => {
 }
 
 const handleConfirm = () => {
-  emit('confirm')
+  emit('confirm', reason.value)
 }
 
 const iconComponent = computed(() => {
@@ -69,6 +84,17 @@ const iconComponent = computed(() => {
         <p class="text-slate-500 text-sm leading-relaxed max-w-[420px]">
           {{ props.message }}
         </p>
+
+        <!-- Reason Textarea -->
+        <div v-if="props.showReasonTextarea" class="w-full mt-5 text-left max-w-[420px]">
+          <n-input
+            v-model:value="reason"
+            type="textarea"
+            :placeholder="props.reasonPlaceholder"
+            :rows="3"
+            :disabled="props.loading"
+          />
+        </div>
       </div>
 
       <!-- Footer -->
@@ -77,12 +103,13 @@ const iconComponent = computed(() => {
           class="px-6 py-2 h-10 min-w-[100px] rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-medium transition-colors text-[14px]">
           {{ props.cancelText }}
         </button>
-        <button @click="handleConfirm" :disabled="props.loading" :class="[
+        <button @click="handleConfirm" :disabled="props.loading || (props.showReasonTextarea && !reason.trim())" :class="[
           'px-6 py-2 h-10 min-w-[100px] rounded-md text-white font-medium transition-colors text-[14px]',
           props.type === 'danger' ? 'bg-rose-500 hover:bg-rose-600 active:bg-rose-700' :
             props.type === 'warning' ? 'bg-amber-500 hover:bg-amber-600 active:bg-amber-700' :
               props.type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700' :
-                'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'
+                'bg-blue-500 hover:bg-blue-600 active:bg-blue-700',
+          (props.showReasonTextarea && !reason.trim()) ? 'opacity-55 cursor-not-allowed' : ''
         ]">
           <span v-if="props.loading">Processing...</span>
           <span v-else>{{ props.confirmText }}</span>

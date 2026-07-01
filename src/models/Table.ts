@@ -10,6 +10,7 @@ export interface AllCandidates {
   statusHexCode: string | null
   recruitmentStatusId?: string | null
   unavailableUntil?: string | null
+  pengaju?: string
   jobRoleName?: string | null
   projectName?: string | null
   contractStart?: string | null
@@ -28,5 +29,6 @@ export interface TalentNeed {
   batasWaktu: string
   picHr: string
   status: string
+  requestStatus?: string
   urgensi: 'High' | 'Middle' | 'Low'
 }

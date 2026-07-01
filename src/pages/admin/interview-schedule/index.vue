@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, h, ref, watch } from 'vue'
+import CandidatePagination from '@/components/CandidatePagination.vue'
+import AdminLayout from '@/layouts/AdminLayout.vue'
+import { useTableStateStore } from '@/stores/table-state.store'
 import {
   NConfigProvider,
   NDataTable,
@@ -11,16 +13,16 @@ import {
   type DataTableColumns,
   type SelectOption,
 } from 'naive-ui'
-import AdminLayout from '@/layouts/AdminLayout.vue'
-import CandidatePagination from '@/components/CandidatePagination.vue'
-import { useInterviewStages } from '@/composables/useInterviewStages'
+import { storeToRefs } from 'pinia'
+import { computed, h, watch } from 'vue'
+// import CandidateStatusChip from '@/components/CandidateStatusChip.vue'
+// import { useInterviewStages } from '@/composables/useInterviewStages'
 import { useInterviewsByTab } from '@/composables/useInterviews'
-import { patchInterviewStageApi, patchInterviewStatusApi } from '@/services/interview.service'
 import type {
   InterviewScheduleItem,
-  InterviewScheduleTab,
   InterviewStatus,
 } from '@/models/InterviewSchedule'
+import { patchInterviewStatusApi } from '@/services/interview.service'
 
 const themeOverride = {
   DataTable: {
@@ -36,9 +38,22 @@ const themeOverride = {
 }
 
 const message = useMessage()
-const currentPage = ref(1)
-const pageSize = ref(10)
-const activeTab = ref<InterviewScheduleTab>('semua')
+
+const tableStateStore = useTableStateStore()
+const { adminInterviewSchedule } = storeToRefs(tableStateStore)
+
+const currentPage = computed({
+  get: () => adminInterviewSchedule.value.page,
+  set: (val) => tableStateStore.setAdminInterviewSchedule({ page: val }),
+})
+const pageSize = computed({
+  get: () => adminInterviewSchedule.value.pageSize,
+  set: (val) => tableStateStore.setAdminInterviewSchedule({ pageSize: val }),
+})
+const activeTab = computed({
+  get: () => adminInterviewSchedule.value.tab,
+  set: (val: any) => tableStateStore.setAdminInterviewSchedule({ tab: val }),
+})
 
 const queryParams = computed(() => ({
   page: currentPage.value,
@@ -46,29 +61,45 @@ const queryParams = computed(() => ({
 }))
 
 const { interviews, pageCount, isLoading, refetch } = useInterviewsByTab(queryParams, activeTab)
-const stageQueryParams = computed(() => ({
-  page: 1,
-  limit: 1000,
-}))
-const { interviewStages } = useInterviewStages(stageQueryParams)
+// const stageQueryParams = computed(() => ({
+//   page: 1,
+//   limit: 1000,
+// }))
+// const { interviewStages } = useInterviewStages(stageQueryParams)
 
 watch(activeTab, () => {
   currentPage.value = 1
 })
 
-const stageOptions = computed<SelectOption[]>(() =>
-  interviewStages.value.map((stage) => ({
-    label: stage.name,
-    value: stage.id,
-  })),
-)
+// const stageOptions = computed<SelectOption[]>(() =>
+//   interviewStages.value.map((stage) => ({
+//     label: stage.name,
+//     value: stage.id,
+//   })),
+// )
 
 const statusOptions: SelectOption[] = [
-  { label: 'Scheduled', value: 'SCHEDULED' },
   { label: 'Cancelled', value: 'CANCELLED' },
   { label: 'No Show', value: 'NO_SHOW' },
   { label: 'Completed', value: 'COMPLETED' },
+  { label: 'Rescheduled', value: 'RESCHEDULED' },
 ]
+
+const getStatusOptionsForRow = (row: InterviewScheduleItem) => {
+  if (!row?.scheduled_at) return statusOptions
+
+  const scheduled = new Date(row.scheduled_at)
+  if (Number.isNaN(scheduled.getTime())) return statusOptions
+
+  // if scheduled time is in the past, allow only No Show and Completed
+  if (scheduled.getTime() < Date.now()) {
+    return statusOptions.filter(
+      (o) => o.value === 'NO_SHOW' || o.value === 'COMPLETED' || o.value === 'RESCHEDULED',
+    )
+  }
+
+  return statusOptions
+}
 
 const formatDateTime = (value: string | null | undefined) => {
   if (!value) {
@@ -106,6 +137,8 @@ const getStatusColor = (status: InterviewStatus) => {
       return { color: '#334155', textColor: '#FFFFFF' }
     case 'COMPLETED':
       return { color: '#10B981', textColor: '#FFFFFF' }
+    case 'RESCHEDULED':
+      return { color: '#F59E0B', textColor: '#FFFFFF' }
     case 'SCHEDULED':
     default:
       return { color: '#3B82F6', textColor: '#FFFFFF' }
@@ -122,26 +155,34 @@ const formatStatusLabel = (status: InterviewStatus) => {
       return 'No Show'
     case 'COMPLETED':
       return 'Completed'
+    case 'RESCHEDULED':
+      return 'Rescheduled'
+
     default:
       return status
   }
 }
 
-const getStageTextColor = (hexCode: string) => {
-  const normalized = hexCode.replace('#', '')
-  if (normalized.length !== 6) {
-    return '#FFFFFF'
-  }
+// const getStageTextColor = (hexCode: string) => {
+//   const normalized = hexCode.replace('#', '')
+//   if (normalized.length !== 6) {
+//     return '#FFFFFF'
+//   }
 
-  const red = Number.parseInt(normalized.slice(0, 2), 16)
-  const green = Number.parseInt(normalized.slice(2, 4), 16)
-  const blue = Number.parseInt(normalized.slice(4, 6), 16)
-  const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255
+//   const red = Number.parseInt(normalized.slice(0, 2), 16)
+//   const green = Number.parseInt(normalized.slice(2, 4), 16)
+//   const blue = Number.parseInt(normalized.slice(4, 6), 16)
+//   const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255
 
-  return luminance > 0.6 ? '#111827' : '#FFFFFF'
-}
+//   return luminance > 0.6 ? '#111827' : '#FFFFFF'
+// }
 
-const buildChip = (label: string, color: { color: string; textColor: string }, clickable = false) =>
+const buildChip = (
+  label: string,
+  color: { color: string; textColor: string },
+  clickable = false,
+  showChevron = false,
+) =>
   h(
     NTag,
     {
@@ -150,35 +191,57 @@ const buildChip = (label: string, color: { color: string; textColor: string }, c
       color,
       style: {
         cursor: clickable ? 'pointer' : 'default',
+        display: 'inline-flex',
+        alignItems: 'center',
       },
     },
-    { default: () => label },
+    {
+      default: () =>
+        h('span', { class: 'inline-flex items-center space-x-1' }, [
+          h('span', {}, label),
+          showChevron
+            ? h(
+              'svg',
+              {
+                xmlns: 'http://www.w3.org/2000/svg',
+                viewBox: '0 0 24 24',
+                width: '20',
+                height: '20',
+                fill: 'none',
+                stroke: 'currentColor',
+                'stroke-width': '2',
+              },
+              [h('path', { d: 'M6 9l6 6 6-6' })],
+            )
+            : null,
+        ]),
+    },
   )
 
-const handleStageChange = async (interview: InterviewScheduleItem, stageId: string | number) => {
-  if (typeof stageId !== 'string' || stageId === interview.stage_id) {
-    return
-  }
+// const handleStageChange = async (interview: InterviewScheduleItem, stageId: string | number) => {
+//   if (typeof stageId !== 'string' || stageId === interview.stage_id) {
+//     return
+//   }
 
-  const selectedStage = interviewStages.value.find((stage) => stage.id === stageId)
+//   const selectedStage = interviewStages.value.find((stage) => stage.id === stageId)
 
-  if (!selectedStage) {
-    message.error('Jenis Interview tidak ditemukan.')
-    return
-  }
+//   if (!selectedStage) {
+//     message.error('Jenis Interview tidak ditemukan.')
+//     return
+//   }
 
-  try {
-    await patchInterviewStageApi({
-      interview_id: interview.id,
-      stage_id: stageId,
-      status: interview.status,
-    })
-    message.success(`Jenis Interview berhasil diubah ke ${selectedStage.name}.`)
-    await refetch()
-  } catch (error) {
-    message.error(error instanceof Error ? error.message : 'Gagal mengubah Jenis Interview.')
-  }
-}
+//   try {
+//     await patchInterviewStageApi({
+//       interview_id: interview.id,
+//       stage_id: stageId,
+//       status: interview.status,
+//     })
+//     message.success(`Jenis Interview berhasil diubah ke ${selectedStage.name}.`)
+//     await refetch()
+//   } catch (error) {
+//     message.error(error instanceof Error ? error.message : 'Gagal mengubah Jenis Interview.')
+//   }
+// }
 
 const handleStatusChange = async (interview: InterviewScheduleItem, status: string | number) => {
   if (typeof status !== 'string' || status === interview.status) {
@@ -232,32 +295,46 @@ const columns: DataTableColumns<InterviewScheduleItem> = [
     key: 'scheduled_at',
     render: (row) => h('span', { class: 'text-slate-600' }, formatDateTime(row.scheduled_at)),
   },
+  // {
+  //   title: 'Jenis Interview',
+  //   key: 'stage',
+  //   render: (row) =>
+  //     h(
+  //       NPopselect,
+  //       {
+  //         value: row.stage_id,
+  //         options: stageOptions.value,
+  //         onUpdateValue: (value: string | number | null) => {
+  //           if (value !== null) {
+  //             void handleStageChange(row, value)
+  //           }
+  //         },
+  //       },
+  //       {
+  //         default: () =>
+  //           buildChip(
+  //             row.stage?.name || '-',
+  //             {
+  //               color: row.stage?.hex_code || '#E2E8F0',
+  //               textColor: getStageTextColor(row.stage?.hex_code || '#E2E8F0'),
+  //             },
+  //             true,
+  //           ),
+  //       },
+  //     ),
+  // },
   {
     title: 'Jenis Interview',
     key: 'stage',
     render: (row) =>
-      h(
-        NPopselect,
+      buildChip(
+        row.stage?.name || '-',
         {
-          value: row.stage_id,
-          options: stageOptions.value,
-          onUpdateValue: (value: string | number | null) => {
-            if (value !== null) {
-              void handleStageChange(row, value)
-            }
-          },
+          color: row.stage?.hex_code || '#E2E8F0',
+          textColor: getStatusColor(row.status).textColor,
         },
-        {
-          default: () =>
-            buildChip(
-              row.stage?.name || '-',
-              {
-                color: row.stage?.hex_code || '#E2E8F0',
-                textColor: getStageTextColor(row.stage?.hex_code || '#E2E8F0'),
-              },
-              true,
-            ),
-        },
+        false,
+        false,
       ),
   },
   {
@@ -273,7 +350,7 @@ const columns: DataTableColumns<InterviewScheduleItem> = [
         NPopselect,
         {
           value: row.status,
-          options: statusOptions,
+          options: getStatusOptionsForRow(row),
           onUpdateValue: (value: string | number | null) => {
             if (value !== null) {
               void handleStatusChange(row, value)
@@ -281,7 +358,8 @@ const columns: DataTableColumns<InterviewScheduleItem> = [
           },
         },
         {
-          default: () => buildChip(formatStatusLabel(row.status), getStatusColor(row.status), true),
+          default: () =>
+            buildChip(formatStatusLabel(row.status), getStatusColor(row.status), true, true),
         },
       ),
   },
@@ -302,12 +380,15 @@ const columns: DataTableColumns<InterviewScheduleItem> = [
             <n-tab-pane name="scheduled" tab="Scheduled" />
           </n-tabs>
 
-          <n-data-table :columns="columns" :data="interviews" :bordered="false" :loading="isLoading" single-column
-            single-row />
-
-          <div v-if="isLoading" class="py-8 text-center">
-            <p class="text-gray-500">Loading...</p>
+          <div v-if="isLoading && (!interviews || interviews.length === 0)" class="space-y-3">
+            <!-- Skeleton Header -->
+            <div class="h-10 bg-slate-100/80 rounded-md animate-pulse w-full"></div>
+            <!-- Skeleton Rows -->
+            <div v-for="i in 5" :key="i"
+              class="h-12 bg-slate-50/50 border border-slate-100/80 rounded-md animate-pulse w-full"></div>
           </div>
+          <n-data-table v-else :columns="columns" :data="interviews" :bordered="false" :loading="isLoading"
+            single-column single-row />
 
           <CandidatePagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="pageCount" />
         </div>

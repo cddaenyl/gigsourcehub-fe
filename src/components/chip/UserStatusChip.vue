@@ -5,6 +5,7 @@ const props = defineProps<{
   unavailableUntil?: string | null
   recruitmentStatusId?: string | null
   recruitmentStatusName?: string | null
+  contractStart?: string | null
 }>()
 
 const statusInfo = computed(() => {
@@ -13,11 +14,17 @@ const statusInfo = computed(() => {
     return { label: 'Unavailable', className: 'bg-red-500' as const }
   }
 
-  // OnBoarding, if the recruitment_status == Accepted, Color Green
+  // If status is Accepted and there's a future contract start => OnBoarding (green)
   if (props.recruitmentStatusName === 'Accepted') {
-    return {
-      label: 'OnBoarding',
-      className: 'bg-emerald-500 ' as const,
+    if (props.contractStart) {
+      const start = new Date(props.contractStart)
+      const now = new Date()
+      if (!Number.isNaN(start.getTime()) && start.getTime() < now.getTime()) {
+        return {
+          label: 'OnBoarding',
+          className: 'bg-emerald-500' as const,
+        }
+      }
     }
   }
 
@@ -29,7 +36,7 @@ const statusInfo = computed(() => {
   // Inprogress, if the unvailable_until value is null and the recruitment_status_id is not null, Color Yellow
   return {
     label: 'Inprogress',
-    className: 'bg-amber-500 ' as const,
+    className: 'bg-amber-500' as const,
   }
 })
 </script>

@@ -130,6 +130,7 @@ const allCandidateColumns = (): DataTableColumns<AllCandidates> => [
         unavailableUntil: row.unavailableUntil,
         recruitmentStatusId: row.recruitmentStatusId,
         recruitmentStatusName: row.status,
+        contractStart: row.contractStart,
       }),
   },
   {
@@ -196,6 +197,7 @@ const recruitmentColumns = (): DataTableColumns<AllCandidates> => [
         unavailableUntil: row.unavailableUntil,
         recruitmentStatusId: row.recruitmentStatusId,
         recruitmentStatusName: row.status,
+        contractStart: row.contractStart,
       }),
   },
   {
@@ -234,6 +236,11 @@ const onboardingColumns = (): DataTableColumns<AllCandidates> => [
     render: (row) => row.projectName || '-',
   },
   {
+    title: 'Kontrak Mulai',
+    key: 'contractStart',
+    render: (row) => formatDate(row.contractStart),
+  },
+  {
     title: 'Batas Kontrak',
     key: 'contractEnd',
     render: (row) => formatDate(row.contractEnd),
@@ -246,6 +253,7 @@ const onboardingColumns = (): DataTableColumns<AllCandidates> => [
         unavailableUntil: row.unavailableUntil,
         recruitmentStatusId: row.recruitmentStatusId,
         recruitmentStatusName: row.status,
+        contractStart: row.contractStart,
       }),
   },
   {
@@ -340,7 +348,11 @@ const columns = computed<DataTableColumns<AllCandidates>>(() => {
       <!-- Skeleton Header -->
       <div class="h-10 bg-slate-100/80 rounded-md animate-pulse w-full"></div>
       <!-- Skeleton Rows -->
-      <div v-for="i in 5" :key="i" class="h-12 bg-slate-50/50 border border-slate-100/80 rounded-md animate-pulse w-full"></div>
+      <div
+        v-for="i in 5"
+        :key="i"
+        class="h-12 bg-slate-50/50 border border-slate-100/80 rounded-md animate-pulse w-full"
+      ></div>
     </div>
     <n-data-table
       v-else

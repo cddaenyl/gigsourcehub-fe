@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import CandidatePagination from '@/components/CandidatePagination.vue'
+import BaseModal from '@/components/shared/BaseModal.vue'
+import SearchInput from '@/components/shared/SearchInput.vue'
+import CareerDepartmentTable from '@/components/tables/CareerDepartmentTable.vue'
+import { useCareerDepartments } from '@/composables/useCareerDepartments'
+import AdminLayout from '@/layouts/AdminLayout.vue'
+import type { CareerDepartment } from '@/models/CareerDepartment'
 import {
+  createCareerDepartmentApi,
+  deleteCareerDepartmentApi,
+  updateCareerDepartmentApi,
+  uploadCareerDepartmentImageApi,
+} from '@/services/career-department.service'
+import { Folder, Plus } from '@vicons/tabler'
+import type { UploadFileInfo } from 'naive-ui'
+import {
+  NAlert,
   NButton,
-  NIcon,
-  NTabs,
-  NTab,
   NConfigProvider,
+  NIcon,
   NInput,
+  NP,
+  NTab,
+  NTabs,
+  NText,
   NUpload,
   NUploadDragger,
-  NText,
-  NP,
-  NAlert,
   useDialog,
   useMessage,
 } from 'naive-ui'
-import type { UploadFileInfo } from 'naive-ui'
-import { Plus, Calendar, Folder } from '@vicons/tabler'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import AdminLayout from '@/layouts/AdminLayout.vue'
-import SearchInput from '@/components/shared/SearchInput.vue'
-import CareerDepartmentTable from '@/components/tables/CareerDepartmentTable.vue'
-import CandidatePagination from '@/components/CandidatePagination.vue'
-import BaseModal from '@/components/shared/BaseModal.vue'
-import { useCareerDepartments } from '@/composables/useCareerDepartments'
-import {
-  createCareerDepartmentApi,
-  updateCareerDepartmentApi,
-  deleteCareerDepartmentApi,
-  uploadCareerDepartmentImageApi,
-} from '@/services/career-department.service'
-import type { CareerDepartment } from '@/models/CareerDepartment'
 
 // ── Router ────────────────────────────────────────────────────────────────────
 const router = useRouter()
@@ -247,9 +247,9 @@ const themeOverride = {
         </div>
 
         <!-- Content Card -->
-        <div class="bg-white rounded-lg shadow-sm p-2 py-3 space-y-4">
+        <div class="flex-1">
           <!-- Tabs + Action bar -->
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-2">
             <n-tabs
               value="kategori-bidang"
               type="line"
@@ -267,7 +267,6 @@ const themeOverride = {
                 size="medium"
                 class="text-slate-400 hover:text-slate-600 border border-slate-200 rounded px-2 py-1"
               >
-                <n-icon :component="Calendar" size="18" />
               </n-button>
               <SearchInput
                 :model-value="searchQuery"

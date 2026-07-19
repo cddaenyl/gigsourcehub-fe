@@ -167,7 +167,7 @@ const themeOverride = {
           </transition>
 
           <!-- Content Area -->
-          <div class="flex-1 min-w-0 bg-white rounded-lg shadow-sm p-6 space-y-4 border border-gray-100">
+          <div class="flex-1">
             <!-- Search bar & Tabs row -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-2">
               <n-tabs

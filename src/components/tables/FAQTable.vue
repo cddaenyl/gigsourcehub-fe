@@ -65,6 +65,7 @@ const columns: DataTableColumns<FAQ> = [
   {
     title: 'Pertanyaan',
     key: 'question',
+    sorter: (a, b) => a.question.localeCompare(b.question),
     ellipsis: { tooltip: true },
     render: (row) =>
       h('span', { class: 'text-slate-700 font-medium text-sm' }, row.question),
@@ -72,6 +73,7 @@ const columns: DataTableColumns<FAQ> = [
   {
     title: 'Jawaban',
     key: 'answer',
+    sorter: (a, b) => a.answer.localeCompare(b.answer),
     ellipsis: { tooltip: true },
     render: (row) =>
       h('span', { class: 'text-slate-600 text-sm' }, row.answer),

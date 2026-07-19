@@ -58,6 +58,7 @@ const columns: DataTableColumns<JobVacancy> = [
   {
     title: 'Judul',
     key: 'name',
+    sorter: (a, b) => a.name.localeCompare(b.name),
     render: (row) =>
       h('span', { class: 'text-slate-700 font-medium text-sm' }, row.name),
   },
@@ -65,6 +66,7 @@ const columns: DataTableColumns<JobVacancy> = [
     title: 'Posisi',
     key: 'position',
     width: 160,
+    sorter: (a, b) => a.subrequest?.job_role?.localeCompare(b.subrequest?.job_role ?? '') ?? 0,
     render: (row) =>
       h('span', { class: 'text-slate-600 text-sm' }, row.subrequest?.job_role ?? '—'),
   },
@@ -72,6 +74,7 @@ const columns: DataTableColumns<JobVacancy> = [
     // Poin 1: tampilkan project_name dari request (bukan overview subrequest)
     title: 'Project / Kegiatan',
     key: 'project',
+    sorter: (a, b) => a.subrequest?.project_name?.localeCompare(b.subrequest?.project_name ?? '') ?? 0,
     render: (row) => {
       const text = row.subrequest?.project_name ?? row.project_name ?? '—'
       return h('span', { class: 'text-slate-500 text-sm' }, text)

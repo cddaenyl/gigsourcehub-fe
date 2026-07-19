@@ -70,6 +70,7 @@ const columns: DataTableColumns<CareerDepartment> = [
   {
     title: 'Nama Bidang',
     key: 'name',
+    sorter: (a, b) => a.name.localeCompare(b.name),
     ellipsis: { tooltip: true },
     render: (row) =>
       h('span', { class: 'text-slate-700 font-medium text-sm' }, row.name),
@@ -77,6 +78,7 @@ const columns: DataTableColumns<CareerDepartment> = [
   {
     title: 'Deskripsi',
     key: 'description',
+    sorter: (a, b) => a.description.localeCompare(b.description),
     ellipsis: { tooltip: true },
     render: (row) =>
       h('span', { class: 'text-slate-600 text-sm' }, row.description),
